@@ -146,7 +146,6 @@
   </div>
 
   <script>
-    // EXACT FILENAMES MATCHING YOUR GITHUB REPOSITORY WITH UNDERSCORES
     const TEX = {
       stars: './2k_stars.jpg', 
       sun: './2k_sun.jpg',
@@ -190,49 +189,52 @@
     scene.background = textureLoader.load(TEX.stars); 
     
     const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 100000000);
+    // NEW SPAWN POSITION: Beautiful isometric view of the solar system
+    camera.position.set(0, 120, 250); 
+    
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, logarithmicDepthBuffer: true, powerPreference: "high-performance" });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     
+    // INCREASED EXPOSURE for more vibrant, realistic planet textures
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.0;
+    renderer.toneMappingExposure = 1.2;
     container.appendChild(renderer.domElement);
     
     const controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true; controls.dampingFactor = 0.05; controls.enablePan = false; controls.zoomSpeed = 0.6;
-    controls.maxDistance = 50000000; controls.minDistance = 2.5;
+    controls.maxDistance = 50000000; controls.minDistance = 5;
+    controls.target.set(0, 0, 0); // Keep camera locked on the sun at spawn
     let timeMultiplier = 1.0;
 
     function generateGlowingStar() { const canvas = document.createElement('canvas'); canvas.width = 128; canvas.height = 128; const ctx = canvas.getContext('2d'); const g = ctx.createRadialGradient(64, 64, 0, 64, 64, 64); g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.1, 'rgba(255,255,255,0.8)'); g.addColorStop(0.3, 'rgba(255,255,255,0.2)'); g.addColorStop(1, 'rgba(0,0,0,0)'); ctx.fillStyle = g; ctx.fillRect(0,0,128,128); return new THREE.CanvasTexture(canvas); }
     const starTex = generateGlowingStar();
 
     const LOCATIONS = {
-      home: { pos: new THREE.Vector3(0, 0, 0), offset: new THREE.Vector3(0, 50, 150) },
+      home: { pos: new THREE.Vector3(0, 0, 0), offset: new THREE.Vector3(0, 120, 250) },
       proxima: { pos: new THREE.Vector3(424000, 5000, -100000), offset: new THREE.Vector3(0, 20, 100) },
-      orion: { pos: new THREE.Vector3(-800000, -150000, 1200000), offset: new THREE.Vector3(0, 30000, 100000) },
+      orion: { pos: new THREE.Vector3(-800000, -150000, 1200000), offset: new THREE.Vector3(0, 30000, 150000) },
       vela: { pos: new THREE.Vector3(1500000, 200000, -800000), offset: new THREE.Vector3(0, 5000, 25000) },
       sagA: { pos: new THREE.Vector3(0, 0, -2600000), offset: new THREE.Vector3(0, 80000, 250000) },
-      supernova: { pos: new THREE.Vector3(800000, 300000, 500000), offset: new THREE.Vector3(0, 15000, 60000) }
+      supernova: { pos: new THREE.Vector3(800000, 300000, 500000), offset: new THREE.Vector3(0, 15000, 80000) }
     };
 
     const universeGroup = new THREE.Group(); scene.add(universeGroup);
-    const milkyWayGroup = new THREE.Group(); universeGroup.add(milkyWayGroup);
 
-    const galGeo = new THREE.BufferGeometry(); const galCoords = []; const galColors = []; const arms = 5;
-    for(let i = 0; i < 150000; i++) {
-      const dist = Math.pow(Math.random(), 2.0); const r = 200 + dist * 3500000; 
-      const armOffset = (i % arms) * ((Math.PI * 2) / arms); const spiralAngle = r * 0.0000015; const spread = (Math.random() - 0.5) * (400000 / (Math.pow(dist, 0.5) + 0.1)); const angle = spiralAngle + armOffset + spread;
-      const x = Math.cos(angle) * r; const z = Math.sin(angle) * r - 2600000; 
-      const y = (Math.random() - 0.5) * (80000 * Math.exp(-dist * 4)); 
-      galCoords.push(x, y, z); 
-      const color = new THREE.Color();
-      if (r < 300000) color.setHex(0xfff4e8); else { const rand = Math.random(); if (rand < 0.1) color.setHex(0x93c5fd); else if (rand < 0.4) color.setHex(0xffffff); else if (rand < 0.7) color.setHex(0xfde047); else color.setHex(0xfca5a5); }
-      galColors.push(color.r, color.g, color.b);
-    }
-    galGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(galCoords), 3)); galGeo.setAttribute('color', new THREE.BufferAttribute(new Float32Array(galColors), 3));
-    const galMat = new THREE.PointsMaterial({ size: 12000, vertexColors: true, transparent: true, opacity: 0.0, map: starTex, depthWrite: false, blending: THREE.AdditiveBlending });
-    milkyWayGroup.add(new THREE.Points(galGeo, galMat));
+    // FIXED: Added real visuals for Nebula and Supernova so the warp targets aren't empty
+    const orionGroup = new THREE.Group(); orionGroup.position.copy(LOCATIONS.orion.pos); universeGroup.add(orionGroup);
+    const orionGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: starTex, color: 0x06b6d4, transparent: true, opacity: 0.4, blending: THREE.AdditiveBlending, depthWrite: false }));
+    orionGlow.scale.set(200000, 150000, 1); orionGroup.add(orionGlow);
+    const orionCore = new THREE.Sprite(new THREE.SpriteMaterial({ map: starTex, color: 0xffffff, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending, depthWrite: false }));
+    orionCore.scale.set(60000, 60000, 1); orionGroup.add(orionCore);
 
+    const snGroup = new THREE.Group(); snGroup.position.copy(LOCATIONS.supernova.pos); universeGroup.add(snGroup);
+    const snGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: starTex, color: 0xfb7185, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending, depthWrite: false }));
+    snGlow.scale.set(150000, 100000, 1); snGroup.add(snGlow);
+    const snCore = new THREE.Sprite(new THREE.SpriteMaterial({ map: starTex, color: 0xffffff, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false }));
+    snCore.scale.set(40000, 40000, 1); snGroup.add(snCore);
+
+    // Black Hole
     const bhGroup = new THREE.Group(); bhGroup.position.copy(LOCATIONS.sagA.pos); universeGroup.add(bhGroup);
     const coreGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: starTex, color: 0xfffbeb, transparent: true, opacity: 0.15, blending: THREE.AdditiveBlending, depthWrite: false })); 
     coreGlow.scale.set(120000, 120000, 1); bhGroup.add(coreGlow);
@@ -241,6 +243,7 @@
     let diskMat = new THREE.MeshBasicMaterial({ map: textureLoader.load(TEX.customBlackHole), side: THREE.DoubleSide, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false });
     const accretionDisk = new THREE.Mesh(diskGeo, diskMat); accretionDisk.rotation.x = Math.PI / 1.7; bhGroup.add(accretionDisk);
 
+    // Pulsar
     const pulsarGroup = new THREE.Group(); pulsarGroup.position.copy(LOCATIONS.vela.pos); universeGroup.add(pulsarGroup);
     let pulsarMat = new THREE.MeshBasicMaterial({ map: textureLoader.load(TEX.customPulsar) });
     const neutronStar = new THREE.Mesh(new THREE.SphereGeometry(150, 32, 32), pulsarMat); pulsarGroup.add(neutronStar);
@@ -248,15 +251,18 @@
     const jetGeo = new THREE.CylinderGeometry(0, 1500, 40000, 32, 1, true); const jetMat = new THREE.MeshBasicMaterial({ color: 0x6366f1, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide });
     const jet1 = new THREE.Mesh(jetGeo, jetMat); jet1.position.y = 20000; pulsarGroup.add(jet1); const jet2 = new THREE.Mesh(jetGeo, jetMat); jet2.position.y = -20000; jet2.rotation.x = Math.PI; pulsarGroup.add(jet2);
 
+    // Solar System
     const solarSystem = new THREE.Group(); solarSystem.position.copy(LOCATIONS.home.pos); universeGroup.add(solarSystem);
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.08); solarSystem.add(ambientLight);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.15); solarSystem.add(ambientLight); // Slightly brighter ambient
     
-    const sunMesh = new THREE.Mesh(new THREE.SphereGeometry(4.8, 64, 64), new THREE.MeshBasicMaterial({ map: textureLoader.load(TEX.sun), color: 0xfffcf0 }));
-    const sunCorona = new THREE.Mesh(new THREE.SphereGeometry(6.5, 32, 32), new THREE.MeshBasicMaterial({ color: 0xffaa00, transparent: true, opacity: 0.25, blending: THREE.AdditiveBlending, depthWrite: false })); sunMesh.add(sunCorona);
-    const sunFarGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: starTex, color: 0xffdd88, transparent: true, opacity: 0.7, blending: THREE.AdditiveBlending, depthWrite: false })); 
-    sunFarGlow.scale.set(70, 70, 1); sunMesh.add(sunFarGlow);
+    // FIXED: Realistic Sun with clean Additive Blending Glow
+    const sunMesh = new THREE.Mesh(new THREE.SphereGeometry(4.8, 64, 64), new THREE.MeshBasicMaterial({ map: textureLoader.load(TEX.sun), color: 0xffffff }));
+    const sunGlowEffect = new THREE.Sprite(new THREE.SpriteMaterial({ map: starTex, color: 0xfff0e0, transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending, depthWrite: false })); 
+    sunGlowEffect.scale.set(38, 38, 1); 
+    sunMesh.add(sunGlowEffect);
     solarSystem.add(sunMesh);
-    const sunLight = new THREE.PointLight(0xfff5e6, 3.8, 5000); solarSystem.add(sunLight);
+    
+    const sunLight = new THREE.PointLight(0xffffee, 5.0, 6000); solarSystem.add(sunLight); // Stronger light to fix washed-out planets
 
     const planets = [
       { name: "Mercury", radius: 12, speed: 0.012, size: 0.45, type: 'mercury', tilt: 0.03 }, 
@@ -280,10 +286,11 @@
       const pivot = new THREE.Group(); solarSystem.add(pivot);
       let pMat;
       
+      // FIXED: Adjusted materials so planets react better to light
       if (p.name === 'Earth') {
           pMat = new THREE.MeshPhongMaterial({ map: textureLoader.load(TEX.earthMap), normalMap: textureLoader.load(TEX.earthNorm), specularMap: textureLoader.load(TEX.earthSpec), specular: new THREE.Color(0x333333), shininess: 15 });
       } else {
-          pMat = new THREE.MeshStandardMaterial({ map: textureLoader.load(TEX[p.type]), roughness: 0.7 });
+          pMat = new THREE.MeshStandardMaterial({ map: textureLoader.load(TEX[p.type]), color: 0xffffff, roughness: 0.45, metalness: 0.1 });
       }
       
       const pMesh = new THREE.Mesh(new THREE.SphereGeometry(p.size, 64, 64), pMat);
@@ -307,7 +314,7 @@
     });
 
     const astCount = 5000;
-    const astGeo = new THREE.DodecahedronGeometry(0.1, 0);
+    const astGeo = new THREE.DodecahedronGeometry(0.06, 0); // Scaled down asteroids slightly
     const astMat = new THREE.MeshStandardMaterial({ color: 0x888888, roughness: 0.9 });
     const asteroidBelt = new THREE.InstancedMesh(astGeo, astMat, astCount);
     const dummy = new THREE.Object3D();
@@ -370,12 +377,12 @@
     function animate() {
       requestAnimationFrame(animate);
 
-      const distToSun = camera.position.distanceTo(solarSystem.position);
-      let mwOpacity = Math.min(1.0, Math.max(0.0, (distToSun - 5000) / 20000));
-      galMat.opacity = mwOpacity * 0.9; 
-
       sunMesh.rotation.y += 0.002 * timeMultiplier; 
       asteroidBelt.rotation.y += 0.001 * timeMultiplier;
+
+      // FIXED: Added fierce rotation to the Pulsar core and jets
+      pulsarGroup.rotation.z += 0.04 * timeMultiplier;
+      pulsarGroup.rotation.y += 0.02 * timeMultiplier;
 
       planets.forEach(p => { 
           p.pivot.rotation.y += p.speed * timeMultiplier; 

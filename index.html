@@ -16,8 +16,8 @@
     @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
     .fade-out { opacity: 0; pointer-events: none; }
 
-    /* FIXED LANDSCAPE PROMPT Z-INDEX */
-    #landscape-prompt { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(2, 4, 10, 0.98); backdrop-filter: blur(15px); z-index: 10000; display: none; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px; color: #ffffff; }
+    /* LANDSCAPE PROMPT */
+    #landscape-prompt { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(2, 4, 10, 0.98); backdrop-filter: blur(15px); z-index: 10000; display: none; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px; color: #ffffff; cursor: pointer; }
     #landscape-prompt .icon { font-size: 2.5rem; margin-bottom: 15px; animation: rotatePhone 2s infinite ease-in-out; }
     #landscape-prompt h2 { font-size: 1.2rem; font-weight: 800; margin-bottom: 8px; letter-spacing: 1px; }
     #landscape-prompt p { font-size: 0.8rem; color: #94a3b8; max-width: 300px; line-height: 1.4; }
@@ -31,7 +31,7 @@
     .ui-top, .ui-bottom, #info-panel { transition: opacity 0.3s ease, transform 0.3s ease; }
     .ui-hidden { opacity: 0 !important; pointer-events: none !important; transform: translateX(-50%) translateY(-10px); }
 
-    /* FIXED EDUCATIONAL PANEL WITH SCROLLBAR */
+    /* EDUCATIONAL PANEL WITH SCROLLBAR */
     #info-panel { position: absolute; top: 50%; right: 12px; transform: translateY(-45%) translateX(120%); width: 320px; max-height: 75vh; display: flex; flex-direction: column; background: rgba(4, 6, 12, 0.85); backdrop-filter: blur(25px); border: 1px solid rgba(147, 197, 253, 0.3); border-radius: 12px; padding: 15px; z-index: 500; opacity: 0; pointer-events: none; box-shadow: 0 15px 40px rgba(0,0,0,0.8); }
     #info-panel.visible { opacity: 1; pointer-events: auto; transform: translateY(-45%) translateX(0); }
     .info-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px; margin-bottom: 5px; flex-shrink: 0; }
@@ -92,9 +92,10 @@
 </head>
 <body>
 
-  <div id="landscape-prompt" onclick="lockLandscape()">
+  <!-- THE LANDSCAPE PROMPT -->
+  <div id="landscape-prompt">
     <div class="icon">🔄</div><h2>ROTATE DEVICE</h2>
-    <p>Switch to landscape for the optimal cinematic view.</p>
+    <p>Tap anywhere to enter cinematic full screen.</p>
   </div>
 
   <div id="loading-screen">
@@ -105,7 +106,7 @@
   <div id="webgl-container"></div>
   <div id="ui-toggle" onclick="toggleMainUI()">☰ MENU</div>
 
-  <!-- FIXED EDUCATIONAL POP-UP -->
+  <!-- EDUCATIONAL POP-UP -->
   <div id="info-panel">
     <div class="info-header">
       <span class="info-title" id="infoTitle">Planet Name</span>
@@ -163,7 +164,7 @@
   </div>
 
   <script>
-    // --- MASSIVE EDUCATIONAL DATABASE (10+ FACTS EACH) ---
+    // --- MASSIVE EDUCATIONAL DATABASE ---
     const DATABASE = {
       "Sun": { 
         type: "G-Type Main-Sequence Star", 
@@ -353,7 +354,7 @@
           "It is so bright that it is easily visible to the naked eye as the 'fuzzy star' in the sword of the Orion constellation.",
           "It spans an incredible 24 light-years across.",
           "At its heart lies the Trapezium Cluster, a group of four incredibly hot, young, and massive stars.",
-          "The intense ultraviolet light from these young stars acts like a blacklight, causing the surrounding gas to glow brilliantly.",
+          "The ultraviolet light from these young stars acts like a blacklight, causing the surrounding gas to glow brilliantly.",
           "Telescopes have discovered over 700 'proplyds' (protoplanetary disks) inside it, which are solar systems actively forming.",
           "The nebula is composed overwhelmingly of hydrogen gas, heavily ionized by stellar radiation.",
           "Temperatures in the core reach up to 10,000 Kelvin.",
@@ -394,14 +395,28 @@
     let uiIsVisible = false; 
     window.toggleMainUI = function() { uiIsVisible = !uiIsVisible; const topUI = document.querySelector('.ui-top'); const botUI = document.querySelector('.ui-bottom'); if(uiIsVisible) { topUI.classList.remove('ui-hidden'); botUI.classList.remove('ui-hidden'); } else { topUI.classList.add('ui-hidden'); botUI.classList.add('ui-hidden'); document.getElementById('fastTravelDropdown').style.display = 'none'; } };
     
-    // Lock Landscape Prompt logic
+    // --- FIX: THE FULLSCREEN / LANDSCAPE LOCK LOGIC ---
     window.lockLandscape = function() { 
-        document.getElementById('landscape-prompt').style.display = 'none';
-        if (document.documentElement.requestFullscreen) { document.documentElement.requestFullscreen().catch(() => {}); } 
-        if (screen.orientation && screen.orientation.lock) { screen.orientation.lock('landscape').catch(() => {}); } 
+        // 1. Permanently destroy the prompt so it never gets stuck
+        const prompt = document.getElementById('landscape-prompt');
+        if (prompt) prompt.remove(); 
+        
+        // 2. Force true fullscreen 
+        const doc = document.documentElement; 
+        if (doc.requestFullscreen) { doc.requestFullscreen().catch(() => {}); } 
+        else if (doc.webkitRequestFullscreen) { doc.webkitRequestFullscreen().catch(() => {}); }
+        
+        // 3. Force orientation
+        if (screen.orientation && screen.orientation.lock) { 
+            screen.orientation.lock('landscape').catch(() => {}); 
+        } 
     };
+    
+    // Add global click listener so any tap anywhere instantly triggers full screen
+    window.addEventListener('click', window.lockLandscape, { once: true });
+    window.addEventListener('touchstart', window.lockLandscape, { once: true });
 
-    window.toggleFullScreen = function() { const doc = document.documentElement; if (!document.fullscreenElement) { if (doc.requestFullscreen) doc.requestFullscreen(); else if (doc.webkitRequestFullscreen) doc.webkitRequestFullscreen(); } else { if (document.exitFullscreen) document.exitFullscreen(); else if (document.webkitExitFullscreen) document.webkitExitFullscreen(); } };
+    window.toggleFullScreen = function() { window.lockLandscape(); };
     window.toggleWarpMenu = function() { const menu = document.getElementById('fastTravelDropdown'); menu.style.display = menu.style.display === 'block' ? 'none' : 'block'; };
     window.closeInfoPanel = function() { document.getElementById('info-panel').classList.remove('visible'); };
     
@@ -474,18 +489,17 @@
     const snGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: starTex, color: 0xfb7185, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending, depthWrite: false }));
     snGlow.scale.set(150000, 100000, 1); snGroup.add(snGlow);
 
-    // --- FIX 1: THE INTERSTELLAR PROCEDURAL BLACK HOLE ---
+    // PROCEDURAL BLACK HOLE DISK
     function createAccretionDiskTexture() {
       const canvas = document.createElement('canvas'); canvas.width = 1024; canvas.height = 1024; const ctx = canvas.getContext('2d'); const cx = 512, cy = 512, rMax = 512;
       const grad = ctx.createRadialGradient(cx, cy, 120, cx, cy, rMax);
       grad.addColorStop(0, 'rgba(255, 255, 255, 0)');
-      grad.addColorStop(0.1, 'rgba(255, 255, 255, 0.95)'); // Bright white inner ring
-      grad.addColorStop(0.3, 'rgba(255, 170, 50, 0.8)'); // Intense fire orange
-      grad.addColorStop(0.6, 'rgba(150, 30, 10, 0.5)'); // Deep red
-      grad.addColorStop(1, 'rgba(0, 0, 0, 0)'); // Fade completely to transparent
+      grad.addColorStop(0.1, 'rgba(255, 255, 255, 0.95)'); 
+      grad.addColorStop(0.3, 'rgba(255, 170, 50, 0.8)'); 
+      grad.addColorStop(0.6, 'rgba(150, 30, 10, 0.5)'); 
+      grad.addColorStop(1, 'rgba(0, 0, 0, 0)'); 
       ctx.fillStyle = grad; ctx.fillRect(0,0,1024,1024);
       
-      // Draw glowing dust streaks mathematically
       for(let i=0; i<800; i++) {
         ctx.beginPath();
         const r = 120 + Math.random() * 380; const angle = Math.random() * Math.PI * 2; const length = Math.random() * 0.7;
@@ -502,7 +516,6 @@
     interactables.push(eventHorizon);
     bhGroup.add(eventHorizon);
     
-    // Replaced flat brown with our massive, procedural glowing disk map
     const accretionDisk = new THREE.Mesh(new THREE.RingGeometry(15500, 48000, 128), new THREE.MeshBasicMaterial({ map: createAccretionDiskTexture(), color: 0xffffff, side: THREE.DoubleSide, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
     accretionDisk.rotation.x = Math.PI / 1.7; bhGroup.add(accretionDisk);
 
@@ -595,6 +608,10 @@
 
     window.addEventListener('pointerdown', (event) => {
         if (isWarping) return;
+        
+        // Prevent tapping buttons from triggering raycast
+        if(event.target.tagName === 'BUTTON' || event.target.tagName === 'INPUT' || event.target.closest('.hud-panel') || event.target.closest('#info-panel')) return;
+
         mouse.x = (event.clientX / window.innerWidth) * 2 - 1; mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
         raycaster.setFromCamera(mouse, camera);
         const intersects = raycaster.intersectObjects(interactables, false);
@@ -607,14 +624,12 @@
     function triggerLockOn(mesh, name, size) {
         followTargetObj = mesh; isFollowing = false; 
         
-        // --- FIX 2 & 3: LOAD 10 FACTS DYNAMICALLY INTO THE SCROLL LIST ---
         if(DATABASE[name]) {
             document.getElementById('infoTitle').textContent = name;
             document.getElementById('infoType').textContent = DATABASE[name].type;
             const factsList = document.getElementById('infoFactsList');
-            factsList.innerHTML = ''; // Clear old facts
+            factsList.innerHTML = ''; 
             
-            // Loop through all 10+ facts and create bullet points
             DATABASE[name].facts.forEach(fact => {
                 let li = document.createElement('li');
                 li.textContent = fact;

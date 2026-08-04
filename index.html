@@ -9,6 +9,14 @@
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
     body { background-color: #000000; color: #e0e6ed; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace; overflow: hidden; width: 100vw; height: 100vh; }
     
+    /* NEW LOADING SCREEN CSS */
+    #loading-screen { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background-color: #02040a; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 1s ease-out; }
+    .loader-ring { width: 60px; height: 60px; border: 4px solid rgba(147, 197, 253, 0.2); border-top: 4px solid #93c5fd; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
+    #loading-text { color: #93c5fd; font-size: 0.8rem; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; font-family: monospace; animation: pulse 1.5s infinite; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    .fade-out { opacity: 0; pointer-events: none; }
+
     #webgl-container { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; }
     
     #ui-toggle { position: absolute; top: 12px; right: 12px; background: rgba(10, 15, 30, 0.6); border: 1px solid rgba(255, 255, 255, 0.15); color: #fff; padding: 6px 12px; border-radius: 20px; font-weight: 600; cursor: pointer; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.5); font-size: 0.65rem; backdrop-filter: blur(12px); letter-spacing: 1px; transition: all 0.2s ease; text-transform: uppercase; }
@@ -22,7 +30,6 @@
     #landscape-prompt .icon { font-size: 2.5rem; margin-bottom: 15px; animation: rotatePhone 2s infinite ease-in-out; }
     #landscape-prompt h2 { font-size: 1.2rem; font-weight: 800; margin-bottom: 8px; letter-spacing: 1px; }
     #landscape-prompt p { font-size: 0.8rem; color: #94a3b8; max-width: 300px; line-height: 1.4; }
-    @keyframes rotatePhone { 0% { transform: rotate(0deg); } 50% { transform: rotate(-90deg); } 100% { transform: rotate(0deg); } }
     @media screen and (orientation: portrait) { #landscape-prompt { display: flex !important; } }
     
     .hud-panel { position: absolute; background: rgba(5, 8, 16, 0.55); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 6px 10px; z-index: 10; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8), inset 0 0 10px rgba(255,255,255,0.02); }
@@ -73,6 +80,12 @@
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 </head>
 <body>
+
+  <!-- NEW LOADING SCREEN -->
+  <div id="loading-screen">
+    <div class="loader-ring"></div>
+    <div id="loading-text">INITIALIZING ENGINE...</div>
+  </div>
 
   <div id="webgl-container"></div>
   <div id="ui-toggle" onclick="toggleMainUI()">☰ MENU</div>
@@ -146,6 +159,18 @@
   </div>
 
   <script>
+    // --- LOADING MANAGER (FIXES TEXTURE DISAPPEARANCE & BUGGY CAMERA) ---
+    const manager = new THREE.LoadingManager();
+    manager.onLoad = function () {
+      const loadingScreen = document.getElementById('loading-screen');
+      loadingScreen.classList.add('fade-out');
+      setTimeout(() => loadingScreen.remove(), 1000);
+      animate(); // Start simulation only AFTER everything is loaded!
+    };
+    manager.onProgress = function (url, itemsLoaded, itemsTotal) {
+      document.getElementById('loading-text').innerText = `DOWNLOADING 2K TEXTURES (${itemsLoaded}/${itemsTotal})`;
+    };
+
     const TEX = {
       stars: './2k_stars.jpg', 
       sun: './2k_sun.jpg',
@@ -184,19 +209,18 @@
     const container = document.getElementById('webgl-container');
     const scene = new THREE.Scene();
     
-    const textureLoader = new THREE.TextureLoader();
+    // Attach the LoadingManager to the TextureLoader
+    const textureLoader = new THREE.TextureLoader(manager);
     textureLoader.setCrossOrigin('anonymous'); 
     scene.background = textureLoader.load(TEX.stars); 
     
     const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 100000000);
-    // NEW SPAWN POSITION: Beautiful isometric view of the solar system
     camera.position.set(0, 120, 250); 
     
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, logarithmicDepthBuffer: true, powerPreference: "high-performance" });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     
-    // INCREASED EXPOSURE for more vibrant, realistic planet textures
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.2;
     container.appendChild(renderer.domElement);
@@ -204,7 +228,7 @@
     const controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true; controls.dampingFactor = 0.05; controls.enablePan = false; controls.zoomSpeed = 0.6;
     controls.maxDistance = 50000000; controls.minDistance = 5;
-    controls.target.set(0, 0, 0); // Keep camera locked on the sun at spawn
+    controls.target.set(0, 0, 0); 
     let timeMultiplier = 1.0;
 
     function generateGlowingStar() { const canvas = document.createElement('canvas'); canvas.width = 128; canvas.height = 128; const ctx = canvas.getContext('2d'); const g = ctx.createRadialGradient(64, 64, 0, 64, 64, 64); g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.1, 'rgba(255,255,255,0.8)'); g.addColorStop(0.3, 'rgba(255,255,255,0.2)'); g.addColorStop(1, 'rgba(0,0,0,0)'); ctx.fillStyle = g; ctx.fillRect(0,0,128,128); return new THREE.CanvasTexture(canvas); }
@@ -221,7 +245,6 @@
 
     const universeGroup = new THREE.Group(); scene.add(universeGroup);
 
-    // FIXED: Added real visuals for Nebula and Supernova so the warp targets aren't empty
     const orionGroup = new THREE.Group(); orionGroup.position.copy(LOCATIONS.orion.pos); universeGroup.add(orionGroup);
     const orionGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: starTex, color: 0x06b6d4, transparent: true, opacity: 0.4, blending: THREE.AdditiveBlending, depthWrite: false }));
     orionGlow.scale.set(200000, 150000, 1); orionGroup.add(orionGlow);
@@ -234,7 +257,6 @@
     const snCore = new THREE.Sprite(new THREE.SpriteMaterial({ map: starTex, color: 0xffffff, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false }));
     snCore.scale.set(40000, 40000, 1); snGroup.add(snCore);
 
-    // Black Hole
     const bhGroup = new THREE.Group(); bhGroup.position.copy(LOCATIONS.sagA.pos); universeGroup.add(bhGroup);
     const coreGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: starTex, color: 0xfffbeb, transparent: true, opacity: 0.15, blending: THREE.AdditiveBlending, depthWrite: false })); 
     coreGlow.scale.set(120000, 120000, 1); bhGroup.add(coreGlow);
@@ -243,7 +265,6 @@
     let diskMat = new THREE.MeshBasicMaterial({ map: textureLoader.load(TEX.customBlackHole), side: THREE.DoubleSide, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false });
     const accretionDisk = new THREE.Mesh(diskGeo, diskMat); accretionDisk.rotation.x = Math.PI / 1.7; bhGroup.add(accretionDisk);
 
-    // Pulsar
     const pulsarGroup = new THREE.Group(); pulsarGroup.position.copy(LOCATIONS.vela.pos); universeGroup.add(pulsarGroup);
     let pulsarMat = new THREE.MeshBasicMaterial({ map: textureLoader.load(TEX.customPulsar) });
     const neutronStar = new THREE.Mesh(new THREE.SphereGeometry(150, 32, 32), pulsarMat); pulsarGroup.add(neutronStar);
@@ -251,18 +272,16 @@
     const jetGeo = new THREE.CylinderGeometry(0, 1500, 40000, 32, 1, true); const jetMat = new THREE.MeshBasicMaterial({ color: 0x6366f1, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide });
     const jet1 = new THREE.Mesh(jetGeo, jetMat); jet1.position.y = 20000; pulsarGroup.add(jet1); const jet2 = new THREE.Mesh(jetGeo, jetMat); jet2.position.y = -20000; jet2.rotation.x = Math.PI; pulsarGroup.add(jet2);
 
-    // Solar System
     const solarSystem = new THREE.Group(); solarSystem.position.copy(LOCATIONS.home.pos); universeGroup.add(solarSystem);
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.15); solarSystem.add(ambientLight); // Slightly brighter ambient
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.15); solarSystem.add(ambientLight); 
     
-    // FIXED: Realistic Sun with clean Additive Blending Glow
     const sunMesh = new THREE.Mesh(new THREE.SphereGeometry(4.8, 64, 64), new THREE.MeshBasicMaterial({ map: textureLoader.load(TEX.sun), color: 0xffffff }));
     const sunGlowEffect = new THREE.Sprite(new THREE.SpriteMaterial({ map: starTex, color: 0xfff0e0, transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending, depthWrite: false })); 
     sunGlowEffect.scale.set(38, 38, 1); 
     sunMesh.add(sunGlowEffect);
     solarSystem.add(sunMesh);
     
-    const sunLight = new THREE.PointLight(0xffffee, 5.0, 6000); solarSystem.add(sunLight); // Stronger light to fix washed-out planets
+    const sunLight = new THREE.PointLight(0xffffee, 5.0, 6000); solarSystem.add(sunLight); 
 
     const planets = [
       { name: "Mercury", radius: 12, speed: 0.012, size: 0.45, type: 'mercury', tilt: 0.03 }, 
@@ -286,7 +305,6 @@
       const pivot = new THREE.Group(); solarSystem.add(pivot);
       let pMat;
       
-      // FIXED: Adjusted materials so planets react better to light
       if (p.name === 'Earth') {
           pMat = new THREE.MeshPhongMaterial({ map: textureLoader.load(TEX.earthMap), normalMap: textureLoader.load(TEX.earthNorm), specularMap: textureLoader.load(TEX.earthSpec), specular: new THREE.Color(0x333333), shininess: 15 });
       } else {
@@ -314,7 +332,7 @@
     });
 
     const astCount = 5000;
-    const astGeo = new THREE.DodecahedronGeometry(0.06, 0); // Scaled down asteroids slightly
+    const astGeo = new THREE.DodecahedronGeometry(0.06, 0); 
     const astMat = new THREE.MeshStandardMaterial({ color: 0x888888, roughness: 0.9 });
     const asteroidBelt = new THREE.InstancedMesh(astGeo, astMat, astCount);
     const dummy = new THREE.Object3D();
@@ -331,17 +349,23 @@
     }
     solarSystem.add(asteroidBelt);
 
+    // --- UPGRADED CINEMATIC HYPERSPACE WARP LINES ---
     const warpLinesGeo = new THREE.BufferGeometry();
     const warpLinePos = [];
     for(let i=0; i<3000; i++) {
-      const r = 20 + Math.random() * 400; const theta = Math.random() * Math.PI * 2; const z = -Math.random() * 4000; 
-      const x = r * Math.cos(theta); const y = r * Math.sin(theta);
-      warpLinePos.push(x, y, z); warpLinePos.push(x, y, z - (100 + Math.random() * 400)); 
+      const r = 30 + Math.random() * 600; 
+      const theta = Math.random() * Math.PI * 2; 
+      const z = -Math.random() * 8000; // Distribute lines far into the distance
+      const x = r * Math.cos(theta); 
+      const y = r * Math.sin(theta);
+      warpLinePos.push(x, y, z); 
+      warpLinePos.push(x, y, z - (150 + Math.random() * 500)); 
     }
     warpLinesGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(warpLinePos), 3));
-    const warpLineMat = new THREE.LineBasicMaterial({ color: 0x67e8f9, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false });
+    const warpLineMat = new THREE.LineBasicMaterial({ color: 0x93c5fd, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false });
     const warpLines3D = new THREE.LineSegments(warpLinesGeo, warpLineMat);
-    camera.add(warpLines3D); scene.add(camera);
+    camera.add(warpLines3D); 
+    scene.add(camera);
 
     let isWarping = false; let warpStartPos = new THREE.Vector3(); let warpEndPos = new THREE.Vector3(); let warpLookAt = new THREE.Vector3(); let warpProgress = 0;
 
@@ -349,6 +373,10 @@
       window.toggleWarpMenu(); window.freeCamera();
       const dest = LOCATIONS[destCode]; warpStartPos.copy(camera.position); warpEndPos.copy(dest.pos).add(dest.offset); warpLookAt.copy(dest.pos);
       isWarping = true; warpProgress = 0;
+      
+      // Reset warp lines position for fresh animation
+      warpLines3D.position.z = 0; 
+      
       let title = "", type = "";
       if(destCode === 'home') { title = "Solar System"; type = "Home System"; } else if(destCode === 'proxima') { title = "Proxima Centauri"; type = "Red Dwarf System"; } else if(destCode === 'orion') { title = "Orion Nebula"; type = "Stellar Nursery"; } else if(destCode === 'vela') { title = "Vela Pulsar"; type = "Neutron Star"; } else if(destCode === 'sagA') { title = "Sagittarius A*"; type = "Supermassive Black Hole"; } else if(destCode === 'supernova') { title = "Binary Merger"; type = "Kilonova Shockwave"; }
       document.getElementById('targetName').textContent = title; document.getElementById('objType').textContent = type; document.getElementById('speedVal').textContent = "WARP SPEED";
@@ -374,13 +402,13 @@
       document.getElementById('distVal').textContent = text;
     }
 
+    // Notice we removed the automatic animate() call here! The LoadingManager triggers it now.
     function animate() {
       requestAnimationFrame(animate);
 
       sunMesh.rotation.y += 0.002 * timeMultiplier; 
       asteroidBelt.rotation.y += 0.001 * timeMultiplier;
 
-      // FIXED: Added fierce rotation to the Pulsar core and jets
       pulsarGroup.rotation.z += 0.04 * timeMultiplier;
       pulsarGroup.rotation.y += 0.02 * timeMultiplier;
 
@@ -393,21 +421,36 @@
           }
       });
 
+      // --- NEW HYPERSPACE ANIMATION LOGIC ---
       if (isWarping) {
-        warpProgress += 0.006; 
+        warpProgress += 0.008; // Slightly faster animation
         let ease = warpProgress < 0.5 ? 4 * Math.pow(warpProgress, 3) : 1 - Math.pow(-2 * warpProgress + 2, 3) / 2;
-        camera.position.lerpVectors(warpStartPos, warpEndPos, ease); controls.target.lerpVectors(controls.target, warpLookAt, ease);
+        
+        camera.position.lerpVectors(warpStartPos, warpEndPos, ease); 
+        controls.target.lerpVectors(controls.target, warpLookAt, ease);
         
         let intensity = Math.sin(warpProgress * Math.PI);
-        warpLines3D.material.opacity = intensity * 0.8;
-        warpLines3D.position.z += 80 * timeMultiplier; 
-        if (warpLines3D.position.z > 2000) warpLines3D.position.z = 0; 
         
-        camera.fov = 45 + (intensity * 100); 
+        // Stretch the star lines massively and move them towards the screen
+        warpLines3D.material.opacity = intensity * 1.0;
+        warpLines3D.scale.z = 1 + (intensity * 40); 
+        warpLines3D.position.z += 400 * timeMultiplier; 
+        if (warpLines3D.position.z > 8000) warpLines3D.position.z = 0; 
+        
+        // Dramatic FOV stretch
+        camera.fov = 45 + (intensity * 90); 
         camera.updateProjectionMatrix();
 
         if (warpProgress >= 1) { 
-            isWarping = false; warpLines3D.material.opacity = 0; warpLines3D.position.z = 0; camera.fov = 45; camera.updateProjectionMatrix(); 
+            isWarping = false; 
+            warpLines3D.material.opacity = 0; 
+            warpLines3D.scale.z = 1;
+            warpLines3D.position.z = 0; 
+            camera.fov = 45; 
+            camera.updateProjectionMatrix(); 
+            // Lock camera perfectly to target to avoid bugging out
+            camera.position.copy(warpEndPos);
+            controls.target.copy(warpLookAt);
         }
       } else {
         if (targetCamPos && targetLookAt) {
@@ -424,8 +467,8 @@
 
       calculateDistanceTracker(); controls.update(); renderer.render(scene, camera);
     }
+    
     window.addEventListener('resize', () => { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
-    animate();
   </script>
 </body>
 </html>

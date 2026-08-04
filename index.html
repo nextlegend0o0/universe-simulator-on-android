@@ -6,7 +6,6 @@
   <title>HD Colossal Universe Simulator - Pro Build</title>
   
   <style>
-    /* --- CSS UI & STYLING - ULTRA MINIMALIST GLASSMORPHISM --- */
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
     body { background-color: #000000; color: #e0e6ed; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace; overflow: hidden; width: 100vw; height: 100vh; }
     
@@ -147,32 +146,28 @@
   </div>
 
   <script>
-    // =========================================================================
-    // PROFESSIONAL GITHUB HOSTING - LOCAL TEXTURES
-    // Make sure your uploaded image files match these names exactly!
-    // =========================================================================
+    // EXACT FILENAMES MATCHING YOUR GITHUB REPOSITORY WITH UNDERSCORES
     const TEX = {
-      stars: './2k-stars.jpg', 
-      sun: './2k-sun.jpg',
-      earthMap: './2k-earth-daymap.jpg',
-      earthNorm: './2k-earth-normal-map.jpg',
-      earthSpec: './2k-earth-specular-map.jpg',
-      earthCloud: './2k-earth-clouds.jpg',
-      moon: './2k-moon.jpg',
+      stars: './2k_stars.jpg', 
+      sun: './2k_sun.jpg',
+      earthMap: './2k_earth_daymap.jpg',
+      earthNorm: './2k_earth_normal_map.jpg',
+      earthSpec: './2k_earth_specular_map.jpg',
+      earthCloud: './2k_earth_clouds.jpg',
+      moon: './2k_moon.jpg',
       customBlackHole: './images-1.jpg', 
-      customPulsar: './pulsar-neutronstar-magnetar-texture-map-by-botchthemooseboi-dk376vt-pre.jpg',
-      mercury: './2k-mercury.jpg',
-      venus: './2k-venus-surface.jpg',
-      mars: './2k-mars.jpg',
-      jupiter: './2k-jupiter.jpg',
-      saturn: './2k-saturn.jpg',
-      saturnRing: './2k-saturn-ring-alpha.png', 
-      uranus: './2k-uranus.jpg',
-      neptune: './2k-neptune.jpg',
-      pluto: './2k-pluto.jpg' 
+      customPulsar: './pulsar_neutronstar_magnetar_texture_map_by_botchthemooseboi_dk376vt-pre.jpg',
+      mercury: './2k_mercury.jpg',
+      venus: './2k_venus_surface.jpg',
+      mars: './2k_mars.jpg',
+      jupiter: './2k_jupiter.jpg',
+      saturn: './2k_saturn.jpg',
+      saturnRing: './2k_saturn_ring_alpha.jpg', 
+      uranus: './2k_uranus.jpg',
+      neptune: './2k_neptune.jpg',
+      pluto: './2k_pluto.jpg' 
     };
 
-    // --- 2. UI GLOBALS & TOGGLE FUNCTION ---
     let uiIsVisible = false; 
     window.toggleMainUI = function() {
       uiIsVisible = !uiIsVisible;
@@ -187,14 +182,11 @@
     window.toggleWarpMenu = function() { document.getElementById('planetsDropdown').style.display = 'none'; const menu = document.getElementById('fastTravelDropdown'); menu.style.display = menu.style.display === 'block' ? 'none' : 'block'; };
     window.freeCamera = function() { followTarget = null; isFollowing = false; document.getElementById('btnFreeCam').style.display = 'none'; document.getElementById('targetName').textContent = "Free Camera"; document.getElementById('objType').textContent = "Unlocked"; document.getElementById('speedVal').textContent = "---"; };
 
-    // --- 3. THREE.JS ENGINE SETUP ---
     const container = document.getElementById('webgl-container');
     const scene = new THREE.Scene();
     
     const textureLoader = new THREE.TextureLoader();
     textureLoader.setCrossOrigin('anonymous'); 
-    
-    // Deep Space Background
     scene.background = textureLoader.load(TEX.stars); 
     
     const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 100000000);
@@ -203,7 +195,7 @@
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.4; 
+    renderer.toneMappingExposure = 1.0;
     container.appendChild(renderer.domElement);
     
     const controls = new THREE.OrbitControls(camera, renderer.domElement);
@@ -211,11 +203,9 @@
     controls.maxDistance = 50000000; controls.minDistance = 2.5;
     let timeMultiplier = 1.0;
 
-    // --- 4. PROCEDURAL FALLBACKS ---
     function generateGlowingStar() { const canvas = document.createElement('canvas'); canvas.width = 128; canvas.height = 128; const ctx = canvas.getContext('2d'); const g = ctx.createRadialGradient(64, 64, 0, 64, 64, 64); g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.1, 'rgba(255,255,255,0.8)'); g.addColorStop(0.3, 'rgba(255,255,255,0.2)'); g.addColorStop(1, 'rgba(0,0,0,0)'); ctx.fillStyle = g; ctx.fillRect(0,0,128,128); return new THREE.CanvasTexture(canvas); }
     const starTex = generateGlowingStar();
 
-    // --- 5. LOCATIONS ---
     const LOCATIONS = {
       home: { pos: new THREE.Vector3(0, 0, 0), offset: new THREE.Vector3(0, 50, 150) },
       proxima: { pos: new THREE.Vector3(424000, 5000, -100000), offset: new THREE.Vector3(0, 20, 100) },
@@ -224,20 +214,16 @@
       sagA: { pos: new THREE.Vector3(0, 0, -2600000), offset: new THREE.Vector3(0, 80000, 250000) },
       supernova: { pos: new THREE.Vector3(800000, 300000, 500000), offset: new THREE.Vector3(0, 15000, 60000) }
     };
+
     const universeGroup = new THREE.Group(); scene.add(universeGroup);
-    
-    // --- 6. THE MILKY WAY GALAXY (DYNAMIC FADING SCALING) ---
-    const milkyWayGroup = new THREE.Group(); 
-    milkyWayGroup.position.set(0, 0, -2600000); // Core
-    universeGroup.add(milkyWayGroup);
-    
-    camera.position.copy(LOCATIONS.home.offset); controls.target.copy(LOCATIONS.home.pos); controls.update();
+    const milkyWayGroup = new THREE.Group(); universeGroup.add(milkyWayGroup);
 
     const galGeo = new THREE.BufferGeometry(); const galCoords = []; const galColors = []; const arms = 5;
     for(let i = 0; i < 150000; i++) {
       const dist = Math.pow(Math.random(), 2.0); const r = 200 + dist * 3500000; 
       const armOffset = (i % arms) * ((Math.PI * 2) / arms); const spiralAngle = r * 0.0000015; const spread = (Math.random() - 0.5) * (400000 / (Math.pow(dist, 0.5) + 0.1)); const angle = spiralAngle + armOffset + spread;
-      const x = Math.cos(angle) * r; const z = Math.sin(angle) * r; const y = (Math.random() - 0.5) * (80000 * Math.exp(-dist * 4)); 
+      const x = Math.cos(angle) * r; const z = Math.sin(angle) * r - 2600000; 
+      const y = (Math.random() - 0.5) * (80000 * Math.exp(-dist * 4)); 
       galCoords.push(x, y, z); 
       const color = new THREE.Color();
       if (r < 300000) color.setHex(0xfff4e8); else { const rand = Math.random(); if (rand < 0.1) color.setHex(0x93c5fd); else if (rand < 0.4) color.setHex(0xffffff); else if (rand < 0.7) color.setHex(0xfde047); else color.setHex(0xfca5a5); }
@@ -247,24 +233,21 @@
     const galMat = new THREE.PointsMaterial({ size: 12000, vertexColors: true, transparent: true, opacity: 0.0, map: starTex, depthWrite: false, blending: THREE.AdditiveBlending });
     milkyWayGroup.add(new THREE.Points(galGeo, galMat));
 
-    // --- 7. SAGITTARIUS A* (SUPERMASSIVE BLACK HOLE) ---
-    const bhGroup = new THREE.Group(); milkyWayGroup.add(bhGroup);
-    const coreGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: starTex, color: 0xfffbeb, transparent: true, opacity: 0.3, blending: THREE.AdditiveBlending, depthWrite: false })); 
-    coreGlow.scale.set(350000, 350000, 1); bhGroup.add(coreGlow);
+    const bhGroup = new THREE.Group(); bhGroup.position.copy(LOCATIONS.sagA.pos); universeGroup.add(bhGroup);
+    const coreGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: starTex, color: 0xfffbeb, transparent: true, opacity: 0.15, blending: THREE.AdditiveBlending, depthWrite: false })); 
+    coreGlow.scale.set(120000, 120000, 1); bhGroup.add(coreGlow);
     const eventHorizon = new THREE.Mesh(new THREE.SphereGeometry(15000, 64, 64), new THREE.MeshBasicMaterial({ color: 0x000000 })); bhGroup.add(eventHorizon);
     const diskGeo = new THREE.RingGeometry(12000, 45000, 128);
     let diskMat = new THREE.MeshBasicMaterial({ map: textureLoader.load(TEX.customBlackHole), side: THREE.DoubleSide, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false });
     const accretionDisk = new THREE.Mesh(diskGeo, diskMat); accretionDisk.rotation.x = Math.PI / 1.7; bhGroup.add(accretionDisk);
 
-    // --- 8. VELA PULSAR ---
-    const pulsarGroup = new THREE.Group(); pulsarGroup.position.copy(LOCATIONS.vela.pos); milkyWayGroup.add(pulsarGroup);
+    const pulsarGroup = new THREE.Group(); pulsarGroup.position.copy(LOCATIONS.vela.pos); universeGroup.add(pulsarGroup);
     let pulsarMat = new THREE.MeshBasicMaterial({ map: textureLoader.load(TEX.customPulsar) });
     const neutronStar = new THREE.Mesh(new THREE.SphereGeometry(150, 32, 32), pulsarMat); pulsarGroup.add(neutronStar);
     const pulsarGlowMat = new THREE.SpriteMaterial({ map: starTex, color: 0xa5b4fc, transparent: true, blending: THREE.AdditiveBlending }); const pulsarGlow = new THREE.Sprite(pulsarGlowMat); pulsarGroup.add(pulsarGlow);
     const jetGeo = new THREE.CylinderGeometry(0, 1500, 40000, 32, 1, true); const jetMat = new THREE.MeshBasicMaterial({ color: 0x6366f1, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide });
     const jet1 = new THREE.Mesh(jetGeo, jetMat); jet1.position.y = 20000; pulsarGroup.add(jet1); const jet2 = new THREE.Mesh(jetGeo, jetMat); jet2.position.y = -20000; jet2.rotation.x = Math.PI; pulsarGroup.add(jet2);
 
-    // --- 9. SOLAR SYSTEM ---
     const solarSystem = new THREE.Group(); solarSystem.position.copy(LOCATIONS.home.pos); universeGroup.add(solarSystem);
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.08); solarSystem.add(ambientLight);
     
@@ -323,7 +306,6 @@
       }
     });
 
-    // --- 10. PROCEDURAL ASTEROID BELT ---
     const astCount = 5000;
     const astGeo = new THREE.DodecahedronGeometry(0.1, 0);
     const astMat = new THREE.MeshStandardMaterial({ color: 0x888888, roughness: 0.9 });
@@ -342,7 +324,6 @@
     }
     solarSystem.add(asteroidBelt);
 
-    // --- 11. TRUE 3D WARP ENGINE ---
     const warpLinesGeo = new THREE.BufferGeometry();
     const warpLinePos = [];
     for(let i=0; i<3000; i++) {
@@ -366,7 +347,6 @@
       document.getElementById('targetName').textContent = title; document.getElementById('objType').textContent = type; document.getElementById('speedVal').textContent = "WARP SPEED";
     };
 
-    // --- 12. TELEMETRY & LOCAL CAMERA ---
     document.getElementById('timeSpeed').addEventListener('input', (e) => { timeMultiplier = parseFloat(e.target.value); document.getElementById('speedUiVal').textContent = timeMultiplier.toFixed(1) + "x"; });
     let followTarget = null; let targetCamPos = null; let targetLookAt = null; let isFollowing = false; const lastTargetPos = new THREE.Vector3();
 
@@ -382,25 +362,19 @@
     function calculateDistanceTracker() {
       const earthWorldPos = new THREE.Vector3(); planetObjects['Earth'].mesh.getWorldPosition(earthWorldPos); const distRaw = camera.position.distanceTo(earthWorldPos);
       let text = ""; 
-      if (distRaw < 1000) { 
-          text = (distRaw / 26).toFixed(4) + " AU"; 
-      } else { 
-          let ly = distRaw / 100;
-          text = ly.toFixed(2) + " Light Years"; 
-      }
+      if (distRaw < 1000) { text = (distRaw / 26).toFixed(4) + " AU"; } 
+      else { let ly = distRaw / 100; text = ly.toFixed(2) + " Light Years"; }
       document.getElementById('distVal').textContent = text;
     }
 
-    // --- 13. ANIMATION LOOP ---
     function animate() {
       requestAnimationFrame(animate);
 
-      // Fades the galaxy in gradually ONLY when you zoom past 5,000 units away
       const distToSun = camera.position.distanceTo(solarSystem.position);
       let mwOpacity = Math.min(1.0, Math.max(0.0, (distToSun - 5000) / 20000));
       galMat.opacity = mwOpacity * 0.9; 
 
-      sunMesh.rotation.y += 0.002 * timeMultiplier; milkyWayGroup.rotation.y -= 0.00001 * timeMultiplier;
+      sunMesh.rotation.y += 0.002 * timeMultiplier; 
       asteroidBelt.rotation.y += 0.001 * timeMultiplier;
 
       planets.forEach(p => { 

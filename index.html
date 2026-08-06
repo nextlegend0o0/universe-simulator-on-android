@@ -8,153 +8,149 @@
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
     body { background-color: #000000; color: #e0e6ed; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace; overflow: hidden; width: 100vw; height: 100vh; }
     
-    /* SAFE AREA INSETS FOR NOTCH & CAMERAS */
-    .safe-area-wrapper {
-      position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
-      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-      pointer-events: none; z-index: 1000;
-    }
-
+    .safe-area-wrapper { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); pointer-events: none; z-index: 1000; }
     #webgl-container { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; }
     
-    /* LOADING SCREEN */
+    /* V17 Loading Screen Restored */
     #loading-screen { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background-color: #02040a; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 1s ease-out; }
-    #loading-text { color: #ffffff; font-size: 1.5rem; font-weight: 800; letter-spacing: 4px; text-transform: uppercase; font-family: monospace; }
+    .loader-ring { width: 50px; height: 50px; border: 3px solid rgba(147, 197, 253, 0.1); border-top: 3px solid #93c5fd; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
+    #loading-text { color: #93c5fd; font-size: 0.7rem; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; animation: pulse 1.5s infinite; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
     .fade-out { opacity: 0; pointer-events: none; }
     
-    /* LANDSCAPE PROMPT */
+    /* Landscape Prompt (No Emojis) */
     #landscape-prompt { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(2, 4, 10, 0.98); backdrop-filter: blur(15px); z-index: 10000; display: none; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: #ffffff; cursor: pointer; }
+    #landscape-prompt h2 { font-size: 1.2rem; letter-spacing: 4px; margin-bottom: 10px; }
+    #landscape-prompt p { font-size: 0.8rem; color: #64748b; }
     @media screen and (orientation: portrait) { #landscape-prompt { display: flex !important; } }
 
-    /* RADIAL WEAPON-WHEEL MENU */
-    #radial-menu { position: absolute; bottom: 30px; right: 30px; pointer-events: auto; z-index: 2000; transition: opacity 0.3s ease; }
-    .master-node { width: 60px; height: 60px; border-radius: 50%; background: rgba(10, 15, 30, 0.85); border: 1px solid rgba(147, 197, 253, 0.4); color: #93c5fd; font-size: 1.5rem; display: flex; justify-content: center; align-items: center; cursor: pointer; backdrop-filter: blur(10px); box-shadow: 0 0 20px rgba(0, 0, 0, 0.8); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    /* Clean V17 Top HUD */
+    .hud-panel { position: absolute; background: rgba(5, 8, 16, 0.55); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 10px; pointer-events: auto; }
+    .ui-top { top: 15px; left: 50%; transform: translateX(-50%); width: 92%; max-width: 600px; display: flex; justify-content: space-between; align-items: center; transition: opacity 0.3s ease; }
+    .ui-hidden { opacity: 0 !important; pointer-events: none !important; }
     
-    .radial-item { position: absolute; width: 50px; height: 50px; border-radius: 50%; background: rgba(10, 15, 30, 0.8); border: 1px solid rgba(255, 255, 255, 0.2); color: #fff; font-size: 1.2rem; display: flex; justify-content: center; align-items: center; cursor: pointer; opacity: 0; pointer-events: none; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
-    
-    /* The curved arc trajectory for the bubbles */
-    #radial-menu.open .master-node { transform: rotate(45deg); background: rgba(239, 68, 68, 0.8); border-color: rgba(239, 68, 68, 0.5); color: white; }
-    #radial-menu.open .radial-item { opacity: 1; pointer-events: auto; }
-    #radial-menu.open .item-1 { transform: translate(-90px, 0px); }
-    #radial-menu.open .item-2 { transform: translate(-75px, -75px); }
-    #radial-menu.open .item-3 { transform: translate(0px, -90px); }
+    .hud-title { font-size: 0.75rem; font-weight: 800; color: #ffffff; letter-spacing: 2px; text-shadow: 0 0 10px rgba(255,255,255,0.2); }
+    .hud-buttons { display: flex; gap: 8px; }
+    .btn-clean { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(147, 197, 253, 0.3); color: #93c5fd; font-size: 0.6rem; font-weight: 700; padding: 6px 12px; border-radius: 4px; cursor: pointer; transition: 0.2s; letter-spacing: 1px; }
+    .btn-clean:hover { background: rgba(147, 197, 253, 0.1); }
+    .btn-danger { color: #fca5a5; border-color: rgba(239, 68, 68, 0.4); }
 
-    /* POP-UP LAB PANELS */
-    .glass-panel { position: absolute; bottom: 100px; right: 30px; width: 280px; background: rgba(5, 8, 16, 0.75); backdrop-filter: blur(25px); border: 1px solid rgba(147, 197, 253, 0.2); border-radius: 12px; padding: 15px; opacity: 0; pointer-events: none; transition: all 0.3s ease; transform: translateY(20px); pointer-events: auto; }
-    .glass-panel.visible { opacity: 1; pointer-events: auto; transform: translateY(0); }
-    .panel-title { color: #93c5fd; font-size: 0.7rem; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px; }
-    .action-btn { display: block; width: 100%; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: #e2e8f0; padding: 8px; margin-bottom: 6px; border-radius: 6px; font-size: 0.7rem; font-weight: 600; cursor: pointer; text-align: left; transition: 0.2s; }
-    .action-btn:hover { background: rgba(147, 197, 253, 0.2); }
-    .danger-btn { border-color: rgba(239, 68, 68, 0.4); color: #fca5a5; }
+    /* Centralized Menus */
+    .menu-modal { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 350px; background: rgba(4, 6, 12, 0.95); backdrop-filter: blur(25px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 8px; padding: 15px; z-index: 100; display: none; pointer-events: auto; box-shadow: 0 20px 50px rgba(0,0,0,0.8); }
+    .menu-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px; margin-bottom: 12px; }
+    .menu-header span { color: #ffffff; font-weight: 800; font-size: 0.65rem; letter-spacing: 2px; text-transform: uppercase; }
+    .close-btn { color: #64748b; cursor: pointer; font-size: 1rem; }
+    .menu-grid { display: flex; flex-direction: column; gap: 8px; }
+    .menu-label { font-size: 0.5rem; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-top: 8px; }
 
-    /* TARGET INFO PANEL (Cleaned Up) */
-    #info-panel { position: absolute; top: 30px; left: 30px; width: 320px; background: rgba(5, 8, 16, 0.75); backdrop-filter: blur(25px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 15px; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; pointer-events: auto; }
+    /* Target Info Panel */
+    #info-panel { position: absolute; top: 70px; left: 50%; transform: translateX(-50%); width: 92%; max-width: 600px; background: rgba(5, 8, 16, 0.75); backdrop-filter: blur(25px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 12px; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; pointer-events: auto; }
     #info-panel.visible { opacity: 1; pointer-events: auto; }
-    .info-title { font-size: 1.2rem; font-weight: 800; color: #ffffff; text-transform: uppercase; }
-    .info-type { font-size: 0.65rem; color: #fcd34d; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 10px; }
-    .close-btn { position: absolute; top: 15px; right: 15px; color: #64748b; cursor: pointer; font-weight: bold; }
-    .facts-list { font-size: 0.75rem; color: #cbd5e1; list-style: none; padding-left: 10px; }
-    .facts-list li { margin-bottom: 8px; position: relative; }
-    .facts-list li::before { content: "►"; position: absolute; left: -12px; color: #93c5fd; font-size: 0.5rem; top: 3px; }
+    .info-header { display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 6px; margin-bottom: 6px; }
+    .info-title { font-size: 0.9rem; font-weight: 800; color: #ffffff; letter-spacing: 1px; }
+    .info-type { font-size: 0.55rem; color: #fcd34d; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+    .facts-list { font-size: 0.65rem; color: #cbd5e1; list-style: none; padding-left: 10px; margin-top: 8px; }
+    .facts-list li { margin-bottom: 6px; position: relative; line-height: 1.4; }
+    .facts-list li::before { content: "►"; position: absolute; left: -10px; color: #93c5fd; font-size: 0.4rem; top: 4px; }
 
-    /* TELEMETRY DRAWER (Math & Physics Sandbox Output) */
-    #telemetry-drawer { position: absolute; bottom: -100%; left: 50%; transform: translateX(-50%); width: 90%; max-width: 600px; background: rgba(2, 4, 10, 0.85); backdrop-filter: blur(30px); border: 1px solid rgba(234, 179, 8, 0.4); border-radius: 12px 12px 0 0; padding: 20px; transition: bottom 0.6s cubic-bezier(0.16, 1, 0.3, 1); pointer-events: auto; text-align: center; box-shadow: 0 -10px 40px rgba(0,0,0,0.8); }
-    #telemetry-drawer.visible { bottom: 0; }
-    #tel-title { color: #facc15; font-size: 0.9rem; font-weight: 800; letter-spacing: 3px; margin-bottom: 10px; }
-    #tel-math { font-family: monospace; font-size: 1.1rem; color: #93c5fd; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 6px; margin-bottom: 10px; border: 1px solid rgba(147, 197, 253, 0.2); }
-    #tel-desc { font-size: 0.8rem; color: #e2e8f0; line-height: 1.5; }
-
+    /* Sleek Telemetry Drawer (Lower Third) */
+    #telemetry-drawer { position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%) translateY(150%); width: 95%; max-width: 600px; background: rgba(2, 4, 10, 0.85); backdrop-filter: blur(20px); border: 1px solid rgba(234, 179, 8, 0.3); border-radius: 8px; padding: 12px 15px; transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); pointer-events: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.9); display: flex; flex-direction: column; gap: 6px; }
+    #telemetry-drawer.visible { transform: translateX(-50%) translateY(0); }
+    .tel-header { display: flex; justify-content: space-between; align-items: center; }
+    #tel-title { color: #facc15; font-size: 0.65rem; font-weight: 800; letter-spacing: 2px; margin: 0; }
+    #tel-math { font-family: monospace; font-size: 0.85rem; color: #93c5fd; background: rgba(0,0,0,0.6); padding: 6px 10px; border-radius: 4px; border: 1px solid rgba(147, 197, 253, 0.1); margin: 0; text-align: center; }
+    #tel-desc { font-size: 0.65rem; color: #94a3b8; line-height: 1.4; margin: 0; }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 </head>
 <body>
 
-  <div id="landscape-prompt"><div style="font-size: 2rem; margin-bottom:10px;">🔄</div><h2>ROTATE DEVICE</h2><p>Tap to enter cinematic view.</p></div>
-  <div id="loading-screen"><div id="loading-text">0%</div></div>
+  <div id="landscape-prompt"><h2>ROTATE DEVICE</h2><p>Cinematic orientation required.</p></div>
+  <div id="loading-screen"><div class="loader-ring"></div><div id="loading-text">LOADING TEXTURES</div></div>
 
   <div id="webgl-container"></div>
 
-  <!-- UI OVERLAY SAFE WRAPPER -->
   <div class="safe-area-wrapper">
       
+      <!-- MAIN HUD -->
+      <div id="main-ui" class="hud-panel ui-top">
+        <div class="hud-title">UNIVERSE SIM</div>
+        <div class="hud-buttons">
+          <button id="btnFreeCam" class="btn-clean btn-danger" style="display:none;" onclick="resetCamera()">UNLOCK CAM</button>
+          <button class="btn-clean" onclick="openMenu('lab-modal')">LAB</button>
+          <button class="btn-clean" onclick="openMenu('warp-modal')">WARP</button>
+        </div>
+      </div>
+
       <!-- TARGET INFO -->
       <div id="info-panel">
-        <span class="close-btn" onclick="closeInfo()">✕</span>
-        <div class="info-title" id="infoTitle">Object Name</div>
-        <span class="info-type" id="infoType">Classification</span>
+        <div class="info-header">
+            <div>
+                <div class="info-title" id="infoTitle">Object Name</div>
+                <div class="info-type" id="infoType">Classification</div>
+            </div>
+            <span class="close-btn" onclick="closeInfo()">✕</span>
+        </div>
         <ul class="facts-list" id="infoFactsList"></ul>
       </div>
 
-      <!-- RADIAL MENU -->
-      <div id="radial-menu">
-        <div class="radial-item item-3" onclick="openPanel('panel-transmute')" title="Celestial Transmuter">🧪</div>
-        <div class="radial-item item-2" onclick="openPanel('panel-filters')" title="Spectrum Filters">👁️</div>
-        <div class="radial-item item-1" onclick="resetCamera()" title="Reset Camera">📷</div>
-        <div class="master-node" onclick="toggleRadial()">⚙️</div>
+      <!-- LAB MODAL -->
+      <div id="lab-modal" class="menu-modal">
+        <div class="menu-header"><span>Sandbox Laboratory</span><span class="close-btn" onclick="closeMenu('lab-modal')">✕</span></div>
+        <div class="menu-grid">
+            <div class="menu-label">Celestial Transmutation</div>
+            <button class="btn-clean btn-danger" onclick="triggerTransmutation('blackhole')">Spawn 1M☉ Black Hole</button>
+            <button class="btn-clean btn-danger" onclick="triggerTransmutation('neutron')">Spawn Neutron Star</button>
+            <button class="btn-clean btn-danger" onclick="triggerTransmutation('saturn')">Spawn Saturn (Mass Drop)</button>
+            <button class="btn-clean" onclick="resetSimulation()" style="border-color: #4ade80; color: #4ade80;">Reset Solar System</button>
+            
+            <div class="menu-label">Spectrum Filters</div>
+            <button class="btn-clean" onclick="applyFilter('normal')">Visible Light (Standard)</button>
+            <button class="btn-clean" style="color:#67e8f9;" onclick="applyFilter('xray')">X-Ray (Structural)</button>
+        </div>
       </div>
 
-      <!-- SPECTRUM FILTER PANEL -->
-      <div id="panel-filters" class="glass-panel">
-        <div class="panel-title">Spectrum Filters</div>
-        <button class="action-btn" onclick="applyFilter('normal')">Standard Visible Light</button>
-        <button class="action-btn" onclick="applyFilter('xray')" style="color: #67e8f9;">X-Ray (Structural Wireframe)</button>
-        <button class="action-btn" onclick="applyFilter('infrared')" style="color: #fca5a5;">Infrared (Thermal Mapping)</button>
+      <!-- WARP MODAL -->
+      <div id="warp-modal" class="menu-modal">
+        <div class="menu-header"><span>Navigation</span><span class="close-btn" onclick="closeMenu('warp-modal')">✕</span></div>
+        <div class="menu-grid">
+            <button class="btn-clean" onclick="initiateWarp('home')">Solar System</button>
+            <button class="btn-clean" onclick="initiateWarp('vela')">Magnetic Pulsar</button>
+            <button class="btn-clean" onclick="initiateWarp('sagA')">Sagittarius A*</button>
+        </div>
       </div>
 
-      <!-- CELESTIAL TRANSMUTER PANEL -->
-      <div id="panel-transmute" class="glass-panel">
-        <div class="panel-title">Celestial Transmuter</div>
-        <div style="font-size: 0.6rem; color:#94a3b8; margin-bottom: 8px;">Replace the Sun and calculate astrophysical consequences.</div>
-        <button class="action-btn danger-btn" onclick="triggerTransmutation('blackhole')">Swap with 1M☉ Black Hole</button>
-        <button class="action-btn danger-btn" onclick="triggerTransmutation('neutron')">Swap with Neutron Star</button>
-        <button class="action-btn danger-btn" onclick="triggerTransmutation('saturn')">Swap with Saturn (Mass Drop)</button>
-        <button class="action-btn" onclick="resetSimulation()" style="margin-top: 10px;">Reset Solar System</button>
-      </div>
-
-      <!-- BOTTOM TELEMETRY DRAWER -->
+      <!-- SLEEK TELEMETRY BAR -->
       <div id="telemetry-drawer">
-        <h3 id="tel-title">TRANSFORMATION DETECTED</h3>
-        <div id="tel-math">F = G (m₁m₂) / r²</div>
-        <p id="tel-desc">Calculating consequences...</p>
-        <button class="action-btn" style="width: 150px; margin: 15px auto 0 auto;" onclick="closeTelemetry()">DISMISS</button>
+        <div class="tel-header">
+            <span id="tel-title">TRANSFORMATION DETECTED</span>
+            <span class="close-btn" style="font-size: 0.8rem;" onclick="closeTelemetry()">✕</span>
+        </div>
+        <div id="tel-math">F = G(m₁m₂)/r²</div>
+        <div id="tel-desc">Calculating consequences...</div>
       </div>
 
   </div>
 
   <script>
-    // CORE DATABASE (No Audio)
+    // DATABASE
     const DATABASE = {
       "Sun": { type: "G-Type Star", facts: ["Perfect sphere of incredibly hot plasma.", "Accounts for 99.86% of total solar system mass.", "Core temperature hits 15 million °C."] },
       "Earth": { type: "Terrestrial Planet", facts: ["Only planet confirmed to harbor life.", "71% surface covered in liquid water.", "Densest planet in the system."] },
       "Jupiter": { type: "Gas Giant", facts: ["Largest planet; holds 1,300 Earths.", "Home to the Great Red Spot.", "Rotates fully in just 10 hours."] },
       "Saturn": { type: "Gas Giant", facts: ["Famous for complex, beautiful ice rings.", "Least dense planet (would float in water).", "Has 146 confirmed moons."] },
       "Magnetic Pulsar": { type: "Neutron Star", facts: ["Ultra-dense collapsed core of a dead star.", "Spins at terrifying rates.", "Emits lighthouse-like beams of radiation."] },
-      "Binary Merger": { type: "Gravitational Anomaly", facts: ["Two black holes in a fatal orbit.", "Emits gravitational waves.", "Will merge into a single massive singularity."] }
+      "Sagittarius A*": { type: "Supermassive Black Hole", facts: ["4.3 million solar masses.", "Located at the center of the Milky Way.", "Event horizon spans 24 million km."] }
     };
 
-    // UI LOGIC
-    let radialOpen = false;
-    function toggleRadial() {
-      radialOpen = !radialOpen;
-      const rm = document.getElementById('radial-menu');
-      if (radialOpen) { rm.classList.add('open'); } 
-      else { 
-          rm.classList.remove('open'); 
-          document.querySelectorAll('.glass-panel').forEach(p => p.classList.remove('visible'));
-      }
-    }
-    
-    function openPanel(id) {
-      document.querySelectorAll('.glass-panel').forEach(p => p.classList.remove('visible'));
-      document.getElementById(id).classList.add('visible');
-    }
-
+    // UI CONTROLS
+    function openMenu(id) { document.querySelectorAll('.menu-modal').forEach(m => m.style.display = 'none'); document.getElementById(id).style.display = 'block'; }
+    function closeMenu(id) { document.getElementById(id).style.display = 'none'; }
     function closeInfo() { document.getElementById('info-panel').classList.remove('visible'); }
-    function closeTelemetry() { 
-        document.getElementById('telemetry-drawer').classList.remove('visible'); 
-        document.getElementById('radial-menu').style.opacity = '1';
-    }
+    function closeTelemetry() { document.getElementById('telemetry-drawer').classList.remove('visible'); document.getElementById('main-ui').classList.remove('ui-hidden'); }
+    function resetCamera() { targetCamPos = new THREE.Vector3(0, 40, 100); targetLookAt = new THREE.Vector3(0, 0, 0); closeInfo(); document.getElementById('btnFreeCam').style.display = 'none'; }
 
     window.lockLandscape = function() { 
         const p = document.getElementById('landscape-prompt'); if (p) p.style.display = 'none'; 
@@ -166,81 +162,64 @@
 
     // THREE.JS SETUP
     const container = document.getElementById('webgl-container'); 
-    const scene = new THREE.Scene(); 
-    scene.background = new THREE.Color(0x000000); 
+    const scene = new THREE.Scene(); scene.background = new THREE.Color(0x000000); 
     
     const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 2000000);
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance" });
-    renderer.setSize(window.innerWidth, window.innerHeight); 
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); 
-    renderer.toneMapping = THREE.ACESFilmicToneMapping; 
-    container.appendChild(renderer.domElement);
+    renderer.setSize(window.innerWidth, window.innerHeight); renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); 
+    renderer.toneMapping = THREE.ACESFilmicToneMapping; container.appendChild(renderer.domElement);
     
     const controls = new THREE.OrbitControls(camera, renderer.domElement); 
     controls.enableDamping = true; controls.dampingFactor = 0.05; controls.maxDistance = 100000; controls.minDistance = 3;
 
-    // TEXTURES
+    // LOCATIONS
+    const LOCATIONS = {
+      home: { pos: new THREE.Vector3(0, 0, 0), offset: new THREE.Vector3(0, 40, 100) },
+      vela: { pos: new THREE.Vector3(2000, 500, -2000), offset: new THREE.Vector3(0, 20, 60) }, 
+      sagA: { pos: new THREE.Vector3(-4000, -1000, 3000), offset: new THREE.Vector3(0, 200, 500) }
+    };
+
+    // TEXTURE LOADER (Fixed to ensure rendering)
     const manager = new THREE.LoadingManager();
     manager.onLoad = function () { 
         const ls = document.getElementById('loading-screen'); 
-        ls.classList.add('fade-out'); 
-        setTimeout(() => ls.remove(), 1000); 
-        animate(); 
+        ls.classList.add('fade-out'); setTimeout(() => ls.remove(), 1000); animate(); 
     };
-    manager.onProgress = function (u, i, t) { 
-        document.getElementById('loading-text').innerText = Math.round((i/t)*100) + '%'; 
-    };
+    const textureLoader = new THREE.TextureLoader(manager); textureLoader.setCrossOrigin('anonymous'); 
+    const TEX = { stars: './2k_stars_milky_way.jpg', earthMap: './2k_earth_daymap.jpg', jupiter: './2k_jupiter.jpg', saturn: './2k_saturn.jpg', moon: './2k_moon.jpg' };
 
-    const textureLoader = new THREE.TextureLoader(manager); 
-    textureLoader.setCrossOrigin('anonymous'); 
-    const TEX = { 
-        stars: './2k_stars_milky_way.jpg', 
-        earthMap: './2k_earth_daymap.jpg', 
-        jupiter: './2k_jupiter.jpg', 
-        saturn: './2k_saturn.jpg', 
-        moon: './2k_moon.jpg' 
-    };
-
-    // PROCEDURAL TEXTURE GENERATOR
     function createGlowTex() { 
         const c = document.createElement('canvas'); c.width = 128; c.height = 128; const ctx = c.getContext('2d'); 
-        const g = ctx.createRadialGradient(64, 64, 0, 64, 64, 64); 
-        g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.2, 'rgba(255,255,255,0.8)'); g.addColorStop(1, 'rgba(0,0,0,0)'); 
+        const g = ctx.createRadialGradient(64, 64, 0, 64, 64, 64); g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.2, 'rgba(255,255,255,0.8)'); g.addColorStop(1, 'rgba(0,0,0,0)'); 
         ctx.fillStyle = g; ctx.fillRect(0,0,128,128); return new THREE.CanvasTexture(c); 
     }
     const softGlowTex = createGlowTex();
 
-    const interactables = [];
-    const allMeshes = []; // For spectrum filters
+    const interactables = []; const allMeshes = [];
 
-    // SKYBOX (Clean Stars, no blinding blobs)
+    // SKYBOX
     const skyGeo = new THREE.SphereGeometry(800000, 64, 64);
     const skyMat = new THREE.MeshBasicMaterial({ map: textureLoader.load(TEX.stars), side: THREE.BackSide, depthWrite: false });
     scene.add(new THREE.Mesh(skyGeo, skyMat));
 
-    // SUN FIX: Yellow fiery core, no massive white blowout
+    // SUN (Restored Volumetric Glow)
     const solarSystem = new THREE.Group(); scene.add(solarSystem);
     solarSystem.add(new THREE.AmbientLight(0x333344, 0.6)); 
 
-    let currentSun = new THREE.Group();
-    solarSystem.add(currentSun);
-
+    let currentSun = new THREE.Group(); solarSystem.add(currentSun);
     const sunCore = new THREE.Mesh(new THREE.SphereGeometry(6.0, 64, 64), new THREE.MeshBasicMaterial({ color: 0xffaa00 }));
-    sunCore.userData = { name: "Sun", size: 6.0 }; 
-    interactables.push(sunCore); allMeshes.push(sunCore); currentSun.add(sunCore);
+    sunCore.userData = { name: "Sun", size: 6.0 }; interactables.push(sunCore); allMeshes.push(sunCore); currentSun.add(sunCore);
     
-    const sunGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: softGlowTex, color: 0xff7700, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending, depthWrite: false }));
+    const sunGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: softGlowTex, color: 0xff7700, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false }));
     sunGlow.scale.set(25, 25, 1); currentSun.add(sunGlow);
-    
-    const sunLight = new THREE.PointLight(0xffffff, 2.0, 10000); 
-    currentSun.add(sunLight);
+    const sunOuter = new THREE.Sprite(new THREE.SpriteMaterial({ map: softGlowTex, color: 0xff4400, transparent: true, opacity: 0.4, blending: THREE.AdditiveBlending, depthWrite: false }));
+    sunOuter.scale.set(45, 45, 1); currentSun.add(sunOuter);
+    currentSun.add(new THREE.PointLight(0xffffff, 2.0, 10000));
 
-    // PERFECT PHYSICS PLANETS
-    let isPhysicsBroken = false;
-    let planetDataList = [];
-
+    // PLANETS
+    let isPhysicsBroken = false; let planetDataList = [];
     const planets = [
-      { name: "Earth", radius: 30, speed: 0.006, size: 1.2, type: 'earth' }, 
+      { name: "Earth", radius: 30, speed: 0.006, size: 1.2, type: 'earthMap' }, 
       { name: "Jupiter", radius: 55, speed: 0.002, size: 3.0, type: 'jupiter' }, 
       { name: "Saturn", radius: 78, speed: 0.0014, size: 2.5, type: 'saturn', hasRings: true }
     ];
@@ -249,210 +228,155 @@
       const ringGeo = new THREE.BufferGeometry(); const points = [];
       for (let i = 0; i <= 100; i++) { const t = (i/100)*Math.PI*2; points.push(new THREE.Vector3(Math.cos(t)*p.radius, 0, Math.sin(t)*p.radius)); }
       ringGeo.setFromPoints(points); 
-      const orbitLine = new THREE.Line(ringGeo, new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.1, blending: THREE.AdditiveBlending, depthWrite: false }));
+      const orbitLine = new THREE.Line(ringGeo, new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.15, blending: THREE.AdditiveBlending, depthWrite: false }));
       solarSystem.add(orbitLine);
       
       const pivot = new THREE.Group(); solarSystem.add(pivot);
-      
       let pMat = new THREE.MeshPhongMaterial({ map: textureLoader.load(TEX[p.type] || TEX.moon), shininess: 10 });
       const pMesh = new THREE.Mesh(new THREE.SphereGeometry(p.size, 64, 64), pMat);
       pMesh.position.x = p.radius; 
-      
-      // Store original material for Spectrum filters
       pMesh.userData = { name: p.name, size: p.size, origMat: pMat }; 
       pivot.add(pMesh); p.pivot = pivot; p.mesh = pMesh; p.orbitLine = orbitLine;
-      interactables.push(pMesh); allMeshes.push(pMesh);
-
-      planetDataList.push(p);
+      interactables.push(pMesh); allMeshes.push(pMesh); planetDataList.push(p);
       
       if (p.hasRings) {
           const rMesh = new THREE.Mesh(new THREE.TorusGeometry(p.size * 2, 0.1, 16, 100), new THREE.MeshPhongMaterial({ color: 0xcd853f, transparent: true, opacity: 0.8 }));
-          rMesh.rotation.x = Math.PI / 2.1; 
-          rMesh.userData = { origMat: rMesh.material };
+          rMesh.rotation.x = Math.PI / 2.1; rMesh.userData = { origMat: rMesh.material };
           pMesh.add(rMesh); allMeshes.push(rMesh);
       }
     });
 
-    // PULSAR FIX
-    const pulsarGroup = new THREE.Group(); pulsarGroup.position.set(2000, 500, -2000); scene.add(pulsarGroup);
+    // PULSAR (Restored V16 Geometry)
+    const pulsarGroup = new THREE.Group(); pulsarGroup.position.copy(LOCATIONS.vela.pos); scene.add(pulsarGroup);
     const nStar = new THREE.Mesh(new THREE.SphereGeometry(2, 32, 32), new THREE.MeshBasicMaterial({ color: 0xffffff }));
-    // Fix camera crash by setting a larger safe size in userData
-    nStar.userData = { name: "Magnetic Pulsar", size: 20, origMat: nStar.material }; 
-    interactables.push(nStar); allMeshes.push(nStar); pulsarGroup.add(nStar);
+    nStar.userData = { name: "Magnetic Pulsar", size: 12, origMat: nStar.material }; interactables.push(nStar); allMeshes.push(nStar); pulsarGroup.add(nStar);
     
-    const pBeam = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 40, 2000, 32, 1, true), new THREE.MeshBasicMaterial({ color: 0x4488ff, transparent: true, opacity: 0.3, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
-    pBeam.userData = { origMat: pBeam.material };
-    pulsarGroup.add(pBeam); allMeshes.push(pBeam);
+    const pAura = new THREE.Sprite(new THREE.SpriteMaterial({ map: softGlowTex, color: 0x55aaff, transparent: true, blending: THREE.AdditiveBlending }));
+    pAura.scale.set(30, 30, 1); pulsarGroup.add(pAura);
+
+    const jetGeo = new THREE.CylinderGeometry(0.2, 10, 1000, 32, 1, true); 
+    const jetMat = new THREE.MeshBasicMaterial({ color: 0x4488ff, transparent: true, opacity: 0.4, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide });
+    const pJet1 = new THREE.Mesh(jetGeo, jetMat); pJet1.position.y = 500; pulsarGroup.add(pJet1); 
+    const pJet2 = new THREE.Mesh(jetGeo, jetMat); pJet2.position.y = -500; pJet2.rotation.x = Math.PI; pulsarGroup.add(pJet2);
+    for(let i=0; i<3; i++) { 
+        let torus = new THREE.Mesh(new THREE.TorusGeometry(10 + (i*5), 0.1, 16, 100), new THREE.MeshBasicMaterial({color: 0x00ffff, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending})); 
+        torus.rotation.y = (Math.PI / 4) * i; torus.rotation.x = Math.PI / 2.2; pulsarGroup.add(torus); 
+    }
+
+    // BLACK HOLE (Sag A*)
+    const sagGroup = new THREE.Group(); sagGroup.position.copy(LOCATIONS.sagA.pos); scene.add(sagGroup);
+    const eh = new THREE.Mesh(new THREE.SphereGeometry(30, 64, 64), new THREE.MeshBasicMaterial({ color: 0x000000 })); 
+    eh.userData = { name: "Sagittarius A*", size: 60 }; interactables.push(eh); sagGroup.add(eh);
+    const accretion = new THREE.Mesh(new THREE.RingGeometry(40, 100, 64), new THREE.MeshBasicMaterial({ color: 0xffaa44, side: THREE.DoubleSide, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending }));
+    accretion.rotation.x = Math.PI / 1.7; sagGroup.add(accretion);
 
     // INTERACTION LOGIC
     const raycaster = new THREE.Raycaster(); const mouse = new THREE.Vector2();
     let targetCamPos = null; let targetLookAt = null;
 
     window.addEventListener('pointerdown', (event) => {
-        if(event.target.tagName === 'BUTTON' || event.target.closest('#radial-menu') || event.target.closest('.glass-panel') || event.target.closest('#info-panel') || event.target.closest('#telemetry-drawer')) return;
+        if(event.target.tagName === 'BUTTON' || event.target.closest('.hud-panel') || event.target.closest('.menu-modal') || event.target.closest('#info-panel') || event.target.closest('#telemetry-drawer')) return;
         mouse.x = (event.clientX / window.innerWidth) * 2 - 1; mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
         raycaster.setFromCamera(mouse, camera);
         const intersects = raycaster.intersectObjects(interactables, false);
         if(intersects.length > 0) {
-            const mesh = intersects[0].object;
-            const name = mesh.userData.name;
+            const mesh = intersects[0].object; const name = mesh.userData.name;
             if(DATABASE[name]) {
-                document.getElementById('infoTitle').textContent = name;
-                document.getElementById('infoType').textContent = DATABASE[name].type;
+                document.getElementById('infoTitle').textContent = name; document.getElementById('infoType').textContent = DATABASE[name].type;
                 const list = document.getElementById('infoFactsList'); list.innerHTML = '';
                 DATABASE[name].facts.forEach(f => { let li = document.createElement('li'); li.textContent = f; list.appendChild(li); });
-                document.getElementById('info-panel').classList.add('visible');
+                document.getElementById('info-panel').classList.add('visible'); document.getElementById('btnFreeCam').style.display = 'block';
             }
-            
-            const wPos = new THREE.Vector3(); mesh.getWorldPosition(wPos);
-            targetLookAt = wPos.clone();
-            const safeDist = Math.max(mesh.userData.size * 4, 15);
-            targetCamPos = new THREE.Vector3(wPos.x + safeDist, wPos.y + (safeDist*0.5), wPos.z + safeDist);
+            const wPos = new THREE.Vector3(); mesh.getWorldPosition(wPos); targetLookAt = wPos.clone();
+            const safeDist = Math.max(mesh.userData.size * 3.5, 15); targetCamPos = new THREE.Vector3(wPos.x + safeDist, wPos.y + (safeDist*0.5), wPos.z + safeDist);
             controls.target.copy(targetLookAt);
         }
     });
 
-    window.resetCamera = function() {
-        targetCamPos = new THREE.Vector3(0, 40, 100);
-        targetLookAt = new THREE.Vector3(0, 0, 0);
-        closeInfo(); toggleRadial();
+    window.initiateWarp = function(destCode) {
+        closeMenu('warp-modal'); closeInfo(); document.getElementById('btnFreeCam').style.display = 'block';
+        const dest = LOCATIONS[destCode]; targetCamPos = dest.pos.clone().add(dest.offset); targetLookAt = dest.pos.clone();
+        controls.target.copy(targetLookAt);
     };
 
-    // SPECTRUM FILTERS
     window.applyFilter = function(type) {
+        closeMenu('lab-modal');
         allMeshes.forEach(mesh => {
             if(!mesh.userData.origMat) return;
-            if(type === 'xray') {
-                mesh.material = new THREE.MeshBasicMaterial({ color: 0x00ffff, wireframe: true, transparent: true, opacity: 0.8 });
-            } else if(type === 'infrared') {
-                mesh.material = new THREE.MeshBasicMaterial({ color: 0xff3300, wireframe: false });
-            } else {
-                mesh.material = mesh.userData.origMat;
-            }
+            mesh.material = type === 'xray' ? new THREE.MeshBasicMaterial({ color: 0x00ffff, wireframe: true, transparent: true, opacity: 0.8 }) : mesh.userData.origMat;
         });
-        toggleRadial();
     };
 
-    // CELESTIAL TRANSMUTER LOGIC
     let currentTransmuteObj = null;
-
     window.triggerTransmutation = function(type) {
-        // UI Handling
-        toggleRadial(); document.getElementById('radial-menu').style.opacity = '0'; closeInfo();
+        closeMenu('lab-modal'); closeInfo(); document.getElementById('main-ui').classList.add('ui-hidden');
         const drawer = document.getElementById('telemetry-drawer');
-        
-        // Remove old objects
         if(currentTransmuteObj) solarSystem.remove(currentTransmuteObj);
-        sunCore.visible = false; sunGlow.visible = false;
-        
-        isPhysicsBroken = false;
+        sunCore.visible = false; sunGlow.visible = false; sunOuter.visible = false; isPhysicsBroken = false;
 
         if (type === 'blackhole') {
-            drawer.querySelector('#tel-title').textContent = "TRANSFORMATION: 1M☉ BLACK HOLE";
+            drawer.querySelector('#tel-title').textContent = "1M☉ BLACK HOLE DETECTED";
             drawer.querySelector('#tel-math').innerHTML = "<i>v = √(GM/r)</i> | Mass Remains Constant";
-            drawer.querySelector('#tel-desc').textContent = "The Sun has collapsed into a singularity. Because its mass is identical, Earth's orbital velocity and trajectory do not change. However, total darkness and absolute zero temperatures will freeze the solar system.";
-            
+            drawer.querySelector('#tel-desc').textContent = "Gravity unaffected. Earth orbit remains stable in absolute darkness.";
             currentTransmuteObj = new THREE.Group();
-            const eventHorizon = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 32), new THREE.MeshBasicMaterial({color: 0x000000}));
-            const disk = new THREE.Mesh(new THREE.RingGeometry(1.5, 4, 64), new THREE.MeshBasicMaterial({color: 0xffaa44, side: THREE.DoubleSide, transparent: true, opacity: 0.8}));
-            disk.rotation.x = Math.PI / 1.7;
-            currentTransmuteObj.add(eventHorizon, disk);
+            currentTransmuteObj.add(new THREE.Mesh(new THREE.SphereGeometry(1, 32, 32), new THREE.MeshBasicMaterial({color: 0x000000})));
+            const disk = new THREE.Mesh(new THREE.RingGeometry(1.5, 4, 64), new THREE.MeshBasicMaterial({color: 0xffaa44, side: THREE.DoubleSide, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending}));
+            disk.rotation.x = Math.PI / 1.7; currentTransmuteObj.add(disk);
             solarSystem.add(currentTransmuteObj);
-
         } else if (type === 'neutron') {
-            drawer.querySelector('#tel-title').textContent = "TRANSFORMATION: NEUTRON STAR";
-            drawer.querySelector('#tel-math').innerHTML = "<i>Density = Mass / Volume</i> | r → 10km";
-            drawer.querySelector('#tel-desc').textContent = "Mass is maintained, but compressed into a hyper-dense sphere miles across. Orbits remain stable, but extreme radiation and magnetic fields strip planetary atmospheres instantly.";
-            
+            drawer.querySelector('#tel-title').textContent = "NEUTRON STAR DETECTED";
+            drawer.querySelector('#tel-math').innerHTML = "<i>Density = M / V</i> | r → 10km";
+            drawer.querySelector('#tel-desc').textContent = "Mass maintained. Orbits stable, but radiation obliterates planetary atmospheres.";
             currentTransmuteObj = new THREE.Group();
-            const ns = new THREE.Mesh(new THREE.SphereGeometry(0.5, 32, 32), new THREE.MeshBasicMaterial({color: 0xffffff}));
+            currentTransmuteObj.add(new THREE.Mesh(new THREE.SphereGeometry(0.5, 32, 32), new THREE.MeshBasicMaterial({color: 0xffffff})));
             const aura = new THREE.Sprite(new THREE.SpriteMaterial({ map: softGlowTex, color: 0x55aaff, transparent: true, blending: THREE.AdditiveBlending }));
-            aura.scale.set(15, 15, 1);
-            currentTransmuteObj.add(ns, aura);
+            aura.scale.set(10, 10, 1); currentTransmuteObj.add(aura);
             solarSystem.add(currentTransmuteObj);
-
         } else if (type === 'saturn') {
-            drawer.querySelector('#tel-title').textContent = "TRANSFORMATION: SATURN (MASS DROP)";
-            drawer.querySelector('#tel-math').innerHTML = "<i>F = G(m₁m₂)/r²</i> | Gravitational Bond Broken";
-            drawer.querySelector('#tel-desc').textContent = "The Sun is replaced by Saturn. Center mass drops by 99.9%. The gravitational force is no longer sufficient to bend the planets' trajectories. They will now fly off in straight tangential lines into deep space.";
-            
-            isPhysicsBroken = true; // Triggers tangential drift in render loop
-            
+            drawer.querySelector('#tel-title').textContent = "GRAVITATIONAL BOND BROKEN";
+            drawer.querySelector('#tel-math').innerHTML = "<i>F = G(m₁m₂)/r²</i> | Mass dropped by 99.9%";
+            drawer.querySelector('#tel-desc').textContent = "Sun replaced by Saturn. Planets detach from orbit and drift into deep space.";
+            isPhysicsBroken = true; 
             currentTransmuteObj = new THREE.Group();
-            const sat = new THREE.Mesh(new THREE.SphereGeometry(2.5, 32, 32), new THREE.MeshPhongMaterial({map: textureLoader.load(TEX.saturn)}));
+            currentTransmuteObj.add(new THREE.Mesh(new THREE.SphereGeometry(2.5, 32, 32), new THREE.MeshPhongMaterial({map: textureLoader.load(TEX.saturn)})));
             const rings = new THREE.Mesh(new THREE.TorusGeometry(5, 0.1, 16, 100), new THREE.MeshBasicMaterial({color: 0xcd853f}));
-            rings.rotation.x = Math.PI/2.1;
-            currentTransmuteObj.add(sat, rings);
+            rings.rotation.x = Math.PI/2.1; currentTransmuteObj.add(rings);
             solarSystem.add(currentTransmuteObj);
-            
-            // Hide orbit lines because they are broken
             planetDataList.forEach(p => { p.orbitLine.visible = false; });
         }
-
-        // Camera sweep
-        targetCamPos = new THREE.Vector3(0, 20, 60);
-        targetLookAt = new THREE.Vector3(0, 0, 0);
-        controls.target.copy(targetLookAt);
-
+        targetCamPos = new THREE.Vector3(0, 20, 60); targetLookAt = new THREE.Vector3(0, 0, 0); controls.target.copy(targetLookAt);
         drawer.classList.add('visible');
     };
 
     window.resetSimulation = function() {
-        toggleRadial();
-        if(currentTransmuteObj) { solarSystem.remove(currentTransmuteObj); currentTransmuteObj = null; }
-        sunCore.visible = true; sunGlow.visible = true;
-        isPhysicsBroken = false;
-        
-        // Reset planet positions
-        planetDataList.forEach(p => {
-            p.mesh.position.set(p.radius, 0, 0);
-            p.pivot.rotation.y = 0;
-            p.orbitLine.visible = true;
-        });
+        closeMenu('lab-modal'); if(currentTransmuteObj) { solarSystem.remove(currentTransmuteObj); currentTransmuteObj = null; }
+        sunCore.visible = true; sunGlow.visible = true; sunOuter.visible = true; isPhysicsBroken = false;
+        planetDataList.forEach(p => { p.mesh.position.set(p.radius, 0, 0); p.pivot.rotation.y = 0; p.orbitLine.visible = true; });
         resetCamera();
     };
 
-    // BOOT CAMERA
-    targetCamPos = new THREE.Vector3(0, 40, 100);
-    targetLookAt = new THREE.Vector3(0, 0, 0);
+    // BOOT
+    targetCamPos = LOCATIONS.home.pos.clone().add(LOCATIONS.home.offset); targetLookAt = LOCATIONS.home.pos.clone();
     controls.target.copy(targetLookAt);
 
     function animate() {
       requestAnimationFrame(animate);
-      
-      // Rotations
-      sunCore.rotation.y += 0.002;
-      pulsarGroup.rotation.z += 0.08; pulsarGroup.rotation.y += 0.04;
+      sunCore.rotation.y += 0.002; pulsarGroup.rotation.z += 0.08; pulsarGroup.rotation.y += 0.04; sagGroup.rotation.y -= 0.005;
       if(currentTransmuteObj) currentTransmuteObj.rotation.y -= 0.01;
 
-      // Orbital Math
       planetDataList.forEach(p => { 
           p.mesh.rotation.y += 0.01;
-          if (isPhysicsBroken) {
-              // Planets fly away tangentially. Increase radius drastically.
-              p.radius += p.speed * 200;
-              p.mesh.position.x = p.radius;
-          } else {
-              // Normal Orbit
-              p.pivot.rotation.y += p.speed; 
-          }
+          if (isPhysicsBroken) { p.radius += p.speed * 150; p.mesh.position.x = p.radius; } else { p.pivot.rotation.y += p.speed; }
       });
 
-      // Camera Lerp
       if (targetCamPos && targetLookAt) {
-          camera.position.lerp(targetCamPos, 0.05); 
+          camera.position.lerp(targetCamPos, 0.06); 
           if (camera.position.distanceTo(targetCamPos) < 0.5) { targetCamPos = null; targetLookAt = null; }
       }
-
-      controls.update(); 
-      renderer.render(scene, camera);
+      controls.update(); renderer.render(scene, camera);
     }
     
-    window.addEventListener('resize', () => { 
-        camera.aspect = window.innerWidth / window.innerHeight; 
-        camera.updateProjectionMatrix(); 
-        renderer.setSize(window.innerWidth, window.innerHeight); 
-    });
+    window.addEventListener('resize', () => { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
   </script>
 </body>
 </html>

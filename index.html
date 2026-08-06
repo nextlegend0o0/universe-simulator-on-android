@@ -2,478 +2,379 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>HD Colossal Universe Simulator - V16 Audiovisual Overhaul</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+  <title>Universe Simulation - Android</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
-    body { background-color: #000000; color: #e0e6ed; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace; overflow: hidden; width: 100vw; height: 100vh; }
-    #warp-flash { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background-color: #ffffff; opacity: 0; pointer-events: none; z-index: 8000; transition: opacity 0.4s ease-in-out; }
-    #loading-screen { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background-color: #02040a; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 1s ease-out; }
-    .loader-ring { width: 60px; height: 60px; border: 4px solid rgba(147, 197, 253, 0.2); border-top: 4px solid #93c5fd; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
-    #loading-text { color: #93c5fd; font-size: 0.8rem; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; font-family: monospace; animation: pulse 1.5s infinite; }
+    /* 
+      V16.1 AAA "VORTEX" THEME
+      Deep gunmetal glass, sharp borders, neon orange accents 
+    */
+    :root {
+      --glass-bg: rgba(12, 15, 20, 0.75);
+      --glass-border: rgba(255, 115, 0, 0.35);
+      --neon-orange: #ff7300;
+      --neon-orange-glow: rgba(255, 115, 0, 0.6);
+      --text-main: #e2e8f0;
+      --text-muted: #64748b;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    body { background-color: #000; color: var(--text-main); overflow: hidden; width: 100vw; height: 100vh; }
+    
+    .safe-area-wrapper { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); pointer-events: none; z-index: 1000; }
+    #webgl-container { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; }
+    
+    /* V16 Loading Screen */
+    #loading-screen { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background-color: #050608; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 1s ease-out; pointer-events: auto; }
+    .loader-ring { width: 60px; height: 60px; border: 2px solid rgba(255, 115, 0, 0.1); border-top: 2px solid var(--neon-orange); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; box-shadow: 0 0 15px var(--neon-orange-glow); }
+    #loading-text { color: var(--neon-orange); font-size: 0.75rem; font-weight: 800; letter-spacing: 3px; text-transform: uppercase; animation: pulse 1.5s infinite; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
     .fade-out { opacity: 0; pointer-events: none; }
-    #landscape-prompt { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(2, 4, 10, 0.98); backdrop-filter: blur(15px); z-index: 10000; display: none; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px; color: #ffffff; cursor: pointer; }
-    #landscape-prompt .icon { font-size: 2.5rem; margin-bottom: 15px; animation: rotatePhone 2s infinite ease-in-out; }
-    #landscape-prompt h2 { font-size: 1.2rem; font-weight: 800; margin-bottom: 8px; letter-spacing: 1px; }
-    #landscape-prompt p { font-size: 0.8rem; color: #94a3b8; max-width: 300px; line-height: 1.4; }
-    @media screen and (orientation: portrait) { #landscape-prompt { display: flex !important; } }
-    #webgl-container { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; }
-    #ui-toggle { position: absolute; top: 12px; right: 12px; background: rgba(10, 15, 30, 0.6); border: 1px solid rgba(255, 255, 255, 0.15); color: #fff; padding: 6px 12px; border-radius: 20px; font-weight: 600; cursor: pointer; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.5); font-size: 0.65rem; backdrop-filter: blur(12px); letter-spacing: 1px; transition: all 0.2s ease; text-transform: uppercase; }
-    .ui-top, .ui-bottom, #info-panel { transition: opacity 0.3s ease, transform 0.3s ease; }
-    .ui-hidden { opacity: 0 !important; pointer-events: none !important; transform: translateX(-50%) translateY(-10px); }
-    #info-panel { position: absolute; top: 50%; right: 12px; transform: translateY(-45%) translateX(120%); width: 320px; max-height: 80vh; display: flex; flex-direction: column; background: rgba(4, 6, 12, 0.85); backdrop-filter: blur(25px); border: 1px solid rgba(147, 197, 253, 0.3); border-radius: 12px; padding: 15px; z-index: 500; opacity: 0; pointer-events: none; box-shadow: 0 15px 40px rgba(0,0,0,0.8); }
-    #info-panel.visible { opacity: 1; pointer-events: auto; transform: translateY(-45%) translateX(0); }
-    .info-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px; margin-bottom: 5px; flex-shrink: 0; }
-    .info-title { font-size: 1rem; font-weight: 800; color: #ffffff; letter-spacing: 1px; text-transform: uppercase; }
-    .info-close { color: #64748b; font-size: 1.2rem; cursor: pointer; transition: 0.2s; }
-    .info-type { font-size: 0.6rem; color: #fcd34d; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; display: block; flex-shrink: 0; }
-    .info-facts-container { overflow-y: auto; padding-right: 8px; flex-grow: 1; }
-    .info-facts-container::-webkit-scrollbar { width: 4px; }
-    .info-facts-container::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 4px; }
-    .info-facts-container::-webkit-scrollbar-thumb { background: #93c5fd; border-radius: 4px; }
-    .info-facts-list { list-style: none; padding-left: 0; margin: 0; }
-    .info-facts-list li { position: relative; padding-left: 14px; margin-bottom: 10px; font-size: 0.75rem; color: #cbd5e1; line-height: 1.5; font-weight: 500; }
-    .info-facts-list li::before { content: "►"; position: absolute; left: 0; top: 3px; color: #93c5fd; font-size: 0.5rem; }
     
-    #audio-container { margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px; display: none; }
-    #audio-label { font-size: 0.55rem; color: #93c5fd; text-transform: uppercase; font-weight: bold; letter-spacing: 1px; margin-bottom: 5px; display: block; }
-    #planet-audio { width: 100%; height: 35px; outline: none; border-radius: 5px; }
+    /* Prompts (Initial Boot & Resume) */
+    .fullscreen-prompt { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(5, 6, 8, 0.95); backdrop-filter: blur(15px); z-index: 10000; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: #fff; cursor: pointer; pointer-events: auto; }
+    .fullscreen-prompt h2 { font-size: 1.2rem; letter-spacing: 4px; margin-bottom: 10px; color: var(--neon-orange); text-transform: uppercase; }
+    .fullscreen-prompt p { font-size: 0.8rem; color: var(--text-muted); }
+    #resume-prompt { display: none; } /* Hidden until minimized */
+    @media screen and (orientation: portrait) { #landscape-prompt { display: flex !important; } }
 
-    .hud-panel { position: absolute; background: rgba(5, 8, 16, 0.55); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 6px 10px; z-index: 10; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8), inset 0 0 10px rgba(255,255,255,0.02); }
-    .ui-top { top: 45px; left: 50%; transform: translateX(-50%); width: 92%; max-width: 700px; text-align: center; }
-    .title-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 4px; }
-    .title-left { display: flex; align-items: center; gap: 6px; }
-    .title { font-size: 0.75rem; font-weight: 800; color: #ffffff; letter-spacing: 1px; text-shadow: 0 0 10px rgba(255,255,255,0.2); }
-    .badge { background: rgba(234, 179, 8, 0.15); color: #fde047; padding: 2px 6px; border-radius: 4px; font-size: 0.45rem; border: 1px solid rgba(250, 204, 21, 0.3); font-weight: bold; letter-spacing: 1px; }
-    .top-btns { display: flex; gap: 6px; }
-    .btn-fs { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.2); color: #e2e8f0; font-size: 0.55rem; font-weight: bold; padding: 4px 8px; border-radius: 6px; cursor: pointer; transition: 0.2s; }
-    .btn-free { background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5; font-size: 0.55rem; font-weight: bold; padding: 4px 8px; border-radius: 6px; cursor: pointer; display: none; transition: 0.2s; }
-    .preset-btns { display: flex; justify-content: center; gap: 8px; margin: 2px 0 8px 0; flex-wrap: wrap; }
-    .btn-sci { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(147, 197, 253, 0.2); color: #93c5fd; font-size: 0.55rem; font-weight: 600; padding: 6px 10px; border-radius: 6px; cursor: pointer; transition: all 0.2s ease; letter-spacing: 0.5px; }
-    .btn-warp { background: rgba(236, 72, 153, 0.1); color: #f472b6; border-color: rgba(236, 72, 153, 0.3); text-shadow: 0 0 8px rgba(236,72,153,0.4); }
-    .distance-tracker { font-size: 0.55rem; color: #94a3b8; margin-bottom: 6px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-    .distance-tracker span { color: #facc15; font-family: monospace; font-size: 0.65rem; text-shadow: 0 0 5px rgba(250, 204, 21, 0.3); }
-    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; background: rgba(0,0,0,0.4); padding: 6px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.03); }
-    .stat-card { display: flex; flex-direction: column; align-items: center; justify-content: center; }
-    .stat-val { font-size: 0.6rem; font-weight: 700; color: #ffffff; text-align: center; font-family: monospace; letter-spacing: 0.5px; }
-    .stat-lbl { font-size: 0.35rem; color: #64748b; text-transform: uppercase; margin-top: 2px; font-weight: 800; letter-spacing: 1px; }
-    .menu-dropdown { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 92%; max-width: 400px; background: rgba(4, 6, 12, 0.95); backdrop-filter: blur(25px); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 10px; padding: 12px; z-index: 100; display: none; box-shadow: 0 25px 60px rgba(0,0,0,0.9); }
-    #fastTravelDropdown { border-color: rgba(236, 72, 153, 0.5); }
-    .menu-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 6px; margin-bottom: 10px; }
-    .menu-header span:first-child { color: #ffffff; font-weight: 800; font-size: 0.65rem; letter-spacing: 1.5px; }
-    .close-btn { color: #64748b; cursor: pointer; font-weight: bold; font-size: 1rem; transition: 0.2s; }
-    .menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
-    .ui-bottom { bottom: 12px; left: 50%; transform: translateX(-50%); width: 92%; max-width: 700px; }
-    .controls-wrapper { display: flex; flex-direction: column; gap: 6px; }
-    .control-row { display: flex; flex-direction: column; gap: 4px; }
-    .control-hdr { display: flex; justify-content: space-between; font-size: 0.55rem; color: #94a3b8; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; }
-    input[type=range] { width: 100%; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; padding: 2px; height: 16px; outline: none; appearance: none; }
-    input[type=range]::-webkit-slider-thumb { appearance: none; width: 12px; height: 12px; background: #93c5fd; border-radius: 50%; cursor: pointer; }
+    /* AAA Top HUD */
+    .hud-panel { position: absolute; background: var(--glass-bg); backdrop-filter: blur(16px); border: 1px solid var(--glass-border); border-radius: 4px; padding: 12px 20px; pointer-events: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
+    .ui-top { top: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 800px; display: flex; justify-content: space-between; align-items: center; transition: opacity 0.4s ease, transform 0.4s ease; }
+    
+    /* AUTO-HIDE CLASS */
+    .ui-hidden { opacity: 0 !important; transform: translate(-50%, -20px) !important; pointer-events: none !important; }
+    
+    .hud-title { font-size: 0.85rem; font-weight: 800; color: #fff; letter-spacing: 3px; display: flex; align-items: center; gap: 10px; }
+    .hud-badge { background: rgba(255, 115, 0, 0.15); border: 1px solid var(--neon-orange); color: var(--neon-orange); font-size: 0.55rem; padding: 3px 6px; border-radius: 2px; letter-spacing: 1px; }
+    
+    .hud-stats { display: flex; gap: 20px; }
+    .stat-block { display: flex; flex-direction: column; align-items: flex-start; }
+    .stat-label { font-size: 0.55rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+    .stat-value { font-size: 0.8rem; font-weight: 700; color: #fff; font-family: monospace; }
+    
+    .btn-action { background: rgba(255, 115, 0, 0.1); border: 1px solid var(--neon-orange); color: var(--neon-orange); font-size: 0.65rem; font-weight: 700; padding: 8px 16px; border-radius: 2px; cursor: pointer; transition: 0.2s; letter-spacing: 2px; text-transform: uppercase; }
+    .btn-action:hover { background: var(--neon-orange); color: #000; box-shadow: 0 0 10px var(--neon-orange-glow); }
+
+    /* Target Info Panel (V16 Layout, Vortex Style) */
+    #info-panel { position: absolute; top: 50%; right: 40px; transform: translateY(-50%); width: 340px; background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 4px; padding: 20px; opacity: 0; pointer-events: none; transition: opacity 0.4s ease, transform 0.4s ease; transform: translateY(-50%) translateX(20px); box-shadow: -10px 10px 40px rgba(0,0,0,0.9); }
+    #info-panel.visible { opacity: 1; pointer-events: auto; transform: translateY(-50%) translateX(0); }
+    
+    .info-header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px; margin-bottom: 15px; }
+    .info-title { font-size: 1.4rem; font-weight: 800; color: #fff; letter-spacing: 2px; text-transform: uppercase; }
+    .info-type { font-size: 0.65rem; color: var(--neon-orange); font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-top: 4px; display: block; }
+    .close-btn { color: var(--text-muted); cursor: pointer; font-size: 1.2rem; line-height: 1; transition: 0.2s; }
+    .close-btn:hover { color: #fff; }
+    
+    .facts-list { font-size: 0.75rem; color: var(--text-main); list-style: none; line-height: 1.6; }
+    .facts-list li { margin-bottom: 12px; position: relative; padding-left: 15px; }
+    .facts-list li::before { content: ""; position: absolute; left: 0; top: 6px; width: 4px; height: 4px; background: var(--neon-orange); border-radius: 50%; }
+
+    /* V16 Dummy Audio UI */
+    .audio-block { margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px; }
+    .audio-label { font-size: 0.55rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; display: block; }
+    .audio-player { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 8px 12px; border-radius: 2px; display: flex; align-items: center; gap: 10px; color: var(--text-muted); font-size: 0.7rem; }
+    .play-icon { width: 0; height: 0; border-top: 5px solid transparent; border-bottom: 5px solid transparent; border-left: 8px solid var(--neon-orange); }
+
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 </head>
 <body>
 
-  <div id="warp-flash"></div>
-  <div id="landscape-prompt"><div class="icon">🔄</div><h2>ROTATE DEVICE</h2><p>Tap anywhere to enter cinematic full screen.</p></div>
-  <div id="loading-screen"><div class="loader-ring"></div><div id="loading-text">INITIALIZING V16 ENGINE...</div></div>
+  <!-- Initial Boot Screen -->
+  <div id="landscape-prompt" class="fullscreen-prompt">
+    <h2>INITIALIZE COMMAND HUB</h2>
+    <p>Rotate device to landscape and tap to enter cinematic view.</p>
+  </div>
+
+  <!-- OS Minimization Rescue Screen -->
+  <div id="resume-prompt" class="fullscreen-prompt">
+    <h2>SIGNAL LOST</h2>
+    <p>Tap anywhere to resume fullscreen connection.</p>
+  </div>
+
+  <div id="loading-screen">
+    <div class="loader-ring"></div>
+    <div id="loading-text">CALIBRATING SENSORS</div>
+  </div>
+
   <div id="webgl-container"></div>
-  <div id="ui-toggle" onclick="toggleMainUI()">☰ MENU</div>
 
-  <div id="info-panel">
-    <div class="info-header"><span class="info-title" id="infoTitle">Planet Name</span><span class="info-close" onclick="closeInfoPanel()">✕</span></div>
-    <span class="info-type" id="infoType">Classification</span>
-    <div class="info-facts-container"><ul class="info-facts-list" id="infoFactsList"></ul></div>
-    <div id="audio-container">
-      <span id="audio-label">Transmission Audio</span>
-      <audio id="planet-audio" controls></audio>
-    </div>
-  </div>
+  <div class="safe-area-wrapper">
+      
+      <!-- MAIN HUD (Auto-Hides) -->
+      <div id="main-ui" class="hud-panel ui-top">
+        <div class="hud-title">VORTEX <span class="hud-badge">V16.1 STABLE</span></div>
+        <div class="hud-stats">
+          <div class="stat-block">
+            <span class="stat-label">System Status</span>
+            <span class="stat-value" style="color: #4ade80;">NOMINAL</span>
+          </div>
+          <div class="stat-block">
+            <span class="stat-label">Active Entities</span>
+            <span class="stat-value">6 BODIES</span>
+          </div>
+        </div>
+        <button id="btnFreeCam" class="btn-action" style="display:none;" onclick="resetCamera()">DISENGAGE LOCK</button>
+      </div>
 
-  <div class="hud-panel ui-top ui-hidden">
-    <div class="title-bar">
-      <div class="title-left"><span class="title">HD UNIVERSE</span><span class="badge">V16 AUDIOVISUAL</span></div>
-      <div class="top-btns"><button id="btnFreeCam" class="btn-free" onclick="freeCamera()">🔓 FREE CAM</button><button class="btn-fs" onclick="toggleFullScreen()">⛶ FULLSCREEN</button></div>
-    </div>
-    <div class="preset-btns"><button class="btn-sci btn-warp" onclick="toggleWarpMenu()">🚀 FAST TRAVEL</button><div style="font-size: 0.55rem; color: #64748b; font-weight:bold; margin-top:6px;">TIP: TAP ANY ANOMALY OR PLANET FOR DATA</div></div>
-    <div class="distance-tracker">🛰️ Target Distance: <span id="distVal">0.00 AU</span></div>
-    <div class="stats-grid">
-      <div class="stat-card"><span class="stat-val" id="targetName" style="color:#93c5fd">Solar System</span><span class="stat-lbl">Tracking Target</span></div>
-      <div class="stat-card"><span class="stat-val" id="objType" style="color:#fcd34d">Star System</span><span class="stat-lbl">Classification</span></div>
-      <div class="stat-card"><span class="stat-val" id="speedVal">0.0 km/s</span><span class="stat-lbl">Orbital Velocity</span></div>
-      <div class="stat-card"><span class="stat-val" id="moonsVal">12 Bodies</span><span class="stat-lbl">System Bodies</span></div>
-    </div>
-  </div>
+      <!-- TARGET INFO (AAA Style) -->
+      <div id="info-panel">
+        <div class="info-header">
+            <div>
+                <div class="info-title" id="infoTitle">Object Name</div>
+                <span class="info-type" id="infoType">Classification</span>
+            </div>
+            <span class="close-btn" onclick="closeInfo()">✕</span>
+        </div>
+        <ul class="facts-list" id="infoFactsList"></ul>
+        
+        <div class="audio-block">
+            <span class="audio-label">Transmission Audio</span>
+            <div class="audio-player">
+                <div class="play-icon"></div>
+                <span>0:00 / 0:00 (OFFLINE)</span>
+            </div>
+        </div>
+      </div>
 
-  <div id="fastTravelDropdown" class="menu-dropdown">
-    <div class="menu-header"><span>SELECT WARP DESTINATION</span><span class="close-btn" onclick="toggleWarpMenu()">✕</span></div>
-    <div class="menu-grid">
-      <button class="btn-sci" onclick="initiateWarp('home')">☀️ Solar System</button>
-      <button class="btn-sci" style="color: #fca5a5; border-color: rgba(252, 165, 165, 0.3);" onclick="initiateWarp('proxima')">☄️ Proxima Centauri</button>
-      <button class="btn-sci" style="color: #67e8f9; border-color: rgba(6, 182, 212, 0.3);" onclick="initiateWarp('orion')">🌌 Carina Nebula</button>
-      <button class="btn-sci" style="color: #a5b4fc; border-color: rgba(99, 102, 241, 0.3);" onclick="initiateWarp('vela')">⚡ Magnetic Pulsar</button>
-      <button class="btn-sci" style="color: #fcd34d; border-color: rgba(252, 211, 77, 0.3);" onclick="initiateWarp('sagA')">🕳️ Sagittarius A*</button>
-      <button class="btn-sci" style="color: #fb7185; border-color: rgba(251, 113, 133, 0.3);" onclick="initiateWarp('supernova')">💥 Binary Merger</button>
-    </div>
-  </div>
-
-  <div class="hud-panel ui-bottom ui-hidden">
-    <div class="controls-wrapper">
-      <div class="control-row"><div class="control-hdr"><span>Time Warp (Simulation Speed)</span><span id="speedUiVal" style="color:#facc15">1.0x</span></div><input type="range" id="timeSpeed" min="0.0" max="10.0" step="0.1" value="1.0"></div>
-    </div>
   </div>
 
   <script>
-    // AUDIO FILES ADDED TO EVERY OBJECT
-    const DATABASE={
-      "Sun":{type:"G-Type Star", audio: "./audio/sun.mp3", facts:["It is a nearly perfect sphere of incredibly hot plasma.","Accounts for 99.86% of the total mass in the entire solar system.","The core temperature reaches a staggering 15 million degrees Celsius.","Composed primarily of Hydrogen (73%) and Helium (25%).","Light from the Sun takes approximately 8 minutes and 20 seconds to reach Earth.","It generates powerful solar winds that create the beautiful Auroras on Earth.","Its magnetic field flips completely every 11 years, causing solar maximums.","Over 1.3 million Earths could fit inside the Sun's volume.","In about 5 billion years, it will expand into a Red Giant and consume the inner planets.","It rotates faster at its equator (25 days) than at its poles (35 days)."]},
-      "Earth":{type:"Terrestrial Planet", audio: "./audio/earth.mp3", facts:["The only planet in the known universe confirmed to harbor life.","Approximately 71% of Earth's surface is covered in liquid water.","It is the densest planet in the Solar System.","The atmosphere is 78% nitrogen, 21% oxygen, and 1% other ingredients.","Earth's strong magnetic field protects the planet from harmful solar radiation.","It is the only planet with active plate tectonics, driving earthquakes and mountain building.","It takes 23 hours, 56 minutes, and 4 seconds for Earth to rotate once on its axis.","Earth is not a perfect sphere; it bulges slightly at the equator due to its spin.","The 23.4-degree tilt of Earth's axis is what causes our yearly seasons.","It has exactly one natural satellite, the Moon, which stabilizes our axial wobble."]},
-      "Moon":{type:"Natural Satellite", audio: "./audio/moon.mp3", facts:["Earth's only natural satellite, stabilizing our planet's axial tilt.","It is tidally locked to Earth, meaning we only ever see one side of it.","The Moon's gravity pulls on Earth's oceans, creating the tides.","It was likely formed from debris after a Mars-sized body collided with early Earth.","The Moon has virtually no atmosphere, exposing it to extreme temperature swings.","Its surface is heavily scarred by impact craters from billions of years of asteroid strikes.","Gravity on the Moon is only 1/6th as strong as Earth's gravity.","It is the only celestial body beyond Earth that humans have visited.","The Moon is slowly moving away from Earth at a rate of 3.8 cm per year.","Temperatures range from 120°C in the sun to -130°C in the dark."]},
-      "Mercury":{type:"Terrestrial Planet", audio: "./audio/mercury.mp3", facts:["The smallest planet in the solar system, only slightly larger than Earth's Moon.","It is the closest planet to the Sun, orbiting at a distance of 58 million km.","The fastest planet, zipping around the Sun in just 88 Earth days at 47 km/s.","Experiences extreme temperature swings from 430°C in the day to -180°C at night.","Instead of an atmosphere, it possesses a thin 'exosphere' of atoms blasted off its surface.","It has no moons and no planetary rings.","Its surface is heavily cratered, looking incredibly similar to Earth's moon.","Despite being closest to the Sun, radar shows deep craters holding frozen water ice.","It has a massive metallic core that takes up about 85% of the planet's radius.","Because its orbit is highly elliptical, the Sun would appear to move backwards in its sky at perihelion."]},
-      "Venus":{type:"Terrestrial Planet", audio: "./audio/venus.mp3", facts:["Often called Earth's 'sister planet' due to their similar size and rocky composition.","The hottest planet in our solar system, with surface temperatures reaching 475°C.","Its thick atmosphere is full of the greenhouse gas carbon dioxide, and it has clouds of sulfuric acid.","Atmospheric pressure at the surface is over 90 times that of Earth (like being 1 mile underwater).","It has a retrograde rotation, meaning it spins backward compared to most other planets.","A single day on Venus (243 Earth days) is actually longer than its year (225 Earth days).","The surface is covered in thousands of massive volcanoes, some of which may still be active.","It is the brightest natural object in Earth's night sky after the Moon.","It has no moons and generates a very weak induced magnetic field.","It was the first planet ever to be explored by a spacecraft (Mariner 2 in 1962)."]},
-      "Mars":{type:"Terrestrial Planet", audio: "./audio/mars.mp3", facts:["Known as the Red Planet because iron minerals in the soil oxidize, or rust, causing it to look red.","It hosts Olympus Mons, the largest volcano and highest mountain in the solar system.","Valles Marineris is a massive canyon system on Mars that is 10 times longer than the Grand Canyon.","The atmosphere is incredibly thin and composed almost entirely of carbon dioxide.","It has two small, irregularly shaped moons named Phobos and Deimos.","Temperatures can drop to -153°C at the poles, freezing carbon dioxide into dry ice.","Gravity on Mars is only 37% of Earth's gravity (you could jump nearly 3 times higher).","Evidence suggests that billions of years ago, Mars had oceans of liquid water.","It experiences massive dust storms that can cover the entire planet for months.","It is currently the primary target for humanity's future interplanetary colonization efforts."]},
-      "Jupiter":{type:"Gas Giant", audio: "./audio/jupiter.mp3", facts:["The largest planet in the solar system; over 1,300 Earths could fit inside it.","It is a gas giant composed primarily of hydrogen and helium, lacking a true solid surface.","Home to the Great Red Spot, a gigantic storm larger than Earth that has raged for over 300 years.","It has the shortest day in the solar system, spinning once completely in just about 10 hours.","It holds a staggering 95 officially recognized moons.","Its moon Ganymede is the largest moon in the solar system, even bigger than the planet Mercury.","Its moon Europa is covered in ice and has a vast liquid ocean underneath that might harbor life.","Jupiter actually has a faint ring system made mostly of dust particles blasted from its moons.","Its magnetic field is 16 to 54 times as powerful as Earth's, trapping intense belts of radiation.","It is so massive that its barycenter (center of mass) with the Sun actually lies just outside the Sun's surface."]},
-      "Europa":{type:"Jovian Moon", audio: "./audio/europa.mp3", facts:["One of Jupiter's four large Galilean moons.","It is encased in a thick shell of solid water ice.","Scientists strongly believe a massive, liquid saltwater ocean exists beneath the ice.","This subsurface ocean contains more than twice the amount of water found on Earth.","It is considered one of the most promising places to look for alien life in the solar system.","The surface is incredibly smooth, with very few craters, indicating it is geologically active and young.","The dark reddish streaks are fractures where tidal forces have cracked the ice shell.","Jupiter's immense gravity causes tidal heating, which keeps Europa's internal ocean from freezing.","It has a very thin, tenuous atmosphere composed primarily of oxygen.","NASA is launching the Europa Clipper mission specifically to study its habitability."]},
-      "Saturn":{type:"Gas Giant", audio: "./audio/saturn.mp3", facts:["Famous for its spectacular, complex ring system made mostly of chunks of ice and rock.","It is the least dense planet; if you had a bathtub large enough, Saturn would float in water.","It currently holds the record for the most moons, with 146 confirmed in its orbit.","Its largest moon, Titan, is the only moon in the solar system with a thick, dense atmosphere.","Saturn is mostly made of hydrogen and helium, generating immense internal heat.","Winds in the upper atmosphere can reach speeds of 1,800 kilometers per hour.","It has a bizarre, perfectly hexagonal storm perpetually raging at its north pole.","It takes 29.4 Earth years for Saturn to complete a single orbit around the Sun.","Despite their massive width, Saturn's main rings are incredibly thin—only about 10 meters thick.","Its moon Enceladus shoots massive geysers of water ice out into space, which actually form one of Saturn's rings."]},
-      "Titan":{type:"Saturnian Moon", audio: "./audio/titan.mp3", facts:["Saturn's largest moon and the second-largest in the solar system.","It is actually larger than the planet Mercury.","It is the only moon in the solar system known to have a dense, substantial atmosphere.","Titan is the only place besides Earth known to have stable bodies of liquid on its surface.","Instead of water, its lakes and rivers are made of liquid methane and ethane.","It has a thick, opaque orange smog that hides its surface from visible light cameras.","Surface temperatures are a freezing -179 degrees Celsius.","The Cassini-Huygens mission successfully landed a probe on Titan's surface in 2005.","Scientists believe its environment is similar to early Earth before life developed.","Atmospheric pressure is about 50% greater than Earth's, so you could fly by flapping artificial wings."]},
-      "Uranus":{type:"Ice Giant", audio: "./audio/uranus.mp3", facts:["Classified as an 'Ice Giant' because it has a mantle of icy water, ammonia, and methane.","It rolls around the Sun on its side; its axis is tilted by a staggering 97.7 degrees.","The methane gas in its atmosphere absorbs red light, giving the planet its signature pale blue color.","It has a retrograde rotation, meaning it spins east to west, exactly like Venus.","Uranus has 28 known moons, all named after characters from the works of William Shakespeare and Alexander Pope.","It is the coldest planetary atmosphere in the solar system, with temperatures dropping to -224°C.","It has 13 faint, dark rings composed of boulder-sized dark particles.","It was the very first planet discovered with the aid of a telescope (by William Herschel in 1781).","A single year on Uranus takes 84 Earth years to complete.","Because of its extreme tilt, the poles experience 42 years of continuous sunlight followed by 42 years of darkness."]},
-      "Neptune":{type:"Ice Giant", audio: "./audio/neptune.mp3", facts:["The most distant major planet in our solar system, located 30 times further from the Sun than Earth.","It was the first planet discovered by mathematical prediction rather than direct observation.","It is a dark, cold, and incredibly windy world; wind speeds here can surpass 2,000 kilometers per hour.","Its vivid, deep blue color is also caused by atmospheric methane, similar to Uranus.","It has 16 known moons; the largest, Triton, is the only large moon in the solar system that orbits backward.","Neptune has a faint, clumpy ring system that includes five distinct rings.","It occasionally hosts massive, dark oval storms, the most famous being the 'Great Dark Spot' seen in 1989.","It takes a massive 165 Earth years to complete a single orbit around the Sun.","It actually radiates more than twice as much heat energy into space as it receives from the Sun.","Due to extreme pressures in its mantle, scientists theorize it literally rains diamonds deep inside the planet."]},
-      "Pluto":{type:"Dwarf Planet", audio: "./audio/pluto.mp3", facts:["Once considered the 9th planet, it was reclassified as a Dwarf Planet by the IAU in 2006.","It resides in the Kuiper Belt, a donut-shaped region of icy bodies beyond Neptune.","It is incredibly small—only about half the width of the United States.","It has five known moons; its largest, Charon, is so big that Pluto and Charon actually orbit each other like a double-planet system.","Its surface features a massive, heart-shaped glacier of nitrogen ice named Tombaugh Regio.","Pluto's orbit is highly elliptical and tilted; sometimes it actually crosses closer to the Sun than Neptune.","When it gets closer to the Sun, its surface ices thaw and form a temporary, thin atmosphere.","The surface is a mix of mountains of water-ice and vast plains of frozen nitrogen and methane.","It was famously visited by the New Horizons spacecraft in 2015, which provided our first high-res photos.","A year on Pluto lasts for 248 Earth years."]},
-      "Proxima Centauri":{type:"Red Dwarf Star", audio: "./audio/proxima.mp3", facts:["The absolute closest star to our Solar System.","Located exactly 4.246 light-years away.","It is a Red Dwarf, meaning it is much cooler and smaller than our Sun.","It only has 12.5% of our Sun's mass.","Despite being the closest star, it is completely invisible to the naked eye from Earth.","It is a 'flare star', meaning it occasionally shoots out massive, violent bursts of radiation.","It hosts a confirmed planet called Proxima b.","Proxima b orbits in the 'habitable zone' where liquid water could exist.","The star is estimated to be 4.85 billion years old.","Because it burns fuel so slowly, it will live for trillions of years."]},
-      "Carina Stellar Nursery":{type:"Emission Nebula", audio: "./audio/nebula.mp3", facts:["A massive, volumetric cloud of interstellar gas and dust.","Inspired by the Pillars of Creation and Carina Nebula.","The deep orange colors are composed of dense, cold cosmic dust.","The glowing blue areas are ionized hydrogen gas heated by young stars.","Spans hundreds of light-years across the galaxy.","Gravity slowly forces the dust to collapse, forming protostars.","Intense ultraviolet radiation from newborns carves out the pillar shapes.","Temperatures inside the gas can reach 10,000 Kelvin.","It is the birthplace of thousands of new solar systems.","In a few million years, the gas will blow away, leaving an open star cluster."]},
-      "Magnetic Pulsar":{type:"Neutron Star", audio: "./audio/pulsar.mp3", facts:["The ultra-dense, collapsed core of a dead star that went supernova.","It spins at a terrifying rate of dozens of revolutions per second.","Neutron stars are so dense that a single teaspoon weighs a billion tons.","It emits twin, lighthouse-like beams of blinding electromagnetic radiation.","The physical, glowing rings around it are immensely powerful magnetic field lines.","Its magnetic field is trillions of times stronger than Earth's.","It frequently experiences 'glitches', sudden spikes in its rotational speed.","It is one of the brightest sources of extreme gamma-ray radiation.","The core is theorized to be a frictionless superfluid.","If you got too close, the gravity would rip you apart at the atomic level."]},
-      "Sagittarius A*":{type:"Supermassive Black Hole", audio: "./audio/blackhole.mp3", facts:["The monster supermassive black hole at the absolute center of our Milky Way.","It contains the mass of 4.3 million of our Suns crushed into a singularity.","Located approximately 26,670 light-years away from Earth.","The intense glowing ring is a superheated accretion disk of shredded stars and gas.","It emits a massive galactic glow that illuminates the core of the Milky Way.","Its event horizon is about 24 million kilometers across.","Stars orbit it at blistering speeds up to 30 million km/h.","It emits intense bursts of X-ray radiation when it 'eats'.","Its immense gravity literally warps space and time, bending light like a lens.","Imaged directly for the first time by humanity in 2022."]},
-      "Binary Black Hole Merger":{type:"Gravitational Anomaly", audio: "./audio/binary_merger.mp3", facts:["Two massive black holes locked in a fatal, inescapable orbital dance.","Their immense gravity forces their accretion disks to warp and bend together.","As they orbit, they radiate massive amounts of energy as Gravitational Waves.","These waves literally ripple the fabric of spacetime across the universe.","Their orbits are constantly decaying, bringing them closer every second.","When they finally collide, they will merge into a single, massive black hole.","The collision will release more energy than all the stars in the universe combined for a fraction of a second.","This specific model features intertwined, additive-blending photon rings.","The first ever gravitational waves detected by LIGO in 2015 came from a merger exactly like this.","Time slows down incredibly the closer you get to their event horizons."]}
+    // CORE DATABASE (Including Neptune)
+    const DATABASE = {
+      "Sun": { type: "G-Type Star", facts: ["Perfect sphere of incredibly hot plasma.", "Accounts for 99.86% of total solar system mass.", "Core temperature hits 15 million °C."] },
+      "Earth": { type: "Terrestrial Planet", facts: ["Only planet confirmed to harbor life.", "71% surface covered in liquid water.", "Densest planet in the system."] },
+      "Jupiter": { type: "Gas Giant", facts: ["Largest planet; holds 1,300 Earths.", "Home to the Great Red Spot.", "Rotates fully in just 10 hours."] },
+      "Saturn": { type: "Gas Giant", facts: ["Famous for complex, beautiful ice rings.", "Least dense planet (would float in water).", "Has 146 confirmed moons."] },
+      "Neptune": { type: "Ice Giant", facts: ["The most distant major planet in our solar system.", "Discovered by mathematical prediction.", "Dark, cold, and incredibly windy."] },
+      "Magnetic Pulsar": { type: "Neutron Star", facts: ["Ultra-dense collapsed core of a dead star.", "Spins at terrifying rates.", "Emits lighthouse-like beams of radiation."] }
     };
 
-    const manager = new THREE.LoadingManager();
-    manager.onLoad = function () { const ls = document.getElementById('loading-screen'); ls.classList.add('fade-out'); setTimeout(() => ls.remove(), 1000); animate(); };
-    manager.onProgress = function (u, i, t) { document.getElementById('loading-text').innerText = `LOADING HD TEXTURES...`; };
-
-    const TEX = { stars: './2k_stars_milky_way.jpg', earthMap: './2k_earth_daymap.jpg', earthNorm: './2k_earth_normal_map.jpg', earthSpec: './2k_earth_specular_map.jpg', earthCloud: './2k_earth_clouds.jpg', moon: './2k_moon.jpg', mercury: './2k_mercury.jpg', venus: './2k_venus_surface.jpg', mars: './2k_mars.jpg', jupiter: './2k_jupiter.jpg', saturn: './2k_saturn.jpg', uranus: './2k_uranus.jpg', neptune: './2k_neptune.jpg', pluto: './2k_pluto.jpg' };
-
-    let uiIsVisible = false; 
-    window.toggleMainUI = function() { uiIsVisible = !uiIsVisible; document.querySelector('.ui-top').classList.toggle('ui-hidden'); document.querySelector('.ui-bottom').classList.toggle('ui-hidden'); document.getElementById('fastTravelDropdown').style.display = 'none'; };
-    window.lockLandscape = function() { const p = document.getElementById('landscape-prompt'); if (p) p.remove(); const d = document.documentElement; if (d.requestFullscreen) d.requestFullscreen().catch(()=>{}); if (screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(()=>{}); };
-    window.addEventListener('click', window.lockLandscape, { once: true }); window.addEventListener('touchstart', window.lockLandscape, { once: true });
-    window.toggleFullScreen = function() { window.lockLandscape(); }; window.toggleWarpMenu = function() { const m = document.getElementById('fastTravelDropdown'); m.style.display = m.style.display === 'block' ? 'none' : 'block'; }; 
+    // UI & FULLSCREEN LOGIC
+    const mainUI = document.getElementById('main-ui');
+    const infoPanel = document.getElementById('info-panel');
+    const btnFreeCam = document.getElementById('btnFreeCam');
     
-    window.closeInfoPanel = function() { 
-        document.getElementById('info-panel').classList.remove('visible'); 
-        const audioEl = document.getElementById('planet-audio');
-        audioEl.pause();
-        audioEl.currentTime = 0;
-    };
+    function closeInfo() { 
+        infoPanel.classList.remove('visible'); 
+        mainUI.classList.remove('ui-hidden'); // The Auto-Show Fix
+    }
     
-    window.freeCamera = function() { followTargetObj = null; isFollowing = false; targetCamPos = null; targetLookAt = null; isWarping = false; controls.enablePan = true; document.getElementById('btnFreeCam').style.display = 'none'; document.getElementById('targetName').textContent = "Free Camera"; document.getElementById('objType').textContent = "Unlocked"; document.getElementById('speedVal').textContent = "---"; };
+    function resetCamera() { 
+        targetCamPos = new THREE.Vector3(0, 40, 150); 
+        targetLookAt = new THREE.Vector3(0, 0, 0); 
+        closeInfo(); 
+        btnFreeCam.style.display = 'none'; 
+    }
 
-    const container = document.getElementById('webgl-container'); const scene = new THREE.Scene(); scene.background = new THREE.Color(0x000000); 
-    const textureLoader = new THREE.TextureLoader(manager); textureLoader.setCrossOrigin('anonymous'); 
+    // Fullscreen Management (The Android OS Fix)
+    function enterFullscreen() {
+        const d = document.documentElement; 
+        if (d.requestFullscreen) d.requestFullscreen().catch(()=>{}); 
+        if (screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(()=>{}); 
+    }
+
+    document.getElementById('landscape-prompt').addEventListener('click', function() {
+        this.style.display = 'none';
+        enterFullscreen();
+    });
+
+    document.getElementById('resume-prompt').addEventListener('click', function() {
+        this.style.display = 'none';
+        enterFullscreen();
+    });
+
+    document.addEventListener('fullscreenchange', () => {
+        const resumePrompt = document.getElementById('resume-prompt');
+        const initPrompt = document.getElementById('landscape-prompt');
+        // If we dropped out of fullscreen and the initial prompt is already gone
+        if (!document.fullscreenElement && initPrompt.style.display === 'none') {
+            resumePrompt.style.display = 'flex';
+        }
+    });
+
+    // THREE.JS SETUP
+    const container = document.getElementById('webgl-container'); 
+    const scene = new THREE.Scene(); 
+    scene.background = new THREE.Color(0x000000); 
     
     const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 2000000);
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, logarithmicDepthBuffer: true, powerPreference: "high-performance" });
-    renderer.setSize(window.innerWidth, window.innerHeight); renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); 
-    renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.2; 
-    renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance" });
+    renderer.setSize(window.innerWidth, window.innerHeight); 
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); 
+    renderer.toneMapping = THREE.ACESFilmicToneMapping; 
     container.appendChild(renderer.domElement);
     
-    const controls = new THREE.OrbitControls(camera, renderer.domElement); controls.enableDamping = true; controls.dampingFactor = 0.05; controls.enablePan = false; controls.zoomSpeed = 0.6; controls.maxDistance = 500000; controls.minDistance = 2;
-    let timeMultiplier = 1.0;
+    const controls = new THREE.OrbitControls(camera, renderer.domElement); 
+    controls.enableDamping = true; controls.dampingFactor = 0.05; controls.maxDistance = 100000; controls.minDistance = 5;
 
-    const LOCATIONS = {
-      home: { pos: new THREE.Vector3(0, 0, 0), offset: new THREE.Vector3(0, 60, 150) },
-      proxima: { pos: new THREE.Vector3(15000, 500, -15000), offset: new THREE.Vector3(0, 20, 80) }, 
-      orion: { pos: new THREE.Vector3(-25000, -2000, 30000), offset: new THREE.Vector3(0, 1000, 4000) }, 
-      vela: { pos: new THREE.Vector3(40000, 2000, -25000), offset: new THREE.Vector3(0, 200, 800) }, 
-      sagA: { pos: new THREE.Vector3(0, 0, -60000), offset: new THREE.Vector3(0, 1000, 4000) }, 
-      supernova: { pos: new THREE.Vector3(50000, 5000, 40000), offset: new THREE.Vector3(0, 400, 1500) } 
+    // TEXTURE LOADER
+    const manager = new THREE.LoadingManager();
+    manager.onLoad = function () { 
+        const ls = document.getElementById('loading-screen'); 
+        ls.classList.add('fade-out'); 
+        setTimeout(() => ls.remove(), 1000); 
+        animate(); 
+    };
+    
+    const textureLoader = new THREE.TextureLoader(manager); 
+    textureLoader.setCrossOrigin('anonymous'); 
+    const TEX = { 
+        stars: './2k_stars_milky_way.jpg', 
+        earthMap: './2k_earth_daymap.jpg', 
+        jupiter: './2k_jupiter.jpg', 
+        saturn: './2k_saturn.jpg', 
+        neptune: './2k_neptune.jpg', // Assuming you have this, otherwise falls back to moon
+        moon: './2k_moon.jpg' 
     };
 
-    function generateTexture(stops) { const c = document.createElement('canvas'); c.width = 512; c.height = 512; const ctx = c.getContext('2d'); const g = ctx.createRadialGradient(256, 256, 0, 256, 256, 256); stops.forEach(s => g.addColorStop(s[0], s[1])); ctx.fillStyle = g; ctx.fillRect(0,0,512,512); return new THREE.CanvasTexture(c); }
-    const starTex = generateTexture([[0,'rgba(255,255,255,1)'], [0.1,'rgba(255,255,255,0.8)'], [0.3,'rgba(255,255,255,0.2)'], [1,'rgba(0,0,0,0)']]);
-    function createSmokyTex(r, g, b) { const c = document.createElement('canvas'); c.width = 128; c.height = 128; const ctx = c.getContext('2d'); const grad = ctx.createRadialGradient(64, 64, 10, 64, 64, 64); grad.addColorStop(0, `rgba(${r},${g},${b},0.6)`); grad.addColorStop(0.5, `rgba(${r},${g},${b},0.2)`); grad.addColorStop(1, 'rgba(0,0,0,0)'); ctx.fillStyle = grad; ctx.fillRect(0,0,128,128); return new THREE.CanvasTexture(c); }
-    const dustTex = createSmokyTex(255, 120, 40); const gasTex = createSmokyTex(50, 150, 255);
+    function createGlowTex() { 
+        const c = document.createElement('canvas'); c.width = 128; c.height = 128; const ctx = c.getContext('2d'); 
+        const g = ctx.createRadialGradient(64, 64, 0, 64, 64, 64); 
+        g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.2, 'rgba(255,255,255,0.8)'); g.addColorStop(1, 'rgba(0,0,0,0)'); 
+        ctx.fillStyle = g; ctx.fillRect(0,0,128,128); return new THREE.CanvasTexture(c); 
+    }
+    const softGlowTex = createGlowTex();
 
-    const universeGroup = new THREE.Group(); scene.add(universeGroup); const interactables = [];
+    const interactables = []; 
 
+    // SKYBOX (Crisp 4K only, NO White Blobs)
     const skyGeo = new THREE.SphereGeometry(800000, 64, 64);
     const skyMat = new THREE.MeshBasicMaterial({ map: textureLoader.load(TEX.stars), side: THREE.BackSide, depthWrite: false });
     scene.add(new THREE.Mesh(skyGeo, skyMat));
 
-    const galaxyGeo = new THREE.BufferGeometry(); const gPos = []; const gCol = [];
-    for(let i=0; i<45000; i++) {
-        let r = Math.random() * 90000; let theta = Math.random() * Math.PI * 2;
-        let ySpread = 6000 * Math.exp(-(r*r)/(30000*30000));
-        let y = (Math.random() - 0.5) * ySpread;
-        theta -= (r * 0.00005); 
-        gPos.push(Math.cos(theta)*r, y, Math.sin(theta)*r);
-        let c = new THREE.Color();
-        if (r < 15000) c.setHex(0xffeebb); else if (r < 40000) c.setHex(0xffddaa); else c.setHex(0xaaccff);
-        gCol.push(c.r, c.g, c.b);
-    }
-    galaxyGeo.setAttribute('position', new THREE.Float32BufferAttribute(gPos, 3)); galaxyGeo.setAttribute('color', new THREE.Float32BufferAttribute(gCol, 3));
-    const galaxyCloud = new THREE.Points(galaxyGeo, new THREE.PointsMaterial({ size: 200, vertexColors: true, map: starTex, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending, depthWrite: false }));
-    scene.add(galaxyCloud);
+    // SUN (V16 Procedural Volumetric Glow)
+    const solarSystem = new THREE.Group(); scene.add(solarSystem);
+    solarSystem.add(new THREE.AmbientLight(0x333344, 0.4)); 
 
-    const proxGroup = new THREE.Group(); proxGroup.position.copy(LOCATIONS.proxima.pos); universeGroup.add(proxGroup);
-    const proxStar = new THREE.Mesh(new THREE.SphereGeometry(2.5, 32, 32), new THREE.MeshBasicMaterial({ color: 0xfff5e6 }));
-    const proxGlow1 = new THREE.Sprite(new THREE.SpriteMaterial({ map: starTex, color: 0xffaa00, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false })); proxGlow1.scale.set(15, 15, 1); proxStar.add(proxGlow1);
-    const proxGlow2 = new THREE.Sprite(new THREE.SpriteMaterial({ map: starTex, color: 0xff4400, transparent: true, opacity: 0.7, blending: THREE.AdditiveBlending, depthWrite: false })); proxGlow2.scale.set(35, 35, 1); proxStar.add(proxGlow2);
-    proxStar.userData = { name: "Proxima Centauri", size: 2.5 }; interactables.push(proxStar); proxGroup.add(proxStar);
-
-    const orionGroup = new THREE.Group(); orionGroup.position.copy(LOCATIONS.orion.pos); universeGroup.add(orionGroup);
-    for(let i=0; i<40; i++) {
-        let isDust = Math.random() > 0.4; 
-        let sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: isDust ? dustTex : gasTex, transparent: true, opacity: isDust ? 0.3 : 0.4, blending: THREE.AdditiveBlending, depthWrite: false }));
-        sprite.position.set((Math.random()-0.5)*4000, (Math.random()-0.5)*2000, (Math.random()-0.5)*4000);
-        let scale = 1500 + Math.random()*2000; sprite.scale.set(scale, scale, 1); orionGroup.add(sprite);
-    }
-    const orionCore = new THREE.Mesh(new THREE.SphereGeometry(800, 16, 16), new THREE.MeshBasicMaterial({ visible: false }));
-    orionGroup.add(orionCore); orionCore.userData = { name: "Carina Stellar Nursery", size: 800 }; interactables.push(orionCore);
-
-    function createDiskTex() {
-      const c = document.createElement('canvas'); c.width = 1024; c.height = 1024; const ctx = c.getContext('2d'); 
-      const g = ctx.createRadialGradient(512, 512, 120, 512, 512, 512);
-      g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(0.1, 'rgba(255,255,255,0.9)'); g.addColorStop(0.3, 'rgba(255,150,50,0.8)'); g.addColorStop(0.6, 'rgba(100,20,10,0.5)'); g.addColorStop(1, 'rgba(0,0,0,0)'); 
-      ctx.fillStyle = g; ctx.fillRect(0,0,1024,1024);
-      for(let i=0; i<600; i++) { ctx.beginPath(); const r = 120 + Math.random()*380; const a = Math.random()*Math.PI*2; ctx.arc(512, 512, r, a, a + Math.random()*0.5); ctx.lineWidth = Math.random()*3; ctx.strokeStyle = `rgba(255,255,255,${Math.random()*0.15})`; ctx.stroke(); }
-      return new THREE.CanvasTexture(c);
-    }
-    const diskTexCache = createDiskTex();
-
-    const mergerGroup = new THREE.Group(); mergerGroup.position.copy(LOCATIONS.supernova.pos); universeGroup.add(mergerGroup);
-    const bh1Pivot = new THREE.Group(); mergerGroup.add(bh1Pivot);
-    const bh1 = new THREE.Mesh(new THREE.SphereGeometry(30, 32, 32), new THREE.MeshBasicMaterial({ color: 0x000000 })); bh1.position.x = -80;
-    const disk1 = new THREE.Mesh(new THREE.TorusGeometry(80, 25, 32, 100), new THREE.MeshBasicMaterial({ color: 0xff4411, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false }));
-    disk1.rotation.x = Math.PI / 1.5; disk1.rotation.y = 0.2; bh1.add(disk1); bh1Pivot.add(bh1);
-
-    const bh2Pivot = new THREE.Group(); mergerGroup.add(bh2Pivot);
-    const bh2 = new THREE.Mesh(new THREE.SphereGeometry(25, 32, 32), new THREE.MeshBasicMaterial({ color: 0x000000 })); bh2.position.x = 80;
-    const disk2 = new THREE.Mesh(new THREE.TorusGeometry(70, 20, 32, 100), new THREE.MeshBasicMaterial({ color: 0x2288ff, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false }));
-    disk2.rotation.x = Math.PI / 2.5; disk2.rotation.y = -0.2; bh2.add(disk2); bh2Pivot.add(bh2);
-
-    const clashGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: starTex, color: 0xffffff, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending, depthWrite: false }));
-    clashGlow.scale.set(400, 400, 1); mergerGroup.add(clashGlow);
-    const mergerHit = new THREE.Mesh(new THREE.SphereGeometry(200, 16, 16), new THREE.MeshBasicMaterial({ visible: false }));
-    mergerHit.userData = { name: "Binary Black Hole Merger", size: 200 }; interactables.push(mergerHit); mergerGroup.add(mergerHit);
-
-    const sagGroup = new THREE.Group(); sagGroup.position.copy(LOCATIONS.sagA.pos); universeGroup.add(sagGroup);
-    const eventHorizon = new THREE.Mesh(new THREE.SphereGeometry(150, 64, 64), new THREE.MeshBasicMaterial({ color: 0x000000 })); 
-    eventHorizon.userData = { name: "Sagittarius A*", size: 150 }; interactables.push(eventHorizon); sagGroup.add(eventHorizon);
-    const accretionSag = new THREE.Mesh(new THREE.RingGeometry(180, 800, 128), new THREE.MeshBasicMaterial({ map: diskTexCache, color: 0xffffff, side: THREE.DoubleSide, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
-    accretionSag.rotation.x = Math.PI / 1.7; sagGroup.add(accretionSag);
-    const bhGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: starTex, color: 0xffcc88, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending, depthWrite: false }));
-    bhGlow.scale.set(3000, 3000, 1); sagGroup.add(bhGlow);
-
-    // FIX 2: PULSAR REDESIGN (Sleek energy rings and volumetric beams)
-    const pulsarGroup = new THREE.Group(); pulsarGroup.position.copy(LOCATIONS.vela.pos); universeGroup.add(pulsarGroup);
-    const neutronStar = new THREE.Mesh(new THREE.SphereGeometry(6, 32, 32), new THREE.MeshBasicMaterial({ color: 0xffffff })); 
-    neutronStar.userData = { name: "Magnetic Pulsar", size: 6 }; interactables.push(neutronStar); pulsarGroup.add(neutronStar);
-    const pulsarAura = new THREE.Sprite(new THREE.SpriteMaterial({ map: starTex, color: 0x55aaff, transparent: true, opacity: 1.0, blending: THREE.AdditiveBlending, depthWrite: false }));
-    pulsarAura.scale.set(80, 80, 1); pulsarGroup.add(pulsarAura);
+    let currentSun = new THREE.Group(); solarSystem.add(currentSun);
+    const sunCore = new THREE.Mesh(new THREE.SphereGeometry(8.0, 64, 64), new THREE.MeshBasicMaterial({ color: 0xffaa00 }));
+    sunCore.userData = { name: "Sun", size: 8.0 }; 
+    interactables.push(sunCore); currentSun.add(sunCore);
     
-    // Core focused beam
-    const jetGeo1 = new THREE.CylinderGeometry(0.5, 20, 4000, 32, 1, true); 
-    const jetMat1 = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide });
-    const pJet1 = new THREE.Mesh(jetGeo1, jetMat1); pJet1.position.y = 2000; pulsarGroup.add(pJet1); 
-    const pJet2 = new THREE.Mesh(jetGeo1, jetMat1); pJet2.position.y = -2000; pJet2.rotation.x = Math.PI; pulsarGroup.add(pJet2);
+    const sunGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: softGlowTex, color: 0xff7700, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false }));
+    sunGlow.scale.set(35, 35, 1); currentSun.add(sunGlow);
     
-    // Outer soft volumetric beam
-    const jetGeo2 = new THREE.CylinderGeometry(2, 60, 4000, 32, 1, true); 
-    const jetMat2 = new THREE.MeshBasicMaterial({ color: 0x4488ff, transparent: true, opacity: 0.2, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide });
-    const pJet3 = new THREE.Mesh(jetGeo2, jetMat2); pJet3.position.y = 2000; pulsarGroup.add(pJet3); 
-    const pJet4 = new THREE.Mesh(jetGeo2, jetMat2); pJet4.position.y = -2000; pJet4.rotation.x = Math.PI; pulsarGroup.add(pJet4);
-
-    // Sleek multiple magnetic rings
-    for(let i=0; i<5; i++) { 
-        let torus = new THREE.Mesh(new THREE.TorusGeometry(30 + (i*15), 0.2, 16, 100), new THREE.MeshBasicMaterial({color: 0x00ffff, transparent: true, opacity: 0.6 - (i*0.1), blending: THREE.AdditiveBlending, depthWrite: false})); 
-        torus.rotation.y = (Math.PI / 4) * i; torus.rotation.x = Math.PI / 2.2; pulsarGroup.add(torus); 
-    }
-
-    const solarSystem = new THREE.Group(); solarSystem.position.copy(LOCATIONS.home.pos); universeGroup.add(solarSystem);
-    solarSystem.add(new THREE.AmbientLight(0x333344, 0.6)); 
-
-    // FIX 1: PROCEDURAL VOLUMETRIC SUN (Replaced flat texture)
-    const sunMesh = new THREE.Mesh(new THREE.SphereGeometry(6.0, 64, 64), new THREE.MeshBasicMaterial({ color: 0xfff5e6 }));
-    sunMesh.userData = { name: "Sun", size: 6.0 }; interactables.push(sunMesh); solarSystem.add(sunMesh);
+    const sunOuter = new THREE.Sprite(new THREE.SpriteMaterial({ map: softGlowTex, color: 0xff4400, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending, depthWrite: false }));
+    sunOuter.scale.set(60, 60, 1); currentSun.add(sunOuter);
     
-    const sunCorona = new THREE.Sprite(new THREE.SpriteMaterial({ map: starTex, color: 0xffaa00, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false })); 
-    sunCorona.scale.set(20, 20, 1); sunMesh.add(sunCorona);
-    
-    const sunOuterGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: starTex, color: 0xff4400, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending, depthWrite: false })); 
-    sunOuterGlow.scale.set(45, 45, 1); sunMesh.add(sunOuterGlow);
-    
-    const sunLight = new THREE.PointLight(0xffffff, 2.0, 10000); 
-    sunLight.castShadow = true; sunLight.shadow.mapSize.width = 1024; sunLight.shadow.mapSize.height = 1024; sunLight.shadow.bias = -0.005;
-    solarSystem.add(sunLight); 
+    currentSun.add(new THREE.PointLight(0xffffff, 2.5, 10000));
 
+    // PLANETS (Including Neptune)
+    let planetDataList = [];
     const planets = [
-      { name: "Mercury", radius: 14, speed: 0.012, size: 0.6, type: 'mercury', tilt: 0.03 }, 
-      { name: "Venus", radius: 20, speed: 0.008, size: 1.1, type: 'venus', tilt: 3.1 }, 
-      { name: "Earth", radius: 28, speed: 0.006, size: 1.2, type: 'earth', tilt: 0.41, moons: [{name: "Moon", r: 3.0, speed: 0.05, size: 0.35, type: 'moon'}] }, 
-      { name: "Mars", radius: 36, speed: 0.004, size: 0.8, type: 'mars', tilt: 0.44 }, 
-      { name: "Jupiter", radius: 60, speed: 0.002, size: 3.0, type: 'jupiter', tilt: 0.05, moons: [{name: "Europa", r: 5.0, speed: 0.03, size: 0.45, type: 'moon', color: 0xddddff}] }, 
-      { name: "Saturn", radius: 82, speed: 0.0014, size: 2.5, type: 'saturn', hasRings: true, tilt: 0.46, moons: [{name: "Titan", r: 6.5, speed: 0.02, size: 0.55, type: 'moon', color: 0xffddaa}] }, 
-      { name: "Uranus", radius: 105, speed: 0.001, size: 1.8, type: 'uranus', tilt: 1.7 }, 
-      { name: "Neptune", radius: 125, speed: 0.0007, size: 1.7, type: 'neptune', tilt: 0.49 }, 
-      { name: "Pluto", radius: 145, speed: 0.0005, size: 0.4, type: 'pluto', tilt: 2.1 }
+      { name: "Earth", radius: 40, speed: 0.005, size: 1.5, type: 'earthMap' }, 
+      { name: "Jupiter", radius: 75, speed: 0.002, size: 3.5, type: 'jupiter' }, 
+      { name: "Saturn", radius: 110, speed: 0.0014, size: 3.0, type: 'saturn', hasRings: true },
+      { name: "Neptune", radius: 150, speed: 0.0008, size: 2.8, type: 'neptune' }
     ];
     
-    const planetObjects = {}; 
     planets.forEach(p => {
       const ringGeo = new THREE.BufferGeometry(); const points = [];
       for (let i = 0; i <= 100; i++) { const t = (i/100)*Math.PI*2; points.push(new THREE.Vector3(Math.cos(t)*p.radius, 0, Math.sin(t)*p.radius)); }
-      ringGeo.setFromPoints(points); solarSystem.add(new THREE.Line(ringGeo, new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.08 })));
+      ringGeo.setFromPoints(points); 
+      const orbitLine = new THREE.Line(ringGeo, new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.1, blending: THREE.AdditiveBlending, depthWrite: false }));
+      solarSystem.add(orbitLine);
       
       const pivot = new THREE.Group(); solarSystem.add(pivot);
-      
-      let pMat;
-      if (p.name === 'Earth') { 
-          pMat = new THREE.MeshPhongMaterial({ map: textureLoader.load(TEX.earthMap), normalMap: textureLoader.load(TEX.earthNorm), specularMap: textureLoader.load(TEX.earthSpec), specular: new THREE.Color(0x222222), shininess: 25 });
-      } else { 
-          pMat = new THREE.MeshPhongMaterial({ map: textureLoader.load(TEX[p.type] || TEX.moon), shininess: 10 }); 
-      }
-      
+      let pMat = new THREE.MeshPhongMaterial({ map: textureLoader.load(TEX[p.type] || TEX.moon), shininess: 5 });
       const pMesh = new THREE.Mesh(new THREE.SphereGeometry(p.size, 64, 64), pMat);
-      pMesh.position.x = p.radius; pMesh.rotation.z = p.tilt; pMesh.castShadow = true; pMesh.receiveShadow = true; 
-      pivot.add(pMesh); p.pivot = pivot; p.mesh = pMesh; planetObjects[p.name] = p;
-      pMesh.userData = { name: p.name, size: p.size }; interactables.push(pMesh);
+      pMesh.position.x = p.radius; 
+      pMesh.userData = { name: p.name, size: p.size }; 
+      pivot.add(pMesh); p.pivot = pivot; p.mesh = pMesh; 
+      interactables.push(pMesh); planetDataList.push(p);
       
-      if (p.name === 'Earth') {
-          const cloudMesh = new THREE.Mesh(new THREE.SphereGeometry(p.size * 1.015, 64, 64), new THREE.MeshPhongMaterial({ map: textureLoader.load(TEX.earthCloud), transparent: true, opacity: 0.8, depthWrite: false }));
-          cloudMesh.receiveShadow = true; pMesh.add(cloudMesh); p.cloudMesh = cloudMesh;
-      }
       if (p.hasRings) {
-          const sRings = new THREE.Group();
-          [1.5, 1.8, 2.2, 2.5].forEach((r, idx) => {
-              let op = [0.8, 0.6, 0.9, 0.8][idx]; let col = [0xd2b48c, 0xcd853f, 0xf5deb3, 0xd2b48c][idx];
-              let rm = new THREE.MeshPhongMaterial({ color: col, transparent: true, opacity: op, side: THREE.DoubleSide });
-              let rMesh = new THREE.Mesh(new THREE.TorusGeometry(p.size * r, 0.05, 16, 100), rm);
-              rMesh.receiveShadow = true; rMesh.castShadow = true; sRings.add(rMesh);
-          });
-          sRings.rotation.x = Math.PI / 2.1; pMesh.add(sRings);
-      }
-      if (p.moons) {
-          p.moonObjs = [];
-          p.moons.forEach(m => {
-              const mPivot = new THREE.Group(); pMesh.add(mPivot);
-              const mMat = new THREE.MeshPhongMaterial({ map: textureLoader.load(TEX.moon), shininess: 5 });
-              if(m.color) mMat.color.setHex(m.color);
-              const mMesh = new THREE.Mesh(new THREE.SphereGeometry(m.size, 32, 32), mMat);
-              mMesh.position.x = m.r; mMesh.castShadow = true; mMesh.receiveShadow = true;
-              mPivot.add(mMesh); mMesh.userData = { name: m.name, size: m.size }; interactables.push(mMesh);
-              p.moonObjs.push({ pivot: mPivot, speed: m.speed });
-              const mGeo = new THREE.BufferGeometry(); const mPts = [];
-              for(let i=0; i<=60; i++) { let t = (i/60)*Math.PI*2; mPts.push(new THREE.Vector3(Math.cos(t)*m.r, 0, Math.sin(t)*m.r)); }
-              mGeo.setFromPoints(mPts); pMesh.add(new THREE.Line(mGeo, new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.15 })));
-          });
+          const rMesh = new THREE.Mesh(new THREE.TorusGeometry(p.size * 2.2, 0.1, 16, 100), new THREE.MeshPhongMaterial({ color: 0xcd853f, transparent: true, opacity: 0.8 }));
+          rMesh.rotation.x = Math.PI / 2.1; 
+          pMesh.add(rMesh);
       }
     });
 
-    const warpLinesGeo = new THREE.BufferGeometry(); const warpLinePos = [];
-    for(let i=0; i<4000; i++) { const r = 30 + Math.random() * 800; const theta = Math.random() * Math.PI * 2; const z = -Math.random() * 10000; warpLinePos.push(r * Math.cos(theta), r * Math.sin(theta), z); warpLinePos.push(r * Math.cos(theta), r * Math.sin(theta), z - (200 + Math.random() * 600)); }
-    warpLinesGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(warpLinePos), 3));
-    const warpLines3D = new THREE.LineSegments(warpLinesGeo, new THREE.LineBasicMaterial({ color: 0x93c5fd, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, linewidth: 2 }));
-    camera.add(warpLines3D); scene.add(camera);
+    // PULSAR (V16 Original Geometry)
+    const pulsarGroup = new THREE.Group(); pulsarGroup.position.set(2000, 500, -2000); scene.add(pulsarGroup);
+    const nStar = new THREE.Mesh(new THREE.SphereGeometry(3, 32, 32), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+    nStar.userData = { name: "Magnetic Pulsar", size: 15 }; interactables.push(nStar); pulsarGroup.add(nStar);
+    
+    const pAura = new THREE.Sprite(new THREE.SpriteMaterial({ map: softGlowTex, color: 0x55aaff, transparent: true, blending: THREE.AdditiveBlending }));
+    pAura.scale.set(40, 40, 1); pulsarGroup.add(pAura);
 
-    let isWarping = false; let warpStartPos = new THREE.Vector3(); let warpEndPos = new THREE.Vector3(); let warpLookAt = new THREE.Vector3(); let warpProgress = 0;
+    const jetGeo = new THREE.CylinderGeometry(0.5, 15, 1500, 32, 1, true); 
+    const jetMat = new THREE.MeshBasicMaterial({ color: 0x4488ff, transparent: true, opacity: 0.3, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide });
+    const pJet1 = new THREE.Mesh(jetGeo, jetMat); pJet1.position.y = 750; pulsarGroup.add(pJet1); 
+    const pJet2 = new THREE.Mesh(jetGeo, jetMat); pJet2.position.y = -750; pJet2.rotation.x = Math.PI; pulsarGroup.add(pJet2);
+    for(let i=0; i<4; i++) { 
+        let torus = new THREE.Mesh(new THREE.TorusGeometry(15 + (i*6), 0.2, 16, 100), new THREE.MeshBasicMaterial({color: 0x00ffff, transparent: true, opacity: 0.4, blending: THREE.AdditiveBlending})); 
+        torus.rotation.y = (Math.PI / 4) * i; torus.rotation.x = Math.PI / 2.2; pulsarGroup.add(torus); 
+    }
 
-    window.initiateWarp = function(destCode) {
-      window.toggleWarpMenu(); window.freeCamera(); window.closeInfoPanel();
-      const dest = LOCATIONS[destCode]; warpStartPos.copy(camera.position); warpEndPos.copy(dest.pos).add(dest.offset); warpLookAt.copy(dest.pos);
-      const flash = document.getElementById('warp-flash'); flash.style.opacity = '1'; 
-      setTimeout(() => { isWarping = true; warpProgress = 0; controls.enablePan = false; warpLines3D.position.z = 0; flash.style.opacity = '0'; }, 300);
-    };
-
-    document.getElementById('timeSpeed').addEventListener('input', (e) => { timeMultiplier = parseFloat(e.target.value); document.getElementById('speedUiVal').textContent = timeMultiplier.toFixed(1) + "x"; });
-
-    const raycaster = new THREE.Raycaster(); const mouse = new THREE.Vector2(); let followTargetObj = null; let targetCamPos = null; let targetLookAt = null; let isFollowing = false; let lastTargetPos = new THREE.Vector3();
+    // INTERACTION LOGIC
+    const raycaster = new THREE.Raycaster(); const mouse = new THREE.Vector2();
+    let targetCamPos = null; let targetLookAt = null;
 
     window.addEventListener('pointerdown', (event) => {
-        if (isWarping) return;
-        if(event.target.tagName === 'BUTTON' || event.target.tagName === 'INPUT' || event.target.closest('.hud-panel') || event.target.closest('#info-panel')) return;
-        mouse.x = (event.clientX / window.innerWidth) * 2 - 1; mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+        if(event.target.tagName === 'BUTTON' || event.target.closest('.hud-panel') || event.target.closest('#info-panel')) return;
+        
+        mouse.x = (event.clientX / window.innerWidth) * 2 - 1; 
+        mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
         raycaster.setFromCamera(mouse, camera);
         const intersects = raycaster.intersectObjects(interactables, false);
-        if(intersects.length > 0) triggerLockOn(intersects[0].object, intersects[0].object.userData.name, intersects[0].object.userData.size);
+        
+        if(intersects.length > 0) {
+            const mesh = intersects[0].object; 
+            const name = mesh.userData.name;
+            if(DATABASE[name]) {
+                document.getElementById('infoTitle').textContent = name; 
+                document.getElementById('infoType').textContent = DATABASE[name].type;
+                const list = document.getElementById('infoFactsList'); list.innerHTML = '';
+                DATABASE[name].facts.forEach(f => { let li = document.createElement('li'); li.textContent = f; list.appendChild(li); });
+                
+                // The Auto-Hide Implementation
+                infoPanel.classList.add('visible'); 
+                mainUI.classList.add('ui-hidden'); 
+                btnFreeCam.style.display = 'block';
+            }
+            
+            const wPos = new THREE.Vector3(); mesh.getWorldPosition(wPos); targetLookAt = wPos.clone();
+            const safeDist = Math.max(mesh.userData.size * 4, 20); 
+            targetCamPos = new THREE.Vector3(wPos.x + safeDist, wPos.y + (safeDist*0.5), wPos.z + safeDist);
+            controls.target.copy(targetLookAt);
+        }
     });
 
-    function triggerLockOn(mesh, name, size) {
-        followTargetObj = mesh; isFollowing = false; 
-        if(DATABASE[name]) {
-            document.getElementById('infoTitle').textContent = name; document.getElementById('infoType').textContent = DATABASE[name].type;
-            const factsList = document.getElementById('infoFactsList'); factsList.innerHTML = ''; 
-            DATABASE[name].facts.forEach(fact => { let li = document.createElement('li'); li.textContent = fact; factsList.appendChild(li); });
-            
-            const audioData = DATABASE[name].audio;
-            const audioCont = document.getElementById('audio-container');
-            const audioEl = document.getElementById('planet-audio');
-            if(audioData && audioData !== "") {
-                audioEl.src = audioData;
-                audioCont.style.display = 'block';
-            } else {
-                audioEl.src = "";
-                audioCont.style.display = 'none';
-            }
-
-            document.getElementById('info-panel').classList.add('visible');
-        }
-        document.getElementById('btnFreeCam').style.display = 'block'; document.getElementById('targetName').textContent = name; document.getElementById('objType').textContent = DATABASE[name] ? DATABASE[name].type : "Stellar Body";
-        const wPos = new THREE.Vector3(); mesh.getWorldPosition(wPos); targetLookAt = wPos.clone();
-        const safeDistance = Math.max(size * 4, 15); targetCamPos = new THREE.Vector3(wPos.x + safeDistance, wPos.y + (safeDistance/2), wPos.z + safeDistance);
-        controls.target.copy(targetLookAt); controls.enablePan = false; 
-    }
-
-    function calculateDistanceTracker() {
-      const earthWorldPos = new THREE.Vector3(); planetObjects['Earth'].mesh.getWorldPosition(earthWorldPos); const distRaw = camera.position.distanceTo(earthWorldPos);
-      document.getElementById('distVal').textContent = distRaw < 1000 ? (distRaw / 26).toFixed(4) + " AU" : (distRaw / 100).toFixed(2) + " Light Years";
-    }
-
-    // FIX 3: HARD-LOCK CAMERA TO THE SUN ON INITIAL BOOT
-    triggerLockOn(sunMesh, "Sun", 6.0);
+    // BOOT CAMERA
+    targetCamPos = new THREE.Vector3(0, 40, 150); 
+    targetLookAt = new THREE.Vector3(0, 0, 0);
+    controls.target.copy(targetLookAt);
 
     function animate() {
       requestAnimationFrame(animate);
-      sunMesh.rotation.y += 0.002 * timeMultiplier; 
-      pulsarGroup.rotation.z += 0.08 * timeMultiplier; pulsarGroup.rotation.y += 0.04 * timeMultiplier;
-      sagGroup.rotation.y -= 0.005 * timeMultiplier; 
-      bh1Pivot.rotation.y += 0.04 * timeMultiplier; bh2Pivot.rotation.y += 0.04 * timeMultiplier;
-      galaxyCloud.rotation.y += 0.0002 * timeMultiplier;
-
-      planets.forEach(p => { 
-          p.pivot.rotation.y += p.speed * timeMultiplier; p.mesh.rotation.y += 0.01 * timeMultiplier; 
-          if (p.cloudMesh) p.cloudMesh.rotation.y += 0.002 * timeMultiplier; 
-          if (p.moonObjs) p.moonObjs.forEach(mo => { mo.pivot.rotation.y += mo.speed * timeMultiplier; });
+      
+      sunCore.rotation.y += 0.002; 
+      pulsarGroup.rotation.z += 0.08; pulsarGroup.rotation.y += 0.04;
+      
+      planetDataList.forEach(p => { 
+          p.mesh.rotation.y += 0.01;
+          p.pivot.rotation.y += p.speed;
       });
 
-      if (isWarping) {
-        warpProgress += 0.015; 
-        let ease = warpProgress < 0.5 ? 4 * Math.pow(warpProgress, 3) : 1 - Math.pow(-2 * warpProgress + 2, 3) / 2;
-        camera.position.lerpVectors(warpStartPos, warpEndPos, ease); controls.target.lerpVectors(controls.target, warpLookAt, ease);
-        let intensity = Math.sin(warpProgress * Math.PI);
-        warpLines3D.material.opacity = intensity * 1.0; warpLines3D.scale.z = 1 + (intensity * 30); 
-        warpLines3D.position.z += 800 * timeMultiplier; if (warpLines3D.position.z > 10000) warpLines3D.position.z = 0; 
-        warpLines3D.rotation.z += 0.02; 
-        camera.fov = 45 + (intensity * 75); camera.updateProjectionMatrix();
-        if (warpProgress >= 1) { 
-            isWarping = false; warpLines3D.material.opacity = 0; warpLines3D.scale.z = 1; warpLines3D.position.z = 0; camera.fov = 45; camera.updateProjectionMatrix(); 
-            camera.position.copy(warpEndPos); controls.target.copy(warpLookAt);
-            const flash = document.getElementById('warp-flash'); flash.style.transition = 'none'; flash.style.opacity = '1'; setTimeout(() => { flash.style.transition = 'opacity 0.6s'; flash.style.opacity = '0'; }, 50);
-        }
-      } else {
-        if (targetCamPos && targetLookAt) {
-          camera.position.lerp(targetCamPos, 0.06); if (camera.position.distanceTo(targetCamPos) < 0.5) { targetCamPos = null; targetLookAt = null; isFollowing = true; followTargetObj.getWorldPosition(lastTargetPos); }
-        } else if (isFollowing && followTargetObj) {
-          const currentWorldPos = new THREE.Vector3(); followTargetObj.getWorldPosition(currentWorldPos); controls.target.copy(currentWorldPos);
-          const delta = currentWorldPos.clone().sub(lastTargetPos); camera.position.add(delta); lastTargetPos.copy(currentWorldPos);
-        }
+      if (targetCamPos && targetLookAt) {
+          camera.position.lerp(targetCamPos, 0.05); 
+          if (camera.position.distanceTo(targetCamPos) < 0.5) { targetCamPos = null; targetLookAt = null; }
       }
-      calculateDistanceTracker(); controls.update(); renderer.render(scene, camera);
+      
+      controls.update(); 
+      renderer.render(scene, camera);
     }
-    window.addEventListener('resize', () => { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
+    
+    window.addEventListener('resize', () => { 
+        camera.aspect = window.innerWidth / window.innerHeight; 
+        camera.updateProjectionMatrix(); 
+        renderer.setSize(window.innerWidth, window.innerHeight); 
+    });
   </script>
 </body>
 </html>

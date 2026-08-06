@@ -1,13 +1,69 @@
-<!-- AAA WARP NAVIGATION TERMINAL -->
-<div id="nav-modal">
-  <div class="modal-terminal">
-    <div class="terminal-header">WARP NAVIGATION</div>
-    <div class="terminal-list">
-      <button class="nav-target-btn" data-target="solar">SOLAR SYSTEM</button>
-      <button class="nav-target-btn" data-target="pulsar">MAGNETIC PULSAR</button>
-      <button class="nav-target-btn" data-target="blackhole">SUPERMASSIVE BLACK HOLE</button>
-      <button class="nav-target-btn" data-target="nebula">DEEP SPACE NEBULA</button>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Vortex Engine V16.1</title>
+  
+  <!-- Link to your CSS -->
+  <link rel="stylesheet" href="style.css">
+  
+  <!-- Load Three.js Engine -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+
+  <!-- 3D Canvas Container -->
+  <div id="webgl-container"></div>
+
+  <!-- AAA Top HUD Navigation Bar -->
+  <div id="main-ui">
+    <div class="hud-brand">
+      <h1>VORTEX</h1>
+      <span class="version-badge">V16.1 STABLE</span>
     </div>
-    <button class="terminal-close" id="btn-close-menu">CLOSE TERMINAL</button>
+    
+    <div class="hud-telemetry">
+      <div class="telemetry-item">
+        <span class="telemetry-label">SYSTEM STATUS</span>
+        <span class="telemetry-value nominal">NOMINAL</span>
+      </div>
+      <div class="telemetry-item">
+        <span class="telemetry-label">ACTIVE ENTITIES</span>
+        <span class="telemetry-value">6 BODIES</span>
+      </div>
+    </div>
+    
+    <!-- The exact button ID the JavaScript needs -->
+    <button id="btn-nav" class="hud-btn">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="3" y1="12" x2="21" y2="12"></line>
+        <line x1="3" y1="6" x2="21" y2="6"></line>
+        <line x1="3" y1="18" x2="21" y2="18"></line>
+      </svg>
+      MENU
+    </button>
   </div>
-</div>
+
+  <!-- AAA WARP NAVIGATION TERMINAL -->
+  <div id="nav-modal">
+    <div class="modal-terminal">
+      <div class="terminal-header">WARP NAVIGATION</div>
+      
+      <div class="terminal-list">
+        <button class="nav-target-btn" data-target="solar">SOLAR SYSTEM</button>
+        <button class="nav-target-btn" data-target="pulsar">MAGNETIC PULSAR</button>
+        <button class="nav-target-btn" data-target="blackhole">SUPERMASSIVE BLACK HOLE</button>
+        <button class="nav-target-btn" data-target="nebula">DEEP SPACE NEBULA</button>
+      </div>
+      
+      <!-- The exact close button ID the JavaScript needs -->
+      <button class="terminal-close" id="btn-close-menu">CLOSE TERMINAL</button>
+    </div>
+  </div>
+
+  <!-- Load your Main Engine Logic -->
+  <script src="main.js"></script>
+
+</body>
+</html>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>HD Colossal Universe Simulator - V17 Perfect Physics</title>
+  <title>HD Colossal Universe Simulator - V16 Audiovisual Overhaul</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
     body { background-color: #000000; color: #e0e6ed; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace; overflow: hidden; width: 100vw; height: 100vh; }
@@ -23,18 +23,18 @@
     #ui-toggle { position: absolute; top: 12px; right: 12px; background: rgba(10, 15, 30, 0.6); border: 1px solid rgba(255, 255, 255, 0.15); color: #fff; padding: 6px 12px; border-radius: 20px; font-weight: 600; cursor: pointer; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.5); font-size: 0.65rem; backdrop-filter: blur(12px); letter-spacing: 1px; transition: all 0.2s ease; text-transform: uppercase; }
     .ui-top, .ui-bottom, #info-panel { transition: opacity 0.3s ease, transform 0.3s ease; }
     .ui-hidden { opacity: 0 !important; pointer-events: none !important; transform: translateX(-50%) translateY(-10px); }
-    #info-panel { position: absolute; top: 50%; right: 12px; transform: translateY(-45%) translateX(120%); width: 340px; max-height: 80vh; display: flex; flex-direction: column; background: rgba(4, 6, 12, 0.85); backdrop-filter: blur(25px); border: 1px solid rgba(147, 197, 253, 0.3); border-radius: 12px; padding: 18px; z-index: 500; opacity: 0; pointer-events: none; box-shadow: 0 15px 40px rgba(0,0,0,0.8); }
+    #info-panel { position: absolute; top: 50%; right: 12px; transform: translateY(-45%) translateX(120%); width: 320px; max-height: 80vh; display: flex; flex-direction: column; background: rgba(4, 6, 12, 0.85); backdrop-filter: blur(25px); border: 1px solid rgba(147, 197, 253, 0.3); border-radius: 12px; padding: 15px; z-index: 500; opacity: 0; pointer-events: none; box-shadow: 0 15px 40px rgba(0,0,0,0.8); }
     #info-panel.visible { opacity: 1; pointer-events: auto; transform: translateY(-45%) translateX(0); }
     .info-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px; margin-bottom: 5px; flex-shrink: 0; }
-    .info-title { font-size: 1.1rem; font-weight: 800; color: #ffffff; letter-spacing: 1px; text-transform: uppercase; }
+    .info-title { font-size: 1rem; font-weight: 800; color: #ffffff; letter-spacing: 1px; text-transform: uppercase; }
     .info-close { color: #64748b; font-size: 1.2rem; cursor: pointer; transition: 0.2s; }
-    .info-type { font-size: 0.65rem; color: #fcd34d; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; display: block; flex-shrink: 0; }
+    .info-type { font-size: 0.6rem; color: #fcd34d; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; display: block; flex-shrink: 0; }
     .info-facts-container { overflow-y: auto; padding-right: 8px; flex-grow: 1; }
     .info-facts-container::-webkit-scrollbar { width: 4px; }
     .info-facts-container::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 4px; }
     .info-facts-container::-webkit-scrollbar-thumb { background: #93c5fd; border-radius: 4px; }
     .info-facts-list { list-style: none; padding-left: 0; margin: 0; }
-    .info-facts-list li { position: relative; padding-left: 14px; margin-bottom: 12px; font-size: 0.8rem; color: #cbd5e1; line-height: 1.5; font-weight: 500; }
+    .info-facts-list li { position: relative; padding-left: 14px; margin-bottom: 10px; font-size: 0.75rem; color: #cbd5e1; line-height: 1.5; font-weight: 500; }
     .info-facts-list li::before { content: "►"; position: absolute; left: 0; top: 3px; color: #93c5fd; font-size: 0.5rem; }
     
     #audio-container { margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px; display: none; }
@@ -79,7 +79,7 @@
 
   <div id="warp-flash"></div>
   <div id="landscape-prompt"><div class="icon">🔄</div><h2>ROTATE DEVICE</h2><p>Tap anywhere to enter cinematic full screen.</p></div>
-  <div id="loading-screen"><div class="loader-ring"></div><div id="loading-text">INITIALIZING V17 ENGINE...</div></div>
+  <div id="loading-screen"><div class="loader-ring"></div><div id="loading-text">INITIALIZING V16 ENGINE...</div></div>
   <div id="webgl-container"></div>
   <div id="ui-toggle" onclick="toggleMainUI()">☰ MENU</div>
 
@@ -95,7 +95,7 @@
 
   <div class="hud-panel ui-top ui-hidden">
     <div class="title-bar">
-      <div class="title-left"><span class="title">HD UNIVERSE</span><span class="badge">V17 PERFECT PHYSICS</span></div>
+      <div class="title-left"><span class="title">HD UNIVERSE</span><span class="badge">V16 AUDIOVISUAL</span></div>
       <div class="top-btns"><button id="btnFreeCam" class="btn-free" onclick="freeCamera()">🔓 FREE CAM</button><button class="btn-fs" onclick="toggleFullScreen()">⛶ FULLSCREEN</button></div>
     </div>
     <div class="preset-btns"><button class="btn-sci btn-warp" onclick="toggleWarpMenu()">🚀 FAST TRAVEL</button><div style="font-size: 0.55rem; color: #64748b; font-weight:bold; margin-top:6px;">TIP: TAP ANY ANOMALY OR PLANET FOR DATA</div></div>
@@ -127,6 +127,7 @@
   </div>
 
   <script>
+    // AUDIO FILES ADDED TO EVERY OBJECT
     const DATABASE={
       "Sun":{type:"G-Type Star", audio: "./audio/sun.mp3", facts:["It is a nearly perfect sphere of incredibly hot plasma.","Accounts for 99.86% of the total mass in the entire solar system.","The core temperature reaches a staggering 15 million degrees Celsius.","Composed primarily of Hydrogen (73%) and Helium (25%).","Light from the Sun takes approximately 8 minutes and 20 seconds to reach Earth.","It generates powerful solar winds that create the beautiful Auroras on Earth.","Its magnetic field flips completely every 11 years, causing solar maximums.","Over 1.3 million Earths could fit inside the Sun's volume.","In about 5 billion years, it will expand into a Red Giant and consume the inner planets.","It rotates faster at its equator (25 days) than at its poles (35 days)."]},
       "Earth":{type:"Terrestrial Planet", audio: "./audio/earth.mp3", facts:["The only planet in the known universe confirmed to harbor life.","Approximately 71% of Earth's surface is covered in liquid water.","It is the densest planet in the Solar System.","The atmosphere is 78% nitrogen, 21% oxygen, and 1% other ingredients.","Earth's strong magnetic field protects the planet from harmful solar radiation.","It is the only planet with active plate tectonics, driving earthquakes and mountain building.","It takes 23 hours, 56 minutes, and 4 seconds for Earth to rotate once on its axis.","Earth is not a perfect sphere; it bulges slightly at the equator due to its spin.","The 23.4-degree tilt of Earth's axis is what causes our yearly seasons.","It has exactly one natural satellite, the Moon, which stabilizes our axial wobble."]},
@@ -267,19 +268,26 @@
     const bhGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: starTex, color: 0xffcc88, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending, depthWrite: false }));
     bhGlow.scale.set(3000, 3000, 1); sagGroup.add(bhGlow);
 
+    // FIX 2: PULSAR REDESIGN (Sleek energy rings and volumetric beams)
     const pulsarGroup = new THREE.Group(); pulsarGroup.position.copy(LOCATIONS.vela.pos); universeGroup.add(pulsarGroup);
     const neutronStar = new THREE.Mesh(new THREE.SphereGeometry(6, 32, 32), new THREE.MeshBasicMaterial({ color: 0xffffff })); 
     neutronStar.userData = { name: "Magnetic Pulsar", size: 6 }; interactables.push(neutronStar); pulsarGroup.add(neutronStar);
     const pulsarAura = new THREE.Sprite(new THREE.SpriteMaterial({ map: starTex, color: 0x55aaff, transparent: true, opacity: 1.0, blending: THREE.AdditiveBlending, depthWrite: false }));
     pulsarAura.scale.set(80, 80, 1); pulsarGroup.add(pulsarAura);
+    
+    // Core focused beam
     const jetGeo1 = new THREE.CylinderGeometry(0.5, 20, 4000, 32, 1, true); 
     const jetMat1 = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide });
     const pJet1 = new THREE.Mesh(jetGeo1, jetMat1); pJet1.position.y = 2000; pulsarGroup.add(pJet1); 
     const pJet2 = new THREE.Mesh(jetGeo1, jetMat1); pJet2.position.y = -2000; pJet2.rotation.x = Math.PI; pulsarGroup.add(pJet2);
+    
+    // Outer soft volumetric beam
     const jetGeo2 = new THREE.CylinderGeometry(2, 60, 4000, 32, 1, true); 
     const jetMat2 = new THREE.MeshBasicMaterial({ color: 0x4488ff, transparent: true, opacity: 0.2, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide });
     const pJet3 = new THREE.Mesh(jetGeo2, jetMat2); pJet3.position.y = 2000; pulsarGroup.add(pJet3); 
     const pJet4 = new THREE.Mesh(jetGeo2, jetMat2); pJet4.position.y = -2000; pJet4.rotation.x = Math.PI; pulsarGroup.add(pJet4);
+
+    // Sleek multiple magnetic rings
     for(let i=0; i<5; i++) { 
         let torus = new THREE.Mesh(new THREE.TorusGeometry(30 + (i*15), 0.2, 16, 100), new THREE.MeshBasicMaterial({color: 0x00ffff, transparent: true, opacity: 0.6 - (i*0.1), blending: THREE.AdditiveBlending, depthWrite: false})); 
         torus.rotation.y = (Math.PI / 4) * i; torus.rotation.x = Math.PI / 2.2; pulsarGroup.add(torus); 
@@ -288,43 +296,43 @@
     const solarSystem = new THREE.Group(); solarSystem.position.copy(LOCATIONS.home.pos); universeGroup.add(solarSystem);
     solarSystem.add(new THREE.AmbientLight(0x333344, 0.6)); 
 
+    // FIX 1: PROCEDURAL VOLUMETRIC SUN (Replaced flat texture)
     const sunMesh = new THREE.Mesh(new THREE.SphereGeometry(6.0, 64, 64), new THREE.MeshBasicMaterial({ color: 0xfff5e6 }));
     sunMesh.userData = { name: "Sun", size: 6.0 }; interactables.push(sunMesh); solarSystem.add(sunMesh);
+    
     const sunCorona = new THREE.Sprite(new THREE.SpriteMaterial({ map: starTex, color: 0xffaa00, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false })); 
     sunCorona.scale.set(20, 20, 1); sunMesh.add(sunCorona);
+    
     const sunOuterGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: starTex, color: 0xff4400, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending, depthWrite: false })); 
     sunOuterGlow.scale.set(45, 45, 1); sunMesh.add(sunOuterGlow);
+    
     const sunLight = new THREE.PointLight(0xffffff, 2.0, 10000); 
     sunLight.castShadow = true; sunLight.shadow.mapSize.width = 1024; sunLight.shadow.mapSize.height = 1024; sunLight.shadow.bias = -0.005;
     solarSystem.add(sunLight); 
 
-    // FIX 1: RECALIBRATED PHYSICS TO PREVENT ANY OVERLAPS
     const planets = [
-      { name: "Mercury", radius: 15, speed: 0.012, size: 0.6, type: 'mercury', tilt: 0.03 }, 
-      { name: "Venus", radius: 22, speed: 0.008, size: 1.1, type: 'venus', tilt: 3.1 }, 
-      { name: "Earth", radius: 30, speed: 0.006, size: 1.2, type: 'earth', tilt: 0.41, moons: [{name: "Moon", r: 3.0, speed: 0.05, size: 0.35, type: 'moon'}] }, 
-      { name: "Mars", radius: 38, speed: 0.004, size: 0.8, type: 'mars', tilt: 0.44 }, 
-      { name: "Jupiter", radius: 55, speed: 0.002, size: 3.0, type: 'jupiter', tilt: 0.05, moons: [{name: "Europa", r: 5.0, speed: 0.03, size: 0.45, type: 'moon', color: 0xddddff}] }, 
-      { name: "Saturn", radius: 78, speed: 0.0014, size: 2.5, type: 'saturn', hasRings: true, tilt: 0.46, moons: [{name: "Titan", r: 6.5, speed: 0.02, size: 0.55, type: 'moon', color: 0xffddaa}] }, 
-      { name: "Uranus", radius: 98, speed: 0.001, size: 1.8, type: 'uranus', tilt: 1.7 }, 
-      { name: "Neptune", radius: 115, speed: 0.0007, size: 1.7, type: 'neptune', tilt: 0.49 }, 
-      { name: "Pluto", radius: 130, speed: 0.0005, size: 0.4, type: 'pluto', tilt: 2.1 }
+      { name: "Mercury", radius: 14, speed: 0.012, size: 0.6, type: 'mercury', tilt: 0.03 }, 
+      { name: "Venus", radius: 20, speed: 0.008, size: 1.1, type: 'venus', tilt: 3.1 }, 
+      { name: "Earth", radius: 28, speed: 0.006, size: 1.2, type: 'earth', tilt: 0.41, moons: [{name: "Moon", r: 3.0, speed: 0.05, size: 0.35, type: 'moon'}] }, 
+      { name: "Mars", radius: 36, speed: 0.004, size: 0.8, type: 'mars', tilt: 0.44 }, 
+      { name: "Jupiter", radius: 60, speed: 0.002, size: 3.0, type: 'jupiter', tilt: 0.05, moons: [{name: "Europa", r: 5.0, speed: 0.03, size: 0.45, type: 'moon', color: 0xddddff}] }, 
+      { name: "Saturn", radius: 82, speed: 0.0014, size: 2.5, type: 'saturn', hasRings: true, tilt: 0.46, moons: [{name: "Titan", r: 6.5, speed: 0.02, size: 0.55, type: 'moon', color: 0xffddaa}] }, 
+      { name: "Uranus", radius: 105, speed: 0.001, size: 1.8, type: 'uranus', tilt: 1.7 }, 
+      { name: "Neptune", radius: 125, speed: 0.0007, size: 1.7, type: 'neptune', tilt: 0.49 }, 
+      { name: "Pluto", radius: 145, speed: 0.0005, size: 0.4, type: 'pluto', tilt: 2.1 }
     ];
     
     const planetObjects = {}; 
     planets.forEach(p => {
       const ringGeo = new THREE.BufferGeometry(); const points = [];
       for (let i = 0; i <= 100; i++) { const t = (i/100)*Math.PI*2; points.push(new THREE.Vector3(Math.cos(t)*p.radius, 0, Math.sin(t)*p.radius)); }
-      ringGeo.setFromPoints(points); 
-      
-      // FIX 2: SMOOTH, ADDITIVE ORBIT LINES (No more grey clipping)
-      solarSystem.add(new THREE.Line(ringGeo, new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.15, blending: THREE.AdditiveBlending, depthWrite: false })));
+      ringGeo.setFromPoints(points); solarSystem.add(new THREE.Line(ringGeo, new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.08 })));
       
       const pivot = new THREE.Group(); solarSystem.add(pivot);
       
       let pMat;
       if (p.name === 'Earth') { 
-          pMat = new THREE.MeshPhongMaterial({ map: textureLoader.load(TEX.earthMap), shininess: 10 });
+          pMat = new THREE.MeshPhongMaterial({ map: textureLoader.load(TEX.earthMap), normalMap: textureLoader.load(TEX.earthNorm), specularMap: textureLoader.load(TEX.earthSpec), specular: new THREE.Color(0x222222), shininess: 25 });
       } else { 
           pMat = new THREE.MeshPhongMaterial({ map: textureLoader.load(TEX[p.type] || TEX.moon), shininess: 10 }); 
       }
@@ -360,8 +368,7 @@
               p.moonObjs.push({ pivot: mPivot, speed: m.speed });
               const mGeo = new THREE.BufferGeometry(); const mPts = [];
               for(let i=0; i<=60; i++) { let t = (i/60)*Math.PI*2; mPts.push(new THREE.Vector3(Math.cos(t)*m.r, 0, Math.sin(t)*m.r)); }
-              mGeo.setFromPoints(mPts); 
-              pMesh.add(new THREE.Line(mGeo, new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.15, blending: THREE.AdditiveBlending, depthWrite: false })));
+              mGeo.setFromPoints(mPts); pMesh.add(new THREE.Line(mGeo, new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.15 })));
           });
       }
     });
@@ -425,6 +432,7 @@
       document.getElementById('distVal').textContent = distRaw < 1000 ? (distRaw / 26).toFixed(4) + " AU" : (distRaw / 100).toFixed(2) + " Light Years";
     }
 
+    // FIX 3: HARD-LOCK CAMERA TO THE SUN ON INITIAL BOOT
     triggerLockOn(sunMesh, "Sun", 6.0);
 
     function animate() {

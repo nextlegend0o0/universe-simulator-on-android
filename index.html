@@ -5,11 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>Vortex Engine V16.1</title>
   
-  <!-- Link to your CSS -->
-  <link rel="stylesheet" href="style.css">
+  <!-- CACHE BUSTING: Forces mobile browsers to download the newest CSS -->
+  <link rel="stylesheet" href="style.css?v=2">
   
-  <!-- Load Three.js Engine -->
+  <!-- Load Three.js Engine & Touch Controls -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 </head>
 <body>
 
@@ -34,7 +35,6 @@
       </div>
     </div>
     
-    <!-- The exact button ID the JavaScript needs -->
     <button id="btn-nav" class="hud-btn">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <line x1="3" y1="12" x2="21" y2="12"></line>
@@ -57,13 +57,12 @@
         <button class="nav-target-btn" data-target="nebula">DEEP SPACE NEBULA</button>
       </div>
       
-      <!-- The exact close button ID the JavaScript needs -->
       <button class="terminal-close" id="btn-close-menu">CLOSE TERMINAL</button>
     </div>
   </div>
 
-  <!-- Load your Main Engine Logic -->
-  <script src="main.js"></script>
+  <!-- CACHE BUSTING: Forces mobile browsers to download the newest JS -->
+  <script src="main.js?v=2"></script>
 
 </body>
 </html>

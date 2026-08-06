@@ -1,106 +1,13 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-  <title>Vortex Engine - Android</title>
-  
-  <!-- WIRE: Connects to your Message 1 CSS File -->
-  <link rel="stylesheet" href="style.css">
-
-  <!-- EXTERNAL LIBRARIES: Three.js & OrbitControls -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-</head>
-<body>
-
-  <!-- Initial Boot Screen -->
-  <div id="landscape-prompt" class="fullscreen-prompt">
-    <h2>INITIALIZE COMMAND HUB</h2>
-    <p>Rotate device to landscape and tap to enter cinematic view.</p>
+<!-- AAA WARP NAVIGATION TERMINAL -->
+<div id="nav-modal">
+  <div class="modal-terminal">
+    <div class="terminal-header">WARP NAVIGATION</div>
+    <div class="terminal-list">
+      <button class="nav-target-btn" data-target="solar">SOLAR SYSTEM</button>
+      <button class="nav-target-btn" data-target="pulsar">MAGNETIC PULSAR</button>
+      <button class="nav-target-btn" data-target="blackhole">SUPERMASSIVE BLACK HOLE</button>
+      <button class="nav-target-btn" data-target="nebula">DEEP SPACE NEBULA</button>
+    </div>
+    <button class="terminal-close" id="btn-close-menu">CLOSE TERMINAL</button>
   </div>
-
-  <!-- OS Minimization Rescue Screen -->
-  <div id="resume-prompt" class="fullscreen-prompt">
-    <h2>SIGNAL LOST</h2>
-    <p>Tap anywhere to resume fullscreen connection.</p>
-  </div>
-
-  <!-- Boot Loader -->
-  <div id="loading-screen">
-    <div class="loader-ring"></div>
-    <div id="loading-text">CALIBRATING SENSORS</div>
-  </div>
-
-  <!-- 3D Canvas Container -->
-  <div id="webgl-container"></div>
-
-  <!-- UI Wrapper (Notch Protection) -->
-  <div class="safe-area-wrapper">
-      
-      <!-- MAIN HUD (Auto-Hides) -->
-      <div id="main-ui" class="hud-panel ui-top">
-        
-        <div class="hud-left">
-          <div class="hud-title">VORTEX <span class="hud-badge">V16.1 STABLE</span></div>
-          <div class="hud-stats">
-            <div class="stat-block">
-              <span class="stat-label">System Status</span>
-              <span class="stat-value nominal">NOMINAL</span>
-            </div>
-            <div class="stat-block">
-              <span class="stat-label">Active Entities</span>
-              <span class="stat-value">6 BODIES</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="hud-right">
-          <!-- Restored Menu Button -->
-          <button id="btnMenuToggle" class="menu-btn">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"></path></svg>
-            MENU
-          </button>
-          <!-- Disengage Camera Button -->
-          <button id="btnFreeCam" class="btn-action" style="display:none;">DISENGAGE LOCK</button>
-        </div>
-
-      </div>
-
-      <!-- TARGET INFO (AAA Style) -->
-      <div id="info-panel">
-        <div class="info-header">
-            <div>
-                <div class="info-title" id="infoTitle">Object Name</div>
-                <span class="info-type" id="infoType">Classification</span>
-            </div>
-            <span class="close-btn" id="btnCloseInfo">✕</span>
-        </div>
-        <ul class="facts-list" id="infoFactsList"></ul>
-        
-        <div class="audio-block">
-            <span class="audio-label">Transmission Audio</span>
-            <div class="audio-player">
-                <div class="play-icon"></div>
-                <span>0:00 / 0:00 (OFFLINE)</span>
-            </div>
-        </div>
-      </div>
-
-      <!-- NAVIGATION MODAL (Restored functionality) -->
-      <div id="nav-modal" class="modal-overlay">
-        <div class="nav-menu">
-            <div class="nav-title">WARP NAVIGATION</div>
-            <button class="nav-btn" data-target="home">Solar System</button>
-            <button class="nav-btn" data-target="vela">Magnetic Pulsar</button>
-            <button class="nav-btn" style="border-color: #fca5a5; color: #fca5a5;" id="btnCloseMenu">CLOSE TERMINAL</button>
-        </div>
-      </div>
-
-  </div>
-
-  <!-- WIRE: Connects to your Message 3 JavaScript File -->
-  <script src="main.js"></script>
-
-</body>
-</html>
+</div>

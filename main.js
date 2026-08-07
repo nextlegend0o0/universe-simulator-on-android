@@ -1,7 +1,57 @@
 /* =========================================
    V17 MASTER SIMULATION ENGINE (main.js)
-   KTX2 MISSING ASSET BUGFIX
+   DIAGNOSTIC OVERRIDE & ON-SCREEN CONSOLE
    ========================================= */
+
+// --- DIAGNOSTIC HUD INJECTION ---
+const debugDiv = document.createElement('div');
+debugDiv.style.position = 'fixed';
+debugDiv.style.top = '10px';
+debugDiv.style.left = '10px';
+debugDiv.style.width = '90%';
+debugDiv.style.maxHeight = '40vh';
+debugDiv.style.overflowY = 'auto';
+debugDiv.style.backgroundColor = 'rgba(0, 0, 0, 0.9)';
+debugDiv.style.border = '1px solid red';
+debugDiv.style.color = 'lime';
+debugDiv.style.fontFamily = 'monospace';
+debugDiv.style.fontSize = '10px';
+debugDiv.style.zIndex = '9999999';
+debugDiv.style.padding = '10px';
+debugDiv.style.pointerEvents = 'none';
+document.body.appendChild(debugDiv);
+
+function logToScreen(msg, color='lime') {
+    const p = document.createElement('p');
+    p.style.color = color;
+    p.style.margin = '2px 0';
+    p.innerText = msg;
+    debugDiv.appendChild(p);
+    debugDiv.scrollTop = debugDiv.scrollHeight;
+}
+
+const origError = console.error;
+console.error = function(...args) {
+    logToScreen('[ERR] ' + args.join(' '), 'red');
+    origError.apply(console, args);
+};
+
+const origWarn = console.warn;
+console.warn = function(...args) {
+    logToScreen('[WARN] ' + args.join(' '), 'yellow');
+    origWarn.apply(console, args);
+};
+
+window.addEventListener('error', function(e) {
+    logToScreen('[SYS ERR] ' + e.message, 'red');
+});
+
+window.addEventListener('unhandledrejection', function(e) {
+    logToScreen('[WORKER/PROMISE ERR] ' + e.reason, 'orange');
+});
+
+logToScreen('V17 DIAGNOSTIC KERNEL ONLINE. WAITING FOR ERRORS...', 'cyan');
+// --------------------------------
 
 const DATABASE = {
   "Sun":{type:"G-Type Star", audio: "./audio/sun.mp3", facts:["It is a nearly perfect sphere of incredibly hot plasma.","Accounts for 99.86% of the total mass in the entire solar system.","The core temperature reaches a staggering 15 million degrees Celsius.","Composed primarily of Hydrogen (73%) and Helium (25%).","Light from the Sun takes approximately 8 minutes and 20 seconds to reach Earth.","It generates powerful solar winds that create the beautiful Auroras on Earth.","Its magnetic field flips completely every 11 years, causing solar maximums.","Over 1.3 million Earths could fit inside the Sun's volume.","In about 5 billion years, it will expand into a Red Giant and consume the inner planets.","It rotates faster at its equator (25 days) than at its poles (35 days)."]},
@@ -27,30 +77,38 @@ const DATABASE = {
 const manager = new THREE.LoadingManager();
 let engineStarted = false; 
 
-manager.onLoad = function () { 
+function forceStartEngine() {
     if(engineStarted) return; 
     engineStarted = true;
-    const ls = document.getElementById('loading-screen'); 
-    ls.classList.add('fade-out'); 
-    setTimeout(() => ls.remove(), 1000); 
-    animate(); 
-};
-manager.onProgress = function (u, i, t) { 
-    document.getElementById('loading-text').innerText = `LOADING HD TEXTURES...`; 
-};
-manager.onError = function (url) { 
-    console.warn('Error loading missing file bypassed:', url); 
-    if(engineStarted) return; 
-    engineStarted = true;
+    logToScreen('[SYS] ENGINE FORCE STARTED.', 'lime');
     const ls = document.getElementById('loading-screen'); 
     if(ls) {
         ls.classList.add('fade-out'); 
         setTimeout(() => ls.remove(), 1000); 
     }
     animate(); 
+}
+
+manager.onLoad = function () { 
+    logToScreen('[MANAGER] ALL ASSETS LOADED SUCCESSFULLY.', 'lime');
+    forceStartEngine();
+};
+manager.onProgress = function (u, i, t) { 
+    logToScreen(`[LOADER] Loaded: ${u} (${i}/${t})`, 'cyan');
+    document.getElementById('loading-text').innerText = `LOADING HD TEXTURES...`; 
+};
+manager.onError = function (url) { 
+    console.error('[MANAGER ERR] FAILED TO LOAD: ' + url); 
 };
 
-// TEXTURES RE-MAPPED TO COMPRESSED KTX2 FILES - JPGs REMOVED
+// FAILSAFE: Force start after 8 seconds if KTX2 is blocked completely
+setTimeout(() => {
+    if(!engineStarted) {
+        logToScreen('[FAILSAFE] TEXTURE TIMEOUT. FORCING START...', 'yellow');
+        forceStartEngine();
+    }
+}, 8000);
+
 const TEX = { stars: 'stars.ktx2', sun: 'sun.ktx2', earthMap: 'earth.ktx2', moon: 'moon.ktx2', mercury: 'mercury.ktx2', venus: 'venus.ktx2', mars: 'mars.ktx2', jupiter: 'jupiter.ktx2', saturn: 'saturn.ktx2', uranus: 'uranus.ktx2', neptune: 'neptune.ktx2', pluto: 'moon.ktx2' };
 
 let uiIsVisible = false; 
@@ -101,7 +159,6 @@ renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure
 renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 container.appendChild(renderer.domElement);
 
-// GLOBAL KTX2 LOADER (ALIGNED WITH R128)
 const ktx2Loader = new THREE.KTX2Loader(manager)
     .setTranscoderPath('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/libs/basis/')
     .detectSupport(renderer);
@@ -125,7 +182,6 @@ const dustTex = createSmokyTex(255, 120, 40); const gasTex = createSmokyTex(50, 
 
 const universeGroup = new THREE.Group(); scene.add(universeGroup); const interactables = [];
 
-// UPDATE SKYBOX TO KTX2
 const skyGeo = new THREE.SphereGeometry(800000, 64, 64);
 const skyMat = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.BackSide, depthWrite: false });
 ktx2Loader.load(TEX.stars, (texture) => { skyMat.map = texture; skyMat.needsUpdate = true; });
@@ -193,7 +249,6 @@ for(let i=0; i<3; i++) { let torus = new THREE.Mesh(new THREE.TorusGeometry(60, 
 const solarSystem = new THREE.Group(); solarSystem.position.copy(LOCATIONS.home.pos); universeGroup.add(solarSystem);
 solarSystem.add(new THREE.AmbientLight(0x222233, 0.4)); 
 
-// UPDATE SUN TO KTX2
 const sunMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
 ktx2Loader.load(TEX.sun, (texture) => { sunMat.map = texture; sunMat.needsUpdate = true; });
 const sunMesh = new THREE.Mesh(new THREE.SphereGeometry(6.0, 64, 64), sunMat);
@@ -228,7 +283,6 @@ planets.forEach(p => {
   let pMat = new THREE.MeshPhongMaterial({ shininess: 10 });
   let texPath = p.name === 'Earth' ? TEX.earthMap : (TEX[p.type] || TEX.moon);
   
-  // Rerouted Pluto to use moon.ktx2
   if (p.name === 'Pluto') texPath = TEX.pluto;
   
   ktx2Loader.load(texPath, (texture) => {
@@ -242,7 +296,6 @@ planets.forEach(p => {
   pMesh.userData = { name: p.name, size: p.size }; interactables.push(pMesh);
   
   if (p.name === 'Earth') {
-      // Replaced missing JPG with procedural atmospheric haze
       const cloudMesh = new THREE.Mesh(new THREE.SphereGeometry(p.size * 1.015, 64, 64), new THREE.MeshPhongMaterial({ color: 0xffffff, transparent: true, opacity: 0.15, depthWrite: false }));
       cloudMesh.receiveShadow = true; pMesh.add(cloudMesh); p.cloudMesh = cloudMesh;
   }

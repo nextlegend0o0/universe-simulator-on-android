@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Vortex Engine V16.1</title>
+  <title>Vortex Engine - Pro Simulator</title>
   
-  <!-- CACHE BUSTING: Forces mobile browsers to download the newest CSS -->
-  <link rel="stylesheet" href="style.css?v=2">
+  <!-- CACHE BUSTING v3: Forces mobile browsers to download the newest CSS -->
+  <link rel="stylesheet" href="style.css?v=3">
   
   <!-- Load Three.js Engine & Touch Controls -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -17,52 +17,112 @@
   <!-- 3D Canvas Container -->
   <div id="webgl-container"></div>
 
-  <!-- AAA Top HUD Navigation Bar -->
-  <div id="main-ui">
-    <div class="hud-brand">
-      <h1>VORTEX</h1>
-      <span class="version-badge">V16.1 STABLE</span>
-    </div>
-    
-    <div class="hud-telemetry">
-      <div class="telemetry-item">
-        <span class="telemetry-label">SYSTEM STATUS</span>
-        <span class="telemetry-value nominal">NOMINAL</span>
-      </div>
-      <div class="telemetry-item">
-        <span class="telemetry-label">ACTIVE ENTITIES</span>
-        <span class="telemetry-value">6 BODIES</span>
-      </div>
-    </div>
-    
-    <button id="btn-nav" class="hud-btn">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <line x1="3" y1="12" x2="21" y2="12"></line>
-        <line x1="3" y1="6" x2="21" y2="6"></line>
-        <line x1="3" y1="18" x2="21" y2="18"></line>
-      </svg>
-      MENU
+  <!-- FIRST CONTACT TUTORIAL -->
+  <div id="tutorial-overlay">
+    <div class="tutorial-ring"></div>
+    <div class="tutorial-text">Select a Celestial Body</div>
+  </div>
+
+  <!-- LEFT VERTICAL TOOLBAR -->
+  <div id="left-toolbar">
+    <button class="tool-btn active" id="tool-select">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/></svg>
+      <span class="tooltip">Select Object</span>
+    </button>
+    <button class="tool-btn" id="tool-settings">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+      <span class="tooltip">Engine Settings</span>
     </button>
   </div>
 
-  <!-- AAA WARP NAVIGATION TERMINAL -->
-  <div id="nav-modal">
-    <div class="modal-terminal">
-      <div class="terminal-header">WARP NAVIGATION</div>
-      
-      <div class="terminal-list">
-        <button class="nav-target-btn" data-target="solar">SOLAR SYSTEM</button>
-        <button class="nav-target-btn" data-target="pulsar">MAGNETIC PULSAR</button>
-        <button class="nav-target-btn" data-target="blackhole">SUPERMASSIVE BLACK HOLE</button>
-        <button class="nav-target-btn" data-target="nebula">DEEP SPACE NEBULA</button>
+  <!-- SETTINGS PANEL (LEFT) -->
+  <div class="floating-window left-side" id="settings-window">
+    <div class="window-header">
+      <span>Settings</span>
+      <button class="close-btn" onclick="closeSettings()">✕</button>
+    </div>
+    <div class="window-tabs">
+      <div class="tab active">Simulation</div>
+      <div class="tab">Display</div>
+      <div class="tab">Engine</div>
+    </div>
+    <div class="window-content">
+      <div class="section-title">Time Controls</div>
+      <div class="control-row">
+        <span class="control-label">Speed Multiplier</span>
+        <input type="range" id="time-slider" min="0" max="5" step="0.1" value="1">
       </div>
-      
-      <button class="terminal-close" id="btn-close-menu">CLOSE TERMINAL</button>
+      <div class="section-title">Visuals</div>
+      <div class="control-row">
+        <span class="control-label">Orbit Tracers</span>
+        <span class="control-label" style="color:var(--accent-blue);">ON</span>
+      </div>
     </div>
   </div>
 
-  <!-- CACHE BUSTING: Forces mobile browsers to download the newest JS -->
-  <script src="main.js?v=2"></script>
+  <!-- PROPERTIES PANEL (RIGHT) -->
+  <div class="floating-window right-side" id="properties-window">
+    <div class="window-header">
+      <span>Properties</span>
+      <button class="close-btn" onclick="closeProperties()">✕</button>
+    </div>
+    <div class="window-tabs">
+      <div class="tab active">Basic</div>
+      <div class="tab">Advanced</div>
+      <div class="tab">Actions</div>
+    </div>
+    <div class="window-content">
+      <div class="section-title">General Data</div>
+      <div class="control-row">
+        <span class="control-label">Name</span>
+        <input type="text" id="prop-name" value="-" readonly>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Mass</span>
+        <input type="text" id="prop-mass" value="-" readonly>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Radius</span>
+        <input type="text" id="prop-radius" value="-" readonly>
+      </div>
+      <div class="section-title">Telemetry</div>
+      <div class="control-row">
+        <span class="control-label">System Status</span>
+        <span class="control-label" style="color:var(--success-green); font-weight:bold;">NOMINAL</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM TELEMETRY BAR -->
+  <div id="bottom-bar">
+    <div class="telemetry-group">
+      <span><span id="fps-display" class="telemetry-value">FPS: 60</span></span>
+      <span>Bodies: <span class="telemetry-value">22 (Rendered)</span></span>
+    </div>
+    <div class="telemetry-group">
+      <span id="time-display" class="telemetry-value">DAY: 0</span>
+      <span>Vortex Engine v16.1 PRO</span>
+    </div>
+  </div>
+
+  <!-- UI INTERACTION LOGIC -->
+  <script>
+    // Open/Close Settings
+    document.getElementById('tool-settings').addEventListener('click', () => {
+      document.getElementById('settings-window').classList.add('open');
+    });
+    function closeSettings() {
+      document.getElementById('settings-window').classList.remove('open');
+    }
+
+    // Close Properties (Opening handled by Raycaster in main.js)
+    function closeProperties() {
+      document.getElementById('properties-window').classList.remove('open');
+    }
+  </script>
+
+  <!-- CACHE BUSTING v3: Forces mobile browsers to download the newest JS -->
+  <script src="main.js?v=3"></script>
 
 </body>
 </html>

@@ -33,10 +33,10 @@ const TEX = { stars: './2k_stars_milky_way.jpg', sun: './2k_sun.jpg', earthMap: 
 
 let uiIsVisible = false; 
 window.toggleMainUI = function() { uiIsVisible = !uiIsVisible; document.querySelector('.ui-top').classList.toggle('ui-hidden'); document.querySelector('.ui-bottom').classList.toggle('ui-hidden'); document.getElementById('fastTravelDropdown').style.display = 'none'; };
-window.lockLandscape = function() { const p = document.getElementById('landscape-prompt'); if (p) p.style.setProperty('display', 'none', 'important');
-const d = document.documentElement; if (d.requestFullscreen) d.requestFullscreen().catch(e=>console.log("FS err:", e)); if (screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(e=>console.log("Ori err:", e)); };
-window.addEventListener('click', window.lockLandscape, { once: true }); window.addEventListener('touchstart', window.lockLandscape, { once: true });
-window.toggleFullScreen = function() { window.lockLandscape(); }; window.toggleWarpMenu = function() { const m = document.getElementById('fastTravelDropdown'); m.style.display = m.style.display === 'block' ? 'none' : 'block'; }; 
+window.lockLandscape = function() { const p = document.getElementById('landscape-prompt'); if (p) p.style.setProperty('display', 'none', 'important'); const d = document.documentElement; if (d.requestFullscreen) d.requestFullscreen().catch(e=>console.log("FS err:", e)); if (screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(e=>console.log("Ori err:", e)); };
+const pEl = document.getElementById('landscape-prompt'); if (pEl) { pEl.addEventListener('click', window.lockLandscape); pEl.addEventListener('touchstart', window.lockLandscape); }
+document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && pEl) pEl.style.removeProperty('display'); });
+window.toggleFullScreen = function() { window.lockLandscape(); }; window.toggleWarpMenu = function() { const m = document.getElementById('fastTravelDropdown'); m.style.display = m.style.display === 'block' ? 'none' : 'block'; };
 
 window.closeInfoPanel = function() { 
     document.getElementById('info-panel').classList.remove('visible'); 

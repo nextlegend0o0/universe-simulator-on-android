@@ -33,10 +33,28 @@ const TEX = { stars: './2k_stars_milky_way.jpg', sun: './2k_sun.jpg', earthMap: 
 
 let uiIsVisible = false; 
 window.toggleMainUI = function() { uiIsVisible = !uiIsVisible; document.querySelector('.ui-top').classList.toggle('ui-hidden'); document.querySelector('.ui-bottom').classList.toggle('ui-hidden'); document.getElementById('fastTravelDropdown').style.display = 'none'; };
-window.lockLandscape = function() { const p = document.getElementById('landscape-prompt'); if (p) p.style.setProperty('display', 'none', 'important'); const d = document.documentElement; if (d.requestFullscreen) d.requestFullscreen().catch(e=>console.log("FS err:", e)); if (screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(e=>console.log("Ori err:", e)); };
-const pEl = document.getElementById('landscape-prompt'); if (pEl) { pEl.addEventListener('click', window.lockLandscape); pEl.addEventListener('touchstart', window.lockLandscape); }
-document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && pEl) pEl.style.removeProperty('display'); });
-window.toggleFullScreen = function() { window.lockLandscape(); }; window.toggleWarpMenu = function() { const m = document.getElementById('fastTravelDropdown'); m.style.display = m.style.display === 'block' ? 'none' : 'block'; };
+window.lockLandscape = function() { 
+    const p = document.getElementById('landscape-prompt'); if (p) p.style.setProperty('display', 'none', 'important');
+    const r = document.getElementById('resume-prompt'); if (r) r.style.setProperty('display', 'none', 'important');
+    const d = document.documentElement; if (d.requestFullscreen) d.requestFullscreen().catch(e=>console.log("FS err:", e)); 
+    if (screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(e=>console.log("Ori err:", e)); 
+};
+
+// Bind clicks directly to the prompts (V16 Architecture)
+const initPrompt = document.getElementById('landscape-prompt');
+const resumePrompt = document.getElementById('resume-prompt');
+if (initPrompt) { initPrompt.addEventListener('click', window.lockLandscape); initPrompt.addEventListener('touchstart', window.lockLandscape); }
+if (resumePrompt) { resumePrompt.addEventListener('click', window.lockLandscape); resumePrompt.addEventListener('touchstart', window.lockLandscape); }
+
+// OS Minimization Rescue Logic
+document.addEventListener('fullscreenchange', () => {
+    if (!document.fullscreenElement && initPrompt && initPrompt.style.display === 'none') {
+        if (resumePrompt) resumePrompt.style.setProperty('display', 'flex', 'important');
+    }
+});
+
+window.toggleFullScreen = function() { window.lockLandscape(); }; 
+window.toggleWarpMenu = function() { const m = document.getElementById('fastTravelDropdown'); m.style.display = m.style.display === 'block' ? 'none' : 'block'; };
 
 window.closeInfoPanel = function() { 
     document.getElementById('info-panel').classList.remove('visible'); 

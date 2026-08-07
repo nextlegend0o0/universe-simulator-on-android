@@ -1,20 +1,49 @@
 /* =========================================
-   BASE & RESET
+   VORTEX ENGINE V16.2 - MASTER CSS
    ========================================= */
+
+:root {
+    --bg-dark: #0a0a0c;
+    --panel-bg: rgba(28, 30, 34, 0.92);
+    --panel-header: rgba(40, 44, 52, 0.98);
+    --border-color: #3a3f4b;
+    --text-main: #e0e6ed;
+    --text-muted: #8b949e;
+    --accent-blue: #4daafc;
+    --accent-orange: #ff7a00;
+    --danger: #ff5555;
+}
+
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    user-select: none; /* Prevent text selection on UI */
+    user-select: none;
 }
 
 body, html {
     width: 100%;
     height: 100%;
     overflow: hidden;
-    background-color: #000;
-    color: #fff;
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+}
+
+/* =========================================
+   3D CANVAS
+   ========================================= */
+#webgl-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    cursor: default;
+}
+.interactive-cursor {
+    cursor: crosshair !important;
 }
 
 /* =========================================
@@ -31,7 +60,7 @@ body, html {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    z-index: 9999; /* Highest priority */
+    z-index: 9999;
     transition: opacity 0.5s ease-out;
 }
 
@@ -53,7 +82,6 @@ body, html {
     position: relative;
 }
 
-/* Optional minimal orbital ring for the loading planet */
 .loading-planet::before {
     content: '';
     position: absolute;
@@ -81,12 +109,13 @@ body, html {
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: rgba(0, 0, 0, 0.7); /* Translucent to see the canvas slightly */
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(8px);
     display: flex;
     flex-direction: column;
     justify-content: center;
     padding-left: 10%;
-    z-index: 9998; /* Right below loading screen */
+    z-index: 9998;
 }
 
 .menu-title {
@@ -98,7 +127,7 @@ body, html {
 }
 
 .menu-title span {
-    color: #29b6f6; /* Blue accent from reference */
+    color: var(--accent-blue);
     display: block;
 }
 
@@ -124,17 +153,12 @@ body, html {
 }
 
 .menu-btn:hover {
-    color: #29b6f6;
+    color: var(--accent-blue);
     transform: translateX(10px);
 }
 
-.menu-icon {
-    font-size: 1rem;
-    color: #29b6f6;
-}
-
 /* =========================================
-   GAME HUD & OVERLAYS (Vortex Engine UI)
+   GAME UI & FLOATING PANELS
    ========================================= */
 #game-ui {
     position: absolute;
@@ -142,16 +166,15 @@ body, html {
     left: 0;
     width: 100%;
     height: 100%;
-    pointer-events: none; /* Let clicks pass through to canvas */
+    pointer-events: none;
     z-index: 10;
 }
 
-/* Reactivate pointer events for interactive UI elements */
-.sidebar, .properties-panel, .bottom-bar, .top-controls {
-    pointer-events: auto; 
+.interactive-layer {
+    pointer-events: auto;
 }
 
-/* TOP CONTROLS (Fullscreen & Extras) */
+/* TOP CONTROLS */
 .top-controls {
     position: absolute;
     top: 20px;
@@ -179,16 +202,171 @@ body, html {
     background: rgba(50, 60, 75, 0.9);
 }
 
+/* LEFT VERTICAL TOOLBAR */
+#left-toolbar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 50px;
+    height: calc(100% - 30px);
+    background: var(--panel-bg);
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 15px;
+    gap: 12px;
+}
+
+.tool-btn {
+    width: 36px;
+    height: 36px;
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text-muted);
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.2s ease;
+}
+
+.tool-btn:hover, .tool-btn.active {
+    background: rgba(77, 170, 252, 0.15);
+    border-color: var(--accent-blue);
+    color: var(--accent-blue);
+}
+
+/* PROPERTIES WINDOW (RIGHT) */
+.floating-window {
+    position: absolute;
+    width: 320px;
+    background: var(--panel-bg);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+    border-radius: 4px;
+    overflow: hidden;
+    top: 20px;
+    right: 70px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.3s ease;
+    transform: translateX(20px);
+}
+
+.floating-window.open {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(0);
+}
+
+.window-header {
+    background: var(--panel-header);
+    padding: 10px 15px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 1.1rem;
+    line-height: 1;
+}
+.close-btn:hover { color: var(--danger); }
+
+.window-tabs {
+    display: flex;
+    background: rgba(0, 0, 0, 0.25);
+    border-bottom: 1px solid var(--border-color);
+}
+.tab {
+    flex: 1;
+    text-align: center;
+    padding: 8px 0;
+    font-size: 0.75rem;
+    cursor: pointer;
+    color: var(--text-muted);
+}
+.tab.active {
+    color: var(--text-main);
+    border-bottom: 2px solid var(--accent-blue);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.window-content {
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.section-title {
+    font-size: 0.7rem;
+    color: var(--text-main);
+    background: rgba(255, 255, 255, 0.05);
+    padding: 4px 8px;
+    border-radius: 2px;
+    text-transform: uppercase;
+}
+
+.control-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.75rem;
+}
+.control-label { color: var(--text-muted); }
+
+input[type="text"] {
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+    padding: 5px 8px;
+    border-radius: 2px;
+    outline: none;
+    width: 140px;
+    text-align: right;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+/* BOTTOM TELEMETRY BAR */
+#bottom-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 30px;
+    background: var(--panel-header);
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.telemetry-group { display: flex; gap: 25px; }
+.telemetry-value {
+    color: var(--text-main);
+    font-family: 'Courier New', Courier, monospace;
+}
+
 /* =========================================
-   ANIMATIONS
+   ANIMATIONS & UTILS
    ========================================= */
 @keyframes pulse {
     0% { opacity: 0.6; }
     50% { opacity: 1; }
     100% { opacity: 0.6; }
 }
-
-/* Utility Class to hide elements */
-.hidden {
-    display: none !important;
-}
+.hidden { display: none !important; }

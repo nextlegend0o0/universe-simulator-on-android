@@ -1,221 +1,271 @@
 /* =========================================
-   1. CORE DATA: SOLAR SYSTEM ONLY
+   SPACE SIMULATION V16.2 - MASTER PHYSICS 
+   Merges ChatGPT Logic Audits with Three.js Rendering
    ========================================= */
-// Exact masses in kilograms and radii in kilometers.
-// Object.freeze prevents accidental modification during runtime.
-const celestialBodies = Object.freeze({
-    "Sun":     { mass: 1.989e30, radius: 696340, type: "Star" },
-    "Mercury": { mass: 3.301e23, radius: 2439.7, type: "Planet" },
-    "Venus":   { mass: 4.867e24, radius: 6051.8, type: "Planet" },
-    "Earth":   { mass: 5.972e24, radius: 6371.0, type: "Planet" },
-    "Mars":    { mass: 6.417e23, radius: 3389.5, type: "Planet" },
-    "Jupiter": { mass: 1.898e27, radius: 69911,  type: "Planet" },
-    "Saturn":  { mass: 5.683e26, radius: 58232,  type: "Planet" },
-    "Uranus":  { mass: 8.681e25, radius: 25362,  type: "Planet" },
-    "Neptune": { mass: 1.024e26, radius: 24622,  type: "Planet" }
-});
 
-let currentTarget = null; // The currently selected planet/star
-let cameraLocked = false; // Tracks if the camera is locked to the target
+// 1. CACHED DOM ELEMENTS (ChatGPT Audit #8: Avoid Repeated Lookups)
+const UI = {
+    container: document.getElementById('webgl-container'),
+    loadingScreen: document.getElementById('loading-screen'),
+    loadingProgress: document.getElementById('loading-progress'),
+    mainMenu: document.getElementById('main-menu'),
+    gameUi: document.getElementById('game-ui'),
+    fpsText: document.getElementById('fps-display'),
+    propWindow: document.getElementById('properties-window'),
+    propName: document.getElementById('prop-name'),
+    propMass: document.getElementById('prop-mass'),
+    propRadius: document.getElementById('prop-radius'),
+    btnStart: document.getElementById('btn-start-game'),
+    btnFullscreen: document.getElementById('btn-fullscreen')
+};
 
-/* =========================================
-   2. UTILITY FUNCTIONS
-   ========================================= */
-// Safely formats mass into standard scientific notation handling positive/negative exponents
+// 2. CELESTIAL DATA (ChatGPT Audit #2: Deep Freeze)
+const celestialBodies = {
+    "Sun":     { mass: 1.989e30, radius: 696340, dist: 0,   size: 10,  speed: 0,      type: "none" },
+    "Mercury": { mass: 3.301e23, radius: 2439.7, dist: 25,  size: 0.8, speed: 0.04,   type: "mercury" },
+    "Venus":   { mass: 4.867e24, radius: 6051.8, dist: 35,  size: 1.4, speed: 0.015,  type: "venus" },
+    "Earth":   { mass: 5.972e24, radius: 6371.0, dist: 50,  size: 1.6, speed: 0.01,   type: "earthMap" },
+    "Mars":    { mass: 6.417e23, radius: 3389.5, dist: 65,  size: 1.1, speed: 0.008,  type: "mars" },
+    "Jupiter": { mass: 1.898e27, radius: 69911,  dist: 100, size: 4.5, speed: 0.004,  type: "jupiter", hasMoons: true },
+    "Saturn":  { mass: 5.683e26, radius: 58232,  dist: 140, size: 3.8, speed: 0.002,  type: "saturn",  hasRings: true },
+    "Uranus":  { mass: 8.681e25, radius: 25362,  dist: 170, size: 2.2, speed: 0.0015, type: "uranus" },
+    "Neptune": { mass: 1.024e26, radius: 24622,  dist: 200, size: 2.1, speed: 0.001,  type: "neptune" }
+};
+Object.values(celestialBodies).forEach(Object.freeze);
+Object.freeze(celestialBodies);
+
+// 3. STATE MANAGEMENT (ChatGPT Audit #9: Structured Camera Data)
+const engineState = {
+    isPaused: false,
+    simulationSpeed: 1.0,
+    photoMode: false
+};
+
+const cameraState = {
+    locked: false,
+    target: null,
+    smoothness: 0.08
+};
+
+// Formatting Utilities
 function formatMass(mass) {
     const [base, exponent] = mass.toExponential(3).split("e");
     return `${base} × 10^${Number(exponent)} kg`;
 }
-
-// Formats numbers with localized commas (e.g., 696,340)
 function formatNumber(num) {
     return new Intl.NumberFormat().format(num);
 }
 
-/* =========================================
-   3. LOADING SCREEN & MENU LOGIC
-   ========================================= */
+// 4. THREE.JS SCENE SETUP (Restoring the missing 3D Engine!)
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0x0a0a0c, 0.001);
+
+const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100000);
+camera.position.set(0, 100, 250);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance" });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+if (UI.container) UI.container.appendChild(renderer.domElement);
+
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.05;
+controls.maxDistance = 50000;
+controls.minDistance = 5;
+
+// Lighting & Skybox
+scene.add(new THREE.AmbientLight(0x222222));
+scene.add(new THREE.PointLight(0xffffff, 2.5, 10000));
+
+const textureLoader = new THREE.TextureLoader();
+textureLoader.setCrossOrigin('anonymous');
+const TEX = {
+    stars: './2k_stars_milky_way.jpg',
+    earthMap: './2k_earth_daymap.jpg',
+    jupiter: './2k_jupiter.jpg',
+    saturn: './2k_saturn.jpg',
+    neptune: './2k_neptune.jpg',
+    moon: './2k_moon.jpg'
+};
+scene.add(new THREE.Mesh(
+    new THREE.SphereGeometry(40000, 64, 64),
+    new THREE.MeshBasicMaterial({ map: textureLoader.load(TEX.stars), side: THREE.BackSide, depthWrite: false })
+));
+
+// 5. BUILD SOLAR SYSTEM
+const interactables = [];
+const renderBodies = [];
+const sunGroup = new THREE.Group();
+scene.add(sunGroup);
+
+const sunMesh = new THREE.Mesh(new THREE.SphereGeometry(10, 64, 64), new THREE.MeshBasicMaterial({ color: 0xffaa00 }));
+sunMesh.userData = { name: "Sun" };
+interactables.push(sunMesh);
+sunGroup.add(sunMesh);
+
+Object.keys(celestialBodies).forEach(key => {
+    if (key === "Sun") return;
+    const data = celestialBodies[key];
+    
+    const pivot = new THREE.Group();
+    scene.add(pivot);
+
+    const mat = new THREE.MeshStandardMaterial({ map: textureLoader.load(TEX[data.type] || TEX.moon), roughness: 0.6 });
+    const mesh = new THREE.Mesh(new THREE.SphereGeometry(data.size, 64, 64), mat);
+    mesh.position.x = data.dist;
+    mesh.userData = { name: key };
+    pivot.add(mesh);
+    interactables.push(mesh);
+
+    // Orbit Tracers
+    const ringGeo = new THREE.RingGeometry(data.dist - 0.2, data.dist + 0.2, 128);
+    const ringMat = new THREE.MeshBasicMaterial({ color: 0x4daafc, side: THREE.DoubleSide, transparent: true, opacity: 0.08 });
+    const orbitLine = new THREE.Mesh(ringGeo, ringMat);
+    orbitLine.rotation.x = Math.PI / 2;
+    scene.add(orbitLine);
+
+    renderBodies.push({ pivot, mesh, speed: data.speed });
+});
+
+// 6. RAYCASTER & INTERACTION (ChatGPT Audit #5 & #10: Safe Lookup & Error Handling)
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+
+window.addEventListener('pointermove', (e) => {
+    mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+    raycaster.setFromCamera(mouse, camera);
+    
+    if (raycaster.intersectObjects(interactables, false).length > 0) {
+        UI.container.classList.add('interactive-cursor');
+    } else {
+        UI.container.classList.remove('interactive-cursor');
+    }
+});
+
+window.addEventListener('pointerdown', (e) => {
+    // Block raycaster if clicking on a UI panel
+    if (e.target.closest('.floating-window') || e.target.closest('#left-toolbar') || e.target.closest('#bottom-bar') || e.target.closest('#main-menu')) return;
+
+    raycaster.setFromCamera(mouse, camera);
+    const intersects = raycaster.intersectObjects(interactables, false);
+
+    if (intersects.length > 0) {
+        const bodyName = intersects[0].object.userData.name;
+        
+        if (!(bodyName in celestialBodies)) {
+            console.warn(`Unknown celestial body: ${bodyName}`);
+            return;
+        }
+
+        const data = celestialBodies[bodyName];
+        cameraState.target = intersects[0].object;
+        cameraState.locked = true;
+
+        if (UI.propWindow) {
+            UI.propName.value = bodyName;
+            UI.propMass.value = formatMass(data.mass);
+            UI.propRadius.value = `${formatNumber(data.radius)} km`;
+            UI.propWindow.classList.add('open');
+        }
+    } else {
+        cameraState.locked = false;
+        cameraState.target = null;
+        if (UI.propWindow) UI.propWindow.classList.remove('open');
+        controls.target.set(0, 0, 0);
+    }
+});
+
+// 7. EVENT LISTENERS (ChatGPT Audits #4, #13, #14: Resize, Focus & Fullscreen Fixes)
+window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+document.addEventListener("visibilitychange", () => {
+    engineState.isPaused = document.hidden;
+});
+
+if (UI.btnFullscreen) {
+    UI.btnFullscreen.addEventListener('click', async () => {
+        if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+            await document.documentElement.requestFullscreen();
+        } else if (document.exitFullscreen) {
+            await document.exitFullscreen();
+        }
+    });
+}
+
+// 8. RENDER LOOP (ChatGPT Audit #1: 1-Second Average FPS Fix)
+let frameCount = 0;
+let fps = 0;
+let lastFPSUpdate = performance.now();
+
+function animate(now) {
+    requestAnimationFrame(animate);
+    
+    // Halt physics if user minimizes the app
+    if (engineState.isPaused) return;
+
+    // Stable FPS Calculation
+    frameCount++;
+    if (now - lastFPSUpdate >= 1000) {
+        fps = frameCount;
+        frameCount = 0;
+        lastFPSUpdate = now;
+        if (UI.fpsText) UI.fpsText.textContent = `FPS: ${fps}`;
+    }
+
+    // Planetary Rotations
+    sunGroup.rotation.y += 0.002 * engineState.simulationSpeed;
+    renderBodies.forEach(body => {
+        body.mesh.rotation.y += 0.01 * engineState.simulationSpeed;
+        body.pivot.rotation.y += body.speed * engineState.simulationSpeed;
+    });
+
+    // Smooth Camera Tracking
+    if (cameraState.locked && cameraState.target) {
+        const wPos = new THREE.Vector3();
+        cameraState.target.getWorldPosition(wPos);
+        controls.target.lerp(wPos, cameraState.smoothness);
+    }
+
+    controls.update();
+    renderer.render(scene, camera);
+}
+
+// 9. BOOT SEQUENCE
 function initializeBootSequence() {
     let progress = 0;
-    const progressText = document.getElementById('loading-progress');
-    const loadingScreen = document.getElementById('loading-screen');
-    const mainMenu = document.getElementById('main-menu');
-    const gameUi = document.getElementById('game-ui');
-
-    if (mainMenu) mainMenu.classList.add('hidden');
-    if (gameUi) gameUi.classList.add('hidden');
-
+    
     const interval = setInterval(() => {
-        // Smoother, predictable loading progress
-        progress = Math.min(progress + 2, 100);
+        progress = Math.min(progress + 5, 100);
+        if (UI.loadingProgress) UI.loadingProgress.innerText = `${progress}%`;
         
         if (progress >= 100) {
             clearInterval(interval);
-            
-            if (loadingScreen) {
-                loadingScreen.style.opacity = '0';
+            if (UI.loadingScreen) {
+                UI.loadingScreen.style.opacity = '0';
                 setTimeout(() => {
-                    loadingScreen.classList.add('hidden');
-                    if (mainMenu) mainMenu.classList.remove('hidden');
+                    UI.loadingScreen.classList.add('hidden');
+                    if (UI.mainMenu) UI.mainMenu.classList.remove('hidden');
                 }, 500);
             }
         }
-        if (progressText) progressText.innerText = `${progress}%`;
     }, 50); 
 }
 
-/* =========================================
-   4. BUTTON BINDINGS & UI CONTROLS
-   ========================================= */
-// Async fullscreen handling to prevent Promise errors
-async function toggleFullscreen() {
-    try {
-        if (!document.fullscreenElement) {
-            await document.documentElement.requestFullscreen();
-        } else {
-            await document.exitFullscreen();
-        }
-    } catch (err) {
-        console.error(`Error attempting to toggle fullscreen: ${err.message}`);
-    }
+if (UI.btnStart) {
+    UI.btnStart.addEventListener('click', () => {
+        if (UI.mainMenu) UI.mainMenu.classList.add('hidden');
+        if (UI.gameUi) UI.gameUi.classList.remove('hidden');
+    });
 }
 
-function bindUIControls() {
-    // --- MAIN MENU BUTTONS ---
-    const btnStartGame = document.getElementById('btn-start-game');
-    if (btnStartGame) {
-        btnStartGame.addEventListener('click', () => {
-            const mainMenu = document.getElementById('main-menu');
-            const gameUi = document.getElementById('game-ui');
-            if (mainMenu) mainMenu.classList.add('hidden');
-            if (gameUi) gameUi.classList.remove('hidden');
-            // Trigger engine start/resume here
-        });
-    }
-
-    // --- FULLSCREEN TOGGLE ---
-    const btnFullscreen = document.getElementById('btn-fullscreen');
-    if (btnFullscreen) {
-        btnFullscreen.addEventListener('click', toggleFullscreen);
-    }
-
-    // --- SIDEBAR BUTTONS ---
-    const btnDisplay = document.getElementById('btn-display-settings');
-    if (btnDisplay) {
-        btnDisplay.addEventListener('click', () => {
-            console.log("Display settings opened");
-        });
-    }
-
-    // --- PHOTO MODE ---
-    const btnPhoto = document.getElementById('btn-photo-mode');
-    if (btnPhoto) {
-        btnPhoto.addEventListener('click', () => {
-            const gameUi = document.getElementById('game-ui');
-            if (gameUi) gameUi.classList.add('hidden');
-            
-            // Hide cursor for clean screenshots
-            document.body.style.cursor = "none";
-            console.log("Photo mode activated. Press ESC to exit.");
-            
-            document.addEventListener('keydown', function escListener(e) {
-                if (e.key === 'Escape') {
-                    if (gameUi) gameUi.classList.remove('hidden');
-                    // Restore cursor
-                    document.body.style.cursor = "default";
-                    document.removeEventListener('keydown', escListener);
-                }
-            });
-        });
-    }
-
-    // --- CAMERA TRACKING (UNLOCK/LOCK VIEW) ---
-    const btnTrack = document.getElementById('btn-track-body');
-    if (btnTrack) {
-        btnTrack.addEventListener('click', () => {
-            if (!currentTarget) return;
-            
-            cameraLocked = !cameraLocked;
-            
-            if (cameraLocked) {
-                btnTrack.innerText = "UNLOCK VIEW";
-                btnTrack.classList.add('active');
-                console.log(`Camera locked onto ${currentTarget}`);
-            } else {
-                btnTrack.innerText = "TRACK BODY";
-                btnTrack.classList.remove('active');
-                console.log("Camera unlocked");
-            }
-        });
-    }
-}
-
-/* =========================================
-   5. PROPERTIES PANEL UPDATER
-   ========================================= */
-function selectCelestialBody(bodyName) {
-    const data = celestialBodies[bodyName];
-    if (!data) return;
-
-    currentTarget = bodyName;
-    
-    // Safely update DOM elements to prevent runtime errors
-    const nameBox = document.getElementById('prop-name');
-    const massBox = document.getElementById('prop-mass');
-    const radiusBox = document.getElementById('prop-radius');
-    const btnTrack = document.getElementById('btn-track-body');
-
-    if (nameBox) nameBox.value = bodyName;
-    if (massBox) massBox.value = formatMass(data.mass); 
-    if (radiusBox) radiusBox.value = `${formatNumber(data.radius)} km`;
-    
-    // Reset tracking state visually when selecting a new body
-    cameraLocked = false;
-    if (btnTrack) {
-        btnTrack.innerText = "TRACK BODY";
-        btnTrack.classList.remove('active');
-    }
-
-    console.log(`Selected: ${bodyName}`);
-}
-
-/* =========================================
-   6. RENDER LOOP / ENGINE INTEGRATION
-   ========================================= */
-let fps = 0;
-let lastTime = performance.now();
-
-// Calculate and display accurate FPS
-function updateFPS(now) {
-    fps = Math.round(1000 / (now - lastTime));
-    lastTime = now;
-    
-    // Assuming the FPS text is the first span in the bottom bar
-    const fpsText = document.querySelector(".bottom-bar span");
-    if (fpsText) fpsText.textContent = fps;
-    
-    // --- CAMERA SMOOTHING LOGIC (Engine implementation) ---
-    if (cameraLocked && currentTarget) {
-        // engine logic goes here
-        // e.g., camera.position.lerp(target.position, 0.08);
-        // e.g., camera.lookAt(target.position);
-    }
-    
-    requestAnimationFrame(updateFPS);
-}
-
-/* =========================================
-   INITIALIZATION
-   ========================================= */
+// Launch Game
 document.addEventListener('DOMContentLoaded', () => {
     initializeBootSequence();
-    bindUIControls();
-    
-    // Start FPS counter
-    requestAnimationFrame(updateFPS);
-    
-    // Auto-select Earth by default for testing
-    setTimeout(() => {
-        selectCelestialBody("Earth");
-    }, 1000);
+    requestAnimationFrame(animate);
 });

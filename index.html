@@ -6,14 +6,17 @@
   <title>HD Colossal Universe Simulator - V17 Cinematic Engine</title>
   
   <!-- Modular Stylesheet -->
-  <link rel="stylesheet" href="style.css?v=17.2">
+  <link rel="stylesheet" href="style.css?v=17.3">
   
-  <!-- Three.js Engine & Touch Controls -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-  
-  <!-- NEW: KTX2 Global GPU Loader -->
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/KTX2Loader.js"></script>
+  <!-- Import Map for Modern Three.js Modules & KTX2 Support -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
 </head>
 <body>
 
@@ -106,7 +109,7 @@
     </div>
   </div>
 
-  <!-- Modular Engine Logic -->
-  <script src="main.js?v=17.3"></script>
+  <!-- Modular ES Module Engine Logic -->
+  <script type="module" src="main.js?v=17.3"></script>
 </body>
 </html>

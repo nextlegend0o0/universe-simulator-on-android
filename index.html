@@ -2,104 +2,80 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Vortex Engine - Pro Simulator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+  <title>Universe Simulation - Android</title>
   
-  <!-- CACHE BUSTING v4: Forces mobile browsers to download the newest CSS -->
-  <link rel="stylesheet" href="style.css?v=4">
+  <!-- Modular Stylesheet with Cache Busting -->
+  <link rel="stylesheet" href="style.css?v=16">
   
-  <!-- Load Three.js Engine & Touch Controls -->
+  <!-- Three.js Engine & Touch Controls -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 </head>
 <body>
 
-  <!-- 1. 3D CANVAS -->
+  <!-- Initial Boot Screen -->
+  <div id="landscape-prompt" class="fullscreen-prompt">
+    <h2>INITIALIZE COMMAND HUB</h2>
+    <p>Rotate device to landscape and tap to enter cinematic view.</p>
+  </div>
+
+  <!-- OS Minimization Rescue Screen -->
+  <div id="resume-prompt" class="fullscreen-prompt">
+    <h2>SIGNAL LOST</h2>
+    <p>Tap anywhere to resume fullscreen connection.</p>
+  </div>
+
+  <!-- Loading Screen -->
+  <div id="loading-screen">
+    <div class="loader-ring"></div>
+    <div id="loading-text">CALIBRATING SENSORS</div>
+  </div>
+
+  <!-- WebGL Render Container -->
   <div id="webgl-container"></div>
 
-  <!-- 2. BOOT/LOADING SCREEN -->
-  <div id="loading-screen">
-      <div class="loading-title">INITIALIZING</div>
-      <div class="loading-planet"></div>
-      <div id="loading-progress">0%</div>
-  </div>
-
-  <!-- 3. MAIN MENU -->
-  <div id="main-menu" class="hidden">
-      <div class="menu-title">VORTEX<span>ENGINE</span></div>
-      <div class="menu-buttons">
-          <button id="btn-start-game" class="menu-btn">
-              <span class="menu-icon">▶</span> ENTER SIMULATION
-          </button>
-      </div>
-  </div>
-
-  <!-- 4. GAME UI HUD -->
-  <div id="game-ui" class="hidden">
+  <div class="safe-area-wrapper">
       
-      <!-- Top Right Controls -->
-      <div class="top-controls interactive-layer">
-          <button id="btn-fullscreen" class="icon-btn" title="Toggle Fullscreen">⛶</button>
+      <!-- MAIN HUD (Auto-Hides) -->
+      <div id="main-ui" class="hud-panel ui-top">
+        <div class="hud-title">VORTEX <span class="hud-badge">V16.1 STABLE</span></div>
+        <div class="hud-stats">
+          <div class="stat-block">
+            <span class="stat-label">System Status</span>
+            <span class="stat-value" style="color: #4ade80;">NOMINAL</span>
+          </div>
+          <div class="stat-block">
+            <span class="stat-label">Active Entities</span>
+            <span class="stat-value">6 BODIES</span>
+          </div>
+        </div>
+        <button id="btnFreeCam" class="btn-action" style="display:none;" onclick="resetCamera()">DISENGAGE LOCK</button>
       </div>
 
-      <!-- Left Vertical Toolbar -->
-      <div id="left-toolbar" class="interactive-layer">
-          <button class="tool-btn active" title="Select Object">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/></svg>
-          </button>
-          <button class="tool-btn" title="Engine Settings">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-          </button>
-      </div>
-
-      <!-- Properties Panel (Appears when planet is clicked) -->
-      <div id="properties-window" class="floating-window right-side interactive-layer">
-          <div class="window-header">
-              <span>PROPERTIES</span>
-              <button class="close-btn" onclick="document.getElementById('properties-window').classList.remove('open')">✕</button>
-          </div>
-          <div class="window-tabs">
-              <div class="tab active">Basic</div>
-              <div class="tab">Advanced</div>
-              <div class="tab">Actions</div>
-          </div>
-          <div class="window-content">
-              <div class="section-title">General Data</div>
-              <div class="control-row">
-                  <span class="control-label">Name</span>
-                  <input type="text" id="prop-name" value="-" readonly>
-              </div>
-              <div class="control-row">
-                  <span class="control-label">Mass</span>
-                  <input type="text" id="prop-mass" value="-" readonly>
-              </div>
-              <div class="control-row">
-                  <span class="control-label">Radius</span>
-                  <input type="text" id="prop-radius" value="-" readonly>
-              </div>
-              <div class="section-title">Telemetry</div>
-              <div class="control-row">
-                  <span class="control-label">System Status</span>
-                  <span class="control-label" style="color:#10b981; font-weight:bold;">NOMINAL</span>
-              </div>
-          </div>
-      </div>
-
-      <!-- Bottom Telemetry Bar -->
-      <div id="bottom-bar" class="interactive-layer">
-          <div class="telemetry-group">
-              <span id="fps-display" class="telemetry-value">FPS: 0</span>
-              <span>Bodies: <span class="telemetry-value">9 (Rendered)</span></span>
-          </div>
-          <div class="telemetry-group">
-              <span class="telemetry-value">Vortex Engine v16.2 PRO</span>
-          </div>
+      <!-- TARGET INFO (AAA Style) -->
+      <div id="info-panel">
+        <div class="info-header">
+            <div>
+                <div class="info-title" id="infoTitle">Object Name</div>
+                <span class="info-type" id="infoType">Classification</span>
+            </div>
+            <span class="close-btn" onclick="closeInfo()">✕</span>
+        </div>
+        <ul class="facts-list" id="infoFactsList"></ul>
+        
+        <div class="audio-block">
+            <span class="audio-label">Transmission Audio</span>
+            <div class="audio-player">
+                <div class="play-icon"></div>
+                <span>0:00 / 0:00 (OFFLINE)</span>
+            </div>
+        </div>
       </div>
 
   </div>
 
-  <!-- CACHE BUSTING v4: Forces mobile browsers to download the newest JS -->
-  <script src="main.js?v=4"></script>
-
+  <!-- Modular Engine Script -->
+  <script src="main.js?v=16"></script>
 </body>
 </html>

@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>HD Colossal Universe Simulator - V15 Cinematic Audio</title>
+  <title>HD Colossal Universe Simulator - V17 Cinematic Engine</title>
   
   <!-- Modular Stylesheet -->
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=17.2">
   
   <!-- Three.js Engine & Touch Controls -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -16,13 +16,13 @@
 
   <div id="warp-flash"></div>
   
-  <!-- V16 Initial Boot Prompt -->
+  <!-- Initial Boot Prompt -->
   <div id="landscape-prompt" class="fullscreen-prompt">
     <h2>INITIALIZE COMMAND HUB</h2>
     <p>Rotate device to landscape and tap to enter cinematic view.</p>
   </div>
 
-  <!-- V16 OS Minimization Rescue Screen -->
+  <!-- OS Minimization Rescue Screen -->
   <div id="resume-prompt" class="fullscreen-prompt">
     <h2>SIGNAL LOST</h2>
     <p>Tap anywhere to resume fullscreen connection.</p>
@@ -30,7 +30,7 @@
   
   <div id="loading-screen">
     <div class="loader-ring"></div>
-    <div id="loading-text">INITIALIZING V15 CINEMATIC ENGINE...</div>
+    <div id="loading-text">INITIALIZING V17 CINEMATIC ENGINE...</div>
   </div>
   
   <div id="webgl-container"></div>
@@ -56,7 +56,7 @@
     <div class="title-bar">
       <div class="title-left">
         <span class="title">HD UNIVERSE</span>
-        <span class="badge">V15 AUDIO</span>
+        <span class="badge">V17 AUDIO</span>
       </div>
       <div class="top-btns">
         <button id="btnFreeCam" class="btn-free" onclick="freeCamera()">🔓 FREE CAM</button>
@@ -104,6 +104,6 @@
   </div>
 
   <!-- Modular Engine Logic -->
-  <script src="main.js"></script>
+  <script src="main.js?v=17.2"></script>
 </body>
 </html>

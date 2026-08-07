@@ -1,6 +1,6 @@
 /* =========================================
    V17 MASTER SIMULATION ENGINE (main.js)
-   KTX2 GLOBAL SCRIPT OPTIMIZATION FIXED
+   KTX2 MISSING ASSET BUGFIX
    ========================================= */
 
 const DATABASE = {
@@ -25,11 +25,33 @@ const DATABASE = {
 };
 
 const manager = new THREE.LoadingManager();
-manager.onLoad = function () { const ls = document.getElementById('loading-screen'); ls.classList.add('fade-out'); setTimeout(() => ls.remove(), 1000); animate(); };
-manager.onProgress = function (u, i, t) { document.getElementById('loading-text').innerText = `LOADING HD TEXTURES...`; };
+let engineStarted = false; 
 
-// TEXTURES RE-MAPPED TO COMPRESSED KTX2 FILES
-const TEX = { stars: 'stars.ktx2', sun: 'sun.ktx2', earthMap: 'earth.ktx2', earthCloud: './2k_earth_clouds.jpg', moon: 'moon.ktx2', mercury: 'mercury.ktx2', venus: 'venus.ktx2', mars: 'mars.ktx2', jupiter: 'jupiter.ktx2', saturn: 'saturn.ktx2', uranus: 'uranus.ktx2', neptune: 'neptune.ktx2', pluto: './2k_pluto.jpg' };
+manager.onLoad = function () { 
+    if(engineStarted) return; 
+    engineStarted = true;
+    const ls = document.getElementById('loading-screen'); 
+    ls.classList.add('fade-out'); 
+    setTimeout(() => ls.remove(), 1000); 
+    animate(); 
+};
+manager.onProgress = function (u, i, t) { 
+    document.getElementById('loading-text').innerText = `LOADING HD TEXTURES...`; 
+};
+manager.onError = function (url) { 
+    console.warn('Error loading missing file bypassed:', url); 
+    if(engineStarted) return; 
+    engineStarted = true;
+    const ls = document.getElementById('loading-screen'); 
+    if(ls) {
+        ls.classList.add('fade-out'); 
+        setTimeout(() => ls.remove(), 1000); 
+    }
+    animate(); 
+};
+
+// TEXTURES RE-MAPPED TO COMPRESSED KTX2 FILES - JPGs REMOVED
+const TEX = { stars: 'stars.ktx2', sun: 'sun.ktx2', earthMap: 'earth.ktx2', moon: 'moon.ktx2', mercury: 'mercury.ktx2', venus: 'venus.ktx2', mars: 'mars.ktx2', jupiter: 'jupiter.ktx2', saturn: 'saturn.ktx2', uranus: 'uranus.ktx2', neptune: 'neptune.ktx2', pluto: 'moon.ktx2' };
 
 let uiIsVisible = false; 
 window.toggleMainUI = function() { uiIsVisible = !uiIsVisible; document.querySelector('.ui-top').classList.toggle('ui-hidden'); document.querySelector('.ui-bottom').classList.toggle('ui-hidden'); document.getElementById('fastTravelDropdown').style.display = 'none'; };
@@ -71,9 +93,6 @@ window.closeInfoPanel = function() {
 window.freeCamera = function() { followTargetObj = null; isFollowing = false; targetCamPos = null; targetLookAt = null; isWarping = false; controls.enablePan = true; document.getElementById('btnFreeCam').style.display = 'none'; document.getElementById('targetName').textContent = "Free Camera"; document.getElementById('objType').textContent = "Unlocked"; document.getElementById('speedVal').textContent = "---"; };
 
 const container = document.getElementById('webgl-container'); const scene = new THREE.Scene(); scene.background = new THREE.Color(0x000000); 
-
-// Standard Loader for JPGs (Clouds, Pluto)
-const textureLoader = new THREE.TextureLoader(manager); textureLoader.setCrossOrigin('anonymous'); 
 
 const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 2000000);
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, logarithmicDepthBuffer: true, powerPreference: "high-performance" });
@@ -206,18 +225,16 @@ planets.forEach(p => {
   
   const pivot = new THREE.Group(); solarSystem.add(pivot);
   
-  // UPDATE MATERIAL CREATION FOR KTX2 ASYNC
   let pMat = new THREE.MeshPhongMaterial({ shininess: 10 });
+  let texPath = p.name === 'Earth' ? TEX.earthMap : (TEX[p.type] || TEX.moon);
   
-  if (p.name === 'Pluto') {
-      pMat.map = textureLoader.load(TEX.pluto);
-  } else {
-      let texPath = p.name === 'Earth' ? TEX.earthMap : (TEX[p.type] || TEX.moon);
-      ktx2Loader.load(texPath, (texture) => {
-          pMat.map = texture;
-          pMat.needsUpdate = true;
-      });
-  }
+  // Rerouted Pluto to use moon.ktx2
+  if (p.name === 'Pluto') texPath = TEX.pluto;
+  
+  ktx2Loader.load(texPath, (texture) => {
+      pMat.map = texture;
+      pMat.needsUpdate = true;
+  });
   
   const pMesh = new THREE.Mesh(new THREE.SphereGeometry(p.size, 64, 64), pMat);
   pMesh.position.x = p.radius; pMesh.rotation.z = p.tilt; pMesh.castShadow = true; pMesh.receiveShadow = true; 
@@ -225,7 +242,8 @@ planets.forEach(p => {
   pMesh.userData = { name: p.name, size: p.size }; interactables.push(pMesh);
   
   if (p.name === 'Earth') {
-      const cloudMesh = new THREE.Mesh(new THREE.SphereGeometry(p.size * 1.015, 64, 64), new THREE.MeshPhongMaterial({ map: textureLoader.load(TEX.earthCloud), transparent: true, opacity: 0.8, depthWrite: false }));
+      // Replaced missing JPG with procedural atmospheric haze
+      const cloudMesh = new THREE.Mesh(new THREE.SphereGeometry(p.size * 1.015, 64, 64), new THREE.MeshPhongMaterial({ color: 0xffffff, transparent: true, opacity: 0.15, depthWrite: false }));
       cloudMesh.receiveShadow = true; pMesh.add(cloudMesh); p.cloudMesh = cloudMesh;
   }
   if (p.hasRings) {
@@ -245,7 +263,6 @@ planets.forEach(p => {
           const mMat = new THREE.MeshPhongMaterial({ shininess: 5 });
           if(m.color) mMat.color.setHex(m.color);
           
-          // UPDATE MOON TEXTURE LOAD
           ktx2Loader.load(TEX.moon, (texture) => {
               mMat.map = texture;
               mMat.needsUpdate = true;
@@ -284,7 +301,6 @@ const raycaster = new THREE.Raycaster(); const mouse = new THREE.Vector2(); let 
 window.addEventListener('pointerdown', (event) => {
     if (isWarping) return;
     
-    // BUGFIX: Prevent initial boot tap from piercing through the UI and hitting background anomalies
     if(event.target.tagName === 'BUTTON' || 
        event.target.tagName === 'INPUT' || 
        event.target.closest('.hud-panel') || 
@@ -344,7 +360,6 @@ function calculateDistanceTracker() {
   document.getElementById('distVal').textContent = distRaw < 1000 ? (distRaw / 26).toFixed(4) + " AU" : (distRaw / 100).toFixed(2) + " Light Years";
 }
 
-// Initial Boot Target Camera (Sun)
 camera.position.set(0, 80, 200); 
 targetCamPos = LOCATIONS.home.pos.clone().add(new THREE.Vector3(0, 80, 200));
 targetLookAt = LOCATIONS.home.pos.clone();

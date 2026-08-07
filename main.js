@@ -1,7 +1,7 @@
 
 /* =========================================
    V15 STABLE MASTER ENGINE LOGIC (main.js)
-   Fixed: Startup Focus & Pulsar Zoom Bug
+   CLEAN WIPE - ARCHITECTURE FIXED
    ========================================= */
 
 const DATABASE = {
@@ -33,28 +33,42 @@ const TEX = { stars: './2k_stars_milky_way.jpg', sun: './2k_sun.jpg', earthMap: 
 
 let uiIsVisible = false; 
 window.toggleMainUI = function() { uiIsVisible = !uiIsVisible; document.querySelector('.ui-top').classList.toggle('ui-hidden'); document.querySelector('.ui-bottom').classList.toggle('ui-hidden'); document.getElementById('fastTravelDropdown').style.display = 'none'; };
+
+// === BULLETPROOF UI AND FULLSCREEN LOGIC ===
 window.lockLandscape = function() { 
-    const p = document.getElementById('landscape-prompt'); if (p) p.style.setProperty('display', 'none', 'important');
-    const r = document.getElementById('resume-prompt'); if (r) r.style.setProperty('display', 'none', 'important');
-    const d = document.documentElement; if (d.requestFullscreen) d.requestFullscreen().catch(e=>console.log("FS err:", e)); 
+    const p = document.getElementById('landscape-prompt'); 
+    const r = document.getElementById('resume-prompt'); 
+    
+    // Safely hide elements using CSS class, avoiding !important wars
+    if (p) p.classList.add('force-hide');
+    if (r) r.classList.add('force-hide');
+    
+    const d = document.documentElement; 
+    if (d.requestFullscreen) d.requestFullscreen().catch(e=>console.log("FS err:", e)); 
     if (screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(e=>console.log("Ori err:", e)); 
 };
 
-// Bind clicks directly to the prompts (V16 Architecture)
+// Bind cleanly without "once: true" to ensure it works multiple times
 const initPrompt = document.getElementById('landscape-prompt');
 const resumePrompt = document.getElementById('resume-prompt');
-if (initPrompt) { initPrompt.addEventListener('click', window.lockLandscape); initPrompt.addEventListener('touchstart', window.lockLandscape); }
-if (resumePrompt) { resumePrompt.addEventListener('click', window.lockLandscape); resumePrompt.addEventListener('touchstart', window.lockLandscape); }
+if (initPrompt) { 
+    initPrompt.addEventListener('click', window.lockLandscape); 
+    initPrompt.addEventListener('touchstart', window.lockLandscape); 
+}
+if (resumePrompt) { 
+    resumePrompt.addEventListener('click', window.lockLandscape); 
+    resumePrompt.addEventListener('touchstart', window.lockLandscape); 
+}
 
 // OS Minimization Rescue Logic
 document.addEventListener('fullscreenchange', () => {
-    if (!document.fullscreenElement && initPrompt && initPrompt.style.display === 'none') {
-        if (resumePrompt) resumePrompt.style.setProperty('display', 'flex', 'important');
+    if (!document.fullscreenElement && initPrompt && initPrompt.classList.contains('force-hide')) {
+        if (resumePrompt) resumePrompt.classList.remove('force-hide');
     }
 });
 
 window.toggleFullScreen = function() { window.lockLandscape(); }; 
-window.toggleWarpMenu = function() { const m = document.getElementById('fastTravelDropdown'); m.style.display = m.style.display === 'block' ? 'none' : 'block'; };
+window.toggleWarpMenu = function() { const m = document.getElementById('fastTravelDropdown'); m.style.display = m.style.display === 'block' ? 'none' : 'block'; }; 
 
 window.closeInfoPanel = function() { 
     document.getElementById('info-panel').classList.remove('visible'); 
@@ -304,10 +318,12 @@ function calculateDistanceTracker() {
   document.getElementById('distVal').textContent = distRaw < 1000 ? (distRaw / 26).toFixed(4) + " AU" : (distRaw / 100).toFixed(2) + " Light Years";
 }
 
-// FORCE INITIAL BOOT CAMERA TO SOLAR SYSTEM (HOME)
-targetCamPos = LOCATIONS.home.pos.clone().add(LOCATIONS.home.offset); 
+// === BOOT CAMERA FIX: Smooth Interpolation Target ===
+camera.position.set(0, 50, 100); 
+targetCamPos = LOCATIONS.home.pos.clone().add(LOCATIONS.home.offset);
 targetLookAt = LOCATIONS.home.pos.clone();
 controls.target.copy(targetLookAt);
+controls.update();
 
 function animate() {
   requestAnimationFrame(animate);
@@ -338,7 +354,7 @@ function animate() {
     }
   } else {
     if (targetCamPos && targetLookAt) {
-      camera.position.lerp(targetCamPos, 0.06); if (camera.position.distanceTo(targetCamPos) < 0.5) { targetCamPos = null; targetLookAt = null; isFollowing = true; followTargetObj.getWorldPosition(lastTargetPos); }
+      camera.position.lerp(targetCamPos, 0.06); if (camera.position.distanceTo(targetCamPos) < 0.5) { targetCamPos = null; targetLookAt = null; isFollowing = true; followTargetObj = sunMesh; followTargetObj.getWorldPosition(lastTargetPos); }
     } else if (isFollowing && followTargetObj) {
       const currentWorldPos = new THREE.Vector3(); followTargetObj.getWorldPosition(currentWorldPos); controls.target.copy(currentWorldPos);
       const delta = currentWorldPos.clone().sub(lastTargetPos); camera.position.add(delta); lastTargetPos.copy(currentWorldPos);

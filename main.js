@@ -34,18 +34,21 @@ const TEX = { stars: './2k_stars_milky_way.jpg', sun: './2k_sun.jpg', earthMap: 
 let uiIsVisible = false; 
 window.toggleMainUI = function() { uiIsVisible = !uiIsVisible; document.querySelector('.ui-top').classList.toggle('ui-hidden'); document.querySelector('.ui-bottom').classList.toggle('ui-hidden'); document.getElementById('fastTravelDropdown').style.display = 'none'; };
 
-// === BULLETPROOF UI AND FULLSCREEN LOGIC ===
 window.lockLandscape = function() { 
     const p = document.getElementById('landscape-prompt'); 
     const r = document.getElementById('resume-prompt'); 
     
-    // Safely hide elements using CSS class, avoiding !important wars
     if (p) p.classList.add('force-hide');
     if (r) r.classList.add('force-hide');
     
+    // Fire fullscreen and orientation lock synchronously to preserve user gesture
     const d = document.documentElement; 
-    if (d.requestFullscreen) d.requestFullscreen().catch(e=>console.log("FS err:", e)); 
-    if (screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(e=>console.log("Ori err:", e)); 
+    if (d.requestFullscreen) {
+        d.requestFullscreen().catch((err) => console.log("FS error:", err));
+    }
+    if (screen.orientation && screen.orientation.lock) {
+        screen.orientation.lock('landscape').catch((err) => console.log("Orientation error:", err));
+    }
 };
 
 // Bind cleanly without "once: true" to ensure it works multiple times

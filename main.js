@@ -1,271 +1,283 @@
-/* =========================================
-   SPACE SIMULATION V16.2 - MASTER PHYSICS 
-   Merges ChatGPT Logic Audits with Three.js Rendering
-   ========================================= */
+/*
+  VORTEX ENGINE - CORE LOGIC (main.js)
+  Extracted directly from the stable V16 build
+*/
 
-// 1. CACHED DOM ELEMENTS (ChatGPT Audit #8: Avoid Repeated Lookups)
-const UI = {
-    container: document.getElementById('webgl-container'),
-    loadingScreen: document.getElementById('loading-screen'),
-    loadingProgress: document.getElementById('loading-progress'),
-    mainMenu: document.getElementById('main-menu'),
-    gameUi: document.getElementById('game-ui'),
-    fpsText: document.getElementById('fps-display'),
-    propWindow: document.getElementById('properties-window'),
-    propName: document.getElementById('prop-name'),
-    propMass: document.getElementById('prop-mass'),
-    propRadius: document.getElementById('prop-radius'),
-    btnStart: document.getElementById('btn-start-game'),
-    btnFullscreen: document.getElementById('btn-fullscreen')
+// CORE DATABASE
+const DATABASE = {
+  "Sun": { type: "G-Type Star", facts: ["Perfect sphere of incredibly hot plasma.", "Accounts for 99.86% of total solar system mass.", "Core temperature hits 15 million °C."] },
+  "Earth": { type: "Terrestrial Planet", facts: ["Only planet confirmed to harbor life.", "71% surface covered in liquid water.", "Densest planet in the system."] },
+  "Jupiter": { type: "Gas Giant", facts: ["Largest planet; holds 1,300 Earths.", "Home to the Great Red Spot.", "Rotates fully in just 10 hours."] },
+  "Saturn": { type: "Gas Giant", facts: ["Famous for complex, beautiful ice rings.", "Least dense planet (would float in water).", "Has 146 confirmed moons."] },
+  "Neptune": { type: "Ice Giant", facts: ["The most distant major planet in our solar system.", "Discovered by mathematical prediction.", "Dark, cold, and incredibly windy."] },
+  "Magnetic Pulsar": { type: "Neutron Star", facts: ["Ultra-dense collapsed core of a dead star.", "Spins at terrifying rates.", "Emits lighthouse-like beams of radiation."] }
 };
 
-// 2. CELESTIAL DATA (ChatGPT Audit #2: Deep Freeze)
-const celestialBodies = {
-    "Sun":     { mass: 1.989e30, radius: 696340, dist: 0,   size: 10,  speed: 0,      type: "none" },
-    "Mercury": { mass: 3.301e23, radius: 2439.7, dist: 25,  size: 0.8, speed: 0.04,   type: "mercury" },
-    "Venus":   { mass: 4.867e24, radius: 6051.8, dist: 35,  size: 1.4, speed: 0.015,  type: "venus" },
-    "Earth":   { mass: 5.972e24, radius: 6371.0, dist: 50,  size: 1.6, speed: 0.01,   type: "earthMap" },
-    "Mars":    { mass: 6.417e23, radius: 3389.5, dist: 65,  size: 1.1, speed: 0.008,  type: "mars" },
-    "Jupiter": { mass: 1.898e27, radius: 69911,  dist: 100, size: 4.5, speed: 0.004,  type: "jupiter", hasMoons: true },
-    "Saturn":  { mass: 5.683e26, radius: 58232,  dist: 140, size: 3.8, speed: 0.002,  type: "saturn",  hasRings: true },
-    "Uranus":  { mass: 8.681e25, radius: 25362,  dist: 170, size: 2.2, speed: 0.0015, type: "uranus" },
-    "Neptune": { mass: 1.024e26, radius: 24622,  dist: 200, size: 2.1, speed: 0.001,  type: "neptune" }
-};
-Object.values(celestialBodies).forEach(Object.freeze);
-Object.freeze(celestialBodies);
+// UI & FULLSCREEN LOGIC
+const mainUI = document.getElementById('main-ui');
+const infoPanel = document.getElementById('info-panel');
+const btnFreeCam = document.getElementById('btnFreeCam');
 
-// 3. STATE MANAGEMENT (ChatGPT Audit #9: Structured Camera Data)
-const engineState = {
-    isPaused: false,
-    simulationSpeed: 1.0,
-    photoMode: false
-};
-
-const cameraState = {
-    locked: false,
-    target: null,
-    smoothness: 0.08
-};
-
-// Formatting Utilities
-function formatMass(mass) {
-    const [base, exponent] = mass.toExponential(3).split("e");
-    return `${base} × 10^${Number(exponent)} kg`;
-}
-function formatNumber(num) {
-    return new Intl.NumberFormat().format(num);
+function closeInfo() { 
+    infoPanel.classList.remove('visible'); 
+    mainUI.classList.remove('ui-hidden');
 }
 
-// 4. THREE.JS SCENE SETUP (Restoring the missing 3D Engine!)
-const scene = new THREE.Scene();
-scene.fog = new THREE.FogExp2(0x0a0a0c, 0.001);
+function resetCamera() { 
+    targetCamPos = new THREE.Vector3(0, 40, 150); 
+    targetLookAt = new THREE.Vector3(0, 0, 0); 
+    closeInfo(); 
+    btnFreeCam.style.display = 'none'; 
+}
 
-const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100000);
-camera.position.set(0, 100, 250);
+// Fullscreen Management (Android OS Fix)
+function enterFullscreen() {
+    const d = document.documentElement; 
+    if (d.requestFullscreen) d.requestFullscreen().catch(()=>{}); 
+    if (screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(()=>{}); 
+}
 
+document.getElementById('landscape-prompt').addEventListener('click', function() {
+    this.style.display = 'none';
+    enterFullscreen();
+});
+
+document.getElementById('resume-prompt').addEventListener('click', function() {
+    this.style.display = 'none';
+    enterFullscreen();
+});
+
+document.addEventListener('fullscreenchange', () => {
+    const resumePrompt = document.getElementById('resume-prompt');
+    const initPrompt = document.getElementById('landscape-prompt');
+    if (!document.fullscreenElement && initPrompt.style.display === 'none') {
+        resumePrompt.style.display = 'flex';
+    }
+});
+
+// THREE.JS SETUP
+const container = document.getElementById('webgl-container'); 
+const scene = new THREE.Scene(); 
+scene.background = new THREE.Color(0x000000); 
+
+const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 2000000);
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance" });
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-if (UI.container) UI.container.appendChild(renderer.domElement);
+renderer.setSize(window.innerWidth, window.innerHeight); 
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); 
+renderer.toneMapping = THREE.ACESFilmicToneMapping; 
+container.appendChild(renderer.domElement);
 
-const controls = new THREE.OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true;
-controls.dampingFactor = 0.05;
-controls.maxDistance = 50000;
+const controls = new THREE.OrbitControls(camera, renderer.domElement); 
+controls.enableDamping = true; 
+controls.dampingFactor = 0.05; 
+controls.maxDistance = 100000; 
 controls.minDistance = 5;
 
-// Lighting & Skybox
-scene.add(new THREE.AmbientLight(0x222222));
-scene.add(new THREE.PointLight(0xffffff, 2.5, 10000));
-
-const textureLoader = new THREE.TextureLoader();
-textureLoader.setCrossOrigin('anonymous');
-const TEX = {
-    stars: './2k_stars_milky_way.jpg',
-    earthMap: './2k_earth_daymap.jpg',
-    jupiter: './2k_jupiter.jpg',
-    saturn: './2k_saturn.jpg',
-    neptune: './2k_neptune.jpg',
-    moon: './2k_moon.jpg'
+// TEXTURE LOADER
+const manager = new THREE.LoadingManager();
+manager.onLoad = function () { 
+    const ls = document.getElementById('loading-screen'); 
+    ls.classList.add('fade-out'); 
+    setTimeout(() => ls.remove(), 1000); 
+    animate(); 
 };
-scene.add(new THREE.Mesh(
-    new THREE.SphereGeometry(40000, 64, 64),
-    new THREE.MeshBasicMaterial({ map: textureLoader.load(TEX.stars), side: THREE.BackSide, depthWrite: false })
-));
 
-// 5. BUILD SOLAR SYSTEM
-const interactables = [];
-const renderBodies = [];
-const sunGroup = new THREE.Group();
-scene.add(sunGroup);
+const textureLoader = new THREE.TextureLoader(manager); 
+textureLoader.setCrossOrigin('anonymous'); 
+const TEX = { 
+    stars: './2k_stars_milky_way.jpg', 
+    earthMap: './2k_earth_daymap.jpg', 
+    jupiter: './2k_jupiter.jpg', 
+    saturn: './2k_saturn.jpg', 
+    neptune: './2k_neptune.jpg', 
+    moon: './2k_moon.jpg' 
+};
 
-const sunMesh = new THREE.Mesh(new THREE.SphereGeometry(10, 64, 64), new THREE.MeshBasicMaterial({ color: 0xffaa00 }));
-sunMesh.userData = { name: "Sun" };
-interactables.push(sunMesh);
-sunGroup.add(sunMesh);
+function createGlowTex() { 
+    const c = document.createElement('canvas'); 
+    c.width = 128; c.height = 128; 
+    const ctx = c.getContext('2d'); 
+    const g = ctx.createRadialGradient(64, 64, 0, 64, 64, 64); 
+    g.addColorStop(0, 'rgba(255,255,255,1)'); 
+    g.addColorStop(0.2, 'rgba(255,255,255,0.8)'); 
+    g.addColorStop(1, 'rgba(0,0,0,0)'); 
+    ctx.fillStyle = g; 
+    ctx.fillRect(0,0,128,128); 
+    return new THREE.CanvasTexture(c); 
+}
+const softGlowTex = createGlowTex();
 
-Object.keys(celestialBodies).forEach(key => {
-    if (key === "Sun") return;
-    const data = celestialBodies[key];
-    
-    const pivot = new THREE.Group();
-    scene.add(pivot);
+const interactables = []; 
 
-    const mat = new THREE.MeshStandardMaterial({ map: textureLoader.load(TEX[data.type] || TEX.moon), roughness: 0.6 });
-    const mesh = new THREE.Mesh(new THREE.SphereGeometry(data.size, 64, 64), mat);
-    mesh.position.x = data.dist;
-    mesh.userData = { name: key };
-    pivot.add(mesh);
-    interactables.push(mesh);
+// SKYBOX
+const skyGeo = new THREE.SphereGeometry(800000, 64, 64);
+const skyMat = new THREE.MeshBasicMaterial({ map: textureLoader.load(TEX.stars), side: THREE.BackSide, depthWrite: false });
+scene.add(new THREE.Mesh(skyGeo, skyMat));
 
-    // Orbit Tracers
-    const ringGeo = new THREE.RingGeometry(data.dist - 0.2, data.dist + 0.2, 128);
-    const ringMat = new THREE.MeshBasicMaterial({ color: 0x4daafc, side: THREE.DoubleSide, transparent: true, opacity: 0.08 });
-    const orbitLine = new THREE.Mesh(ringGeo, ringMat);
-    orbitLine.rotation.x = Math.PI / 2;
-    scene.add(orbitLine);
+// SUN
+const solarSystem = new THREE.Group(); 
+scene.add(solarSystem);
+solarSystem.add(new THREE.AmbientLight(0x333344, 0.4)); 
 
-    renderBodies.push({ pivot, mesh, speed: data.speed });
+let currentSun = new THREE.Group(); 
+solarSystem.add(currentSun);
+const sunCore = new THREE.Mesh(new THREE.SphereGeometry(8.0, 64, 64), new THREE.MeshBasicMaterial({ color: 0xffaa00 }));
+sunCore.userData = { name: "Sun", size: 8.0 }; 
+interactables.push(sunCore); 
+currentSun.add(sunCore);
+
+const sunGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: softGlowTex, color: 0xff7700, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false }));
+sunGlow.scale.set(35, 35, 1); 
+currentSun.add(sunGlow);
+
+const sunOuter = new THREE.Sprite(new THREE.SpriteMaterial({ map: softGlowTex, color: 0xff4400, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending, depthWrite: false }));
+sunOuter.scale.set(60, 60, 1); 
+currentSun.add(sunOuter);
+
+currentSun.add(new THREE.PointLight(0xffffff, 2.5, 10000));
+
+// PLANETS
+let planetDataList = [];
+const planets = [
+  { name: "Earth", radius: 40, speed: 0.005, size: 1.5, type: 'earthMap' }, 
+  { name: "Jupiter", radius: 75, speed: 0.002, size: 3.5, type: 'jupiter' }, 
+  { name: "Saturn", radius: 110, speed: 0.0014, size: 3.0, type: 'saturn', hasRings: true },
+  { name: "Neptune", radius: 150, speed: 0.0008, size: 2.8, type: 'neptune' }
+];
+
+planets.forEach(p => {
+  const ringGeo = new THREE.BufferGeometry(); 
+  const points = [];
+  for (let i = 0; i <= 100; i++) { 
+      const t = (i/100)*Math.PI*2; 
+      points.push(new THREE.Vector3(Math.cos(t)*p.radius, 0, Math.sin(t)*p.radius)); 
+  }
+  ringGeo.setFromPoints(points); 
+  const orbitLine = new THREE.Line(ringGeo, new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.1, blending: THREE.AdditiveBlending, depthWrite: false }));
+  solarSystem.add(orbitLine);
+  
+  const pivot = new THREE.Group(); 
+  solarSystem.add(pivot);
+  let pMat = new THREE.MeshPhongMaterial({ map: textureLoader.load(TEX[p.type] || TEX.moon), shininess: 5 });
+  const pMesh = new THREE.Mesh(new THREE.SphereGeometry(p.size, 64, 64), pMat);
+  pMesh.position.x = p.radius; 
+  pMesh.userData = { name: p.name, size: p.size }; 
+  pivot.add(pMesh); 
+  p.pivot = pivot; 
+  p.mesh = pMesh; 
+  interactables.push(pMesh); 
+  planetDataList.push(p);
+  
+  if (p.hasRings) {
+      const rMesh = new THREE.Mesh(new THREE.TorusGeometry(p.size * 2.2, 0.1, 16, 100), new THREE.MeshPhongMaterial({ color: 0xcd853f, transparent: true, opacity: 0.8 }));
+      rMesh.rotation.x = Math.PI / 2.1; 
+      pMesh.add(rMesh);
+  }
 });
 
-// 6. RAYCASTER & INTERACTION (ChatGPT Audit #5 & #10: Safe Lookup & Error Handling)
-const raycaster = new THREE.Raycaster();
+// PULSAR
+const pulsarGroup = new THREE.Group(); 
+pulsarGroup.position.set(2000, 500, -2000); 
+scene.add(pulsarGroup);
+const nStar = new THREE.Mesh(new THREE.SphereGeometry(3, 32, 32), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+nStar.userData = { name: "Magnetic Pulsar", size: 15 }; 
+interactables.push(nStar); 
+pulsarGroup.add(nStar);
+
+const pAura = new THREE.Sprite(new THREE.SpriteMaterial({ map: softGlowTex, color: 0x55aaff, transparent: true, blending: THREE.AdditiveBlending }));
+pAura.scale.set(40, 40, 1); 
+pulsarGroup.add(pAura);
+
+const jetGeo = new THREE.CylinderGeometry(0.5, 15, 1500, 32, 1, true); 
+const jetMat = new THREE.MeshBasicMaterial({ color: 0x4488ff, transparent: true, opacity: 0.3, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide });
+const pJet1 = new THREE.Mesh(jetGeo, jetMat); 
+pJet1.position.y = 750; 
+pulsarGroup.add(pJet1); 
+const pJet2 = new THREE.Mesh(jetGeo, jetMat); 
+pJet2.position.y = -750; 
+pJet2.rotation.x = Math.PI; 
+pulsarGroup.add(pJet2);
+
+for(let i=0; i<4; i++) { 
+    let torus = new THREE.Mesh(new THREE.TorusGeometry(15 + (i*6), 0.2, 16, 100), new THREE.MeshBasicMaterial({color: 0x00ffff, transparent: true, opacity: 0.4, blending: THREE.AdditiveBlending})); 
+    torus.rotation.y = (Math.PI / 4) * i; 
+    torus.rotation.x = Math.PI / 2.2; 
+    pulsarGroup.add(torus); 
+}
+
+// INTERACTION LOGIC
+const raycaster = new THREE.Raycaster(); 
 const mouse = new THREE.Vector2();
+let targetCamPos = null; 
+let targetLookAt = null;
 
-window.addEventListener('pointermove', (e) => {
-    mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
-    mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
-    raycaster.setFromCamera(mouse, camera);
+window.addEventListener('pointerdown', (event) => {
+    if(event.target.tagName === 'BUTTON' || event.target.closest('.hud-panel') || event.target.closest('#info-panel')) return;
     
-    if (raycaster.intersectObjects(interactables, false).length > 0) {
-        UI.container.classList.add('interactive-cursor');
-    } else {
-        UI.container.classList.remove('interactive-cursor');
-    }
-});
-
-window.addEventListener('pointerdown', (e) => {
-    // Block raycaster if clicking on a UI panel
-    if (e.target.closest('.floating-window') || e.target.closest('#left-toolbar') || e.target.closest('#bottom-bar') || e.target.closest('#main-menu')) return;
-
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1; 
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
     raycaster.setFromCamera(mouse, camera);
     const intersects = raycaster.intersectObjects(interactables, false);
-
-    if (intersects.length > 0) {
-        const bodyName = intersects[0].object.userData.name;
-        
-        if (!(bodyName in celestialBodies)) {
-            console.warn(`Unknown celestial body: ${bodyName}`);
-            return;
-        }
-
-        const data = celestialBodies[bodyName];
-        cameraState.target = intersects[0].object;
-        cameraState.locked = true;
-
-        if (UI.propWindow) {
-            UI.propName.value = bodyName;
-            UI.propMass.value = formatMass(data.mass);
-            UI.propRadius.value = `${formatNumber(data.radius)} km`;
-            UI.propWindow.classList.add('open');
-        }
-    } else {
-        cameraState.locked = false;
-        cameraState.target = null;
-        if (UI.propWindow) UI.propWindow.classList.remove('open');
-        controls.target.set(0, 0, 0);
-    }
-});
-
-// 7. EVENT LISTENERS (ChatGPT Audits #4, #13, #14: Resize, Focus & Fullscreen Fixes)
-window.addEventListener('resize', () => {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-});
-
-document.addEventListener("visibilitychange", () => {
-    engineState.isPaused = document.hidden;
-});
-
-if (UI.btnFullscreen) {
-    UI.btnFullscreen.addEventListener('click', async () => {
-        if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
-            await document.documentElement.requestFullscreen();
-        } else if (document.exitFullscreen) {
-            await document.exitFullscreen();
-        }
-    });
-}
-
-// 8. RENDER LOOP (ChatGPT Audit #1: 1-Second Average FPS Fix)
-let frameCount = 0;
-let fps = 0;
-let lastFPSUpdate = performance.now();
-
-function animate(now) {
-    requestAnimationFrame(animate);
     
-    // Halt physics if user minimizes the app
-    if (engineState.isPaused) return;
-
-    // Stable FPS Calculation
-    frameCount++;
-    if (now - lastFPSUpdate >= 1000) {
-        fps = frameCount;
-        frameCount = 0;
-        lastFPSUpdate = now;
-        if (UI.fpsText) UI.fpsText.textContent = `FPS: ${fps}`;
-    }
-
-    // Planetary Rotations
-    sunGroup.rotation.y += 0.002 * engineState.simulationSpeed;
-    renderBodies.forEach(body => {
-        body.mesh.rotation.y += 0.01 * engineState.simulationSpeed;
-        body.pivot.rotation.y += body.speed * engineState.simulationSpeed;
-    });
-
-    // Smooth Camera Tracking
-    if (cameraState.locked && cameraState.target) {
-        const wPos = new THREE.Vector3();
-        cameraState.target.getWorldPosition(wPos);
-        controls.target.lerp(wPos, cameraState.smoothness);
-    }
-
-    controls.update();
-    renderer.render(scene, camera);
-}
-
-// 9. BOOT SEQUENCE
-function initializeBootSequence() {
-    let progress = 0;
-    
-    const interval = setInterval(() => {
-        progress = Math.min(progress + 5, 100);
-        if (UI.loadingProgress) UI.loadingProgress.innerText = `${progress}%`;
-        
-        if (progress >= 100) {
-            clearInterval(interval);
-            if (UI.loadingScreen) {
-                UI.loadingScreen.style.opacity = '0';
-                setTimeout(() => {
-                    UI.loadingScreen.classList.add('hidden');
-                    if (UI.mainMenu) UI.mainMenu.classList.remove('hidden');
-                }, 500);
-            }
+    if(intersects.length > 0) {
+        const mesh = intersects[0].object; 
+        const name = mesh.userData.name;
+        if(DATABASE[name]) {
+            document.getElementById('infoTitle').textContent = name; 
+            document.getElementById('infoType').textContent = DATABASE[name].type;
+            const list = document.getElementById('infoFactsList'); 
+            list.innerHTML = '';
+            DATABASE[name].facts.forEach(f => { 
+                let li = document.createElement('li'); 
+                li.textContent = f; 
+                list.appendChild(li); 
+            });
+            
+            infoPanel.classList.add('visible'); 
+            mainUI.classList.add('ui-hidden'); 
+            btnFreeCam.style.display = 'block';
         }
-    }, 50); 
+        
+        const wPos = new THREE.Vector3(); 
+        mesh.getWorldPosition(wPos); 
+        targetLookAt = wPos.clone();
+        const safeDist = Math.max(mesh.userData.size * 4, 20); 
+        targetCamPos = new THREE.Vector3(wPos.x + safeDist, wPos.y + (safeDist*0.5), wPos.z + safeDist);
+        controls.target.copy(targetLookAt);
+    }
+});
+
+// BOOT CAMERA
+targetCamPos = new THREE.Vector3(0, 40, 150); 
+targetLookAt = new THREE.Vector3(0, 0, 0);
+controls.target.copy(targetLookAt);
+
+function animate() {
+  requestAnimationFrame(animate);
+  
+  sunCore.rotation.y += 0.002; 
+  pulsarGroup.rotation.z += 0.08; 
+  pulsarGroup.rotation.y += 0.04;
+  
+  planetDataList.forEach(p => { 
+      p.mesh.rotation.y += 0.01;
+      p.pivot.rotation.y += p.speed;
+  });
+
+  if (targetCamPos && targetLookAt) {
+      camera.position.lerp(targetCamPos, 0.05); 
+      if (camera.position.distanceTo(targetCamPos) < 0.5) { 
+          targetCamPos = null; 
+          targetLookAt = null; 
+      }
+  }
+  
+  controls.update(); 
+  renderer.render(scene, camera);
 }
 
-if (UI.btnStart) {
-    UI.btnStart.addEventListener('click', () => {
-        if (UI.mainMenu) UI.mainMenu.classList.add('hidden');
-        if (UI.gameUi) UI.gameUi.classList.remove('hidden');
-    });
-}
-
-// Launch Game
-document.addEventListener('DOMContentLoaded', () => {
-    initializeBootSequence();
-    requestAnimationFrame(animate);
+window.addEventListener('resize', () => { 
+    camera.aspect = window.innerWidth / window.innerHeight; 
+    camera.updateProjectionMatrix(); 
+    renderer.setSize(window.innerWidth, window.innerHeight); 
 });

@@ -1,6 +1,8 @@
+import { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js';
+
 /* =========================================
    V17 MASTER SIMULATION ENGINE (main.js)
-   SUN-LOCK BUG ELIMINATED & V16 PROMPTS
+   KTX2 VRAM OPTIMIZATION INTEGRATED
    ========================================= */
 
 const DATABASE = {
@@ -28,12 +30,13 @@ const manager = new THREE.LoadingManager();
 manager.onLoad = function () { const ls = document.getElementById('loading-screen'); ls.classList.add('fade-out'); setTimeout(() => ls.remove(), 1000); animate(); };
 manager.onProgress = function (u, i, t) { document.getElementById('loading-text').innerText = `LOADING HD TEXTURES...`; };
 
-const TEX = { stars: './2k_stars_milky_way.jpg', sun: './2k_sun.jpg', earthMap: './2k_earth_daymap.jpg', earthCloud: './2k_earth_clouds.jpg', moon: './2k_moon.jpg', mercury: './2k_mercury.jpg', venus: './2k_venus_surface.jpg', mars: './2k_mars.jpg', jupiter: './2k_jupiter.jpg', saturn: './2k_saturn.jpg', uranus: './2k_uranus.jpg', neptune: './2k_neptune.jpg', pluto: './2k_pluto.jpg' };
+// TEXTURES RE-MAPPED TO COMPRESSED KTX2 FILES
+const TEX = { stars: 'stars.ktx2', sun: 'sun.ktx2', earthMap: 'earth.ktx2', earthCloud: './2k_earth_clouds.jpg', moon: 'moon.ktx2', mercury: 'mercury.ktx2', venus: 'venus.ktx2', mars: 'mars.ktx2', jupiter: 'jupiter.ktx2', saturn: 'saturn.ktx2', uranus: 'uranus.ktx2', neptune: 'neptune.ktx2', pluto: './2k_pluto.jpg' };
 
 let uiIsVisible = false; 
 window.toggleMainUI = function() { uiIsVisible = !uiIsVisible; document.querySelector('.ui-top').classList.toggle('ui-hidden'); document.querySelector('.ui-bottom').classList.toggle('ui-hidden'); document.getElementById('fastTravelDropdown').style.display = 'none'; };
 
-// === V16 FLAWLESS PROMPT & FULLSCREEN ARCHITECTURE[span_1](start_span)[span_1](end_span) ===
+// === V16 FLAWLESS PROMPT & FULLSCREEN ARCHITECTURE ===
 function enterFullscreen() {
     const d = document.documentElement; 
     if (d.requestFullscreen) d.requestFullscreen().catch(()=>{}); 
@@ -71,6 +74,8 @@ window.closeInfoPanel = function() {
 window.freeCamera = function() { followTargetObj = null; isFollowing = false; targetCamPos = null; targetLookAt = null; isWarping = false; controls.enablePan = true; document.getElementById('btnFreeCam').style.display = 'none'; document.getElementById('targetName').textContent = "Free Camera"; document.getElementById('objType').textContent = "Unlocked"; document.getElementById('speedVal').textContent = "---"; };
 
 const container = document.getElementById('webgl-container'); const scene = new THREE.Scene(); scene.background = new THREE.Color(0x000000); 
+
+// Standard Loader for JPGs (Clouds, Pluto)
 const textureLoader = new THREE.TextureLoader(manager); textureLoader.setCrossOrigin('anonymous'); 
 
 const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 2000000);
@@ -79,6 +84,11 @@ renderer.setSize(window.innerWidth, window.innerHeight); renderer.setPixelRatio(
 renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.2; 
 renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 container.appendChild(renderer.domElement);
+
+// INITIALIZE NEW KTX2 LOADER HERE
+const ktx2Loader = new KTX2Loader(manager)
+    .setTranscoderPath('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/libs/basis/')
+    .detectSupport(renderer);
 
 const controls = new THREE.OrbitControls(camera, renderer.domElement); controls.enableDamping = true; controls.dampingFactor = 0.05; controls.enablePan = false; controls.zoomSpeed = 0.6; controls.maxDistance = 500000; controls.minDistance = 2;
 let timeMultiplier = 1.0;
@@ -99,8 +109,10 @@ const dustTex = createSmokyTex(255, 120, 40); const gasTex = createSmokyTex(50, 
 
 const universeGroup = new THREE.Group(); scene.add(universeGroup); const interactables = [];
 
+// UPDATE SKYBOX TO KTX2
 const skyGeo = new THREE.SphereGeometry(800000, 64, 64);
-const skyMat = new THREE.MeshBasicMaterial({ map: textureLoader.load(TEX.stars), side: THREE.BackSide, depthWrite: false });
+const skyMat = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.BackSide, depthWrite: false });
+ktx2Loader.load(TEX.stars, (texture) => { skyMat.map = texture; skyMat.needsUpdate = true; });
 scene.add(new THREE.Mesh(skyGeo, skyMat));
 
 const proxGroup = new THREE.Group(); proxGroup.position.copy(LOCATIONS.proxima.pos); universeGroup.add(proxGroup);
@@ -165,7 +177,10 @@ for(let i=0; i<3; i++) { let torus = new THREE.Mesh(new THREE.TorusGeometry(60, 
 const solarSystem = new THREE.Group(); solarSystem.position.copy(LOCATIONS.home.pos); universeGroup.add(solarSystem);
 solarSystem.add(new THREE.AmbientLight(0x222233, 0.4)); 
 
-const sunMesh = new THREE.Mesh(new THREE.SphereGeometry(6.0, 64, 64), new THREE.MeshBasicMaterial({ map: textureLoader.load(TEX.sun), color: 0xffffff }));
+// UPDATE SUN TO KTX2
+const sunMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+ktx2Loader.load(TEX.sun, (texture) => { sunMat.map = texture; sunMat.needsUpdate = true; });
+const sunMesh = new THREE.Mesh(new THREE.SphereGeometry(6.0, 64, 64), sunMat);
 sunMesh.userData = { name: "Sun", size: 6.0 }; interactables.push(sunMesh); solarSystem.add(sunMesh);
 const sunGlowEffect = new THREE.Sprite(new THREE.SpriteMaterial({ map: starTex, color: 0xfff0e0, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending, depthWrite: false })); 
 sunGlowEffect.scale.set(30, 30, 1); sunMesh.add(sunGlowEffect);
@@ -194,11 +209,17 @@ planets.forEach(p => {
   
   const pivot = new THREE.Group(); solarSystem.add(pivot);
   
-  let pMat;
-  if (p.name === 'Earth') { 
-      pMat = new THREE.MeshPhongMaterial({ map: textureLoader.load(TEX.earthMap), shininess: 10 });
-  } else { 
-      pMat = new THREE.MeshPhongMaterial({ map: textureLoader.load(TEX[p.type] || TEX.moon), shininess: 10 }); 
+  // UPDATE MATERIAL CREATION FOR KTX2 ASYNC
+  let pMat = new THREE.MeshPhongMaterial({ shininess: 10 });
+  
+  if (p.name === 'Pluto') {
+      pMat.map = textureLoader.load(TEX.pluto);
+  } else {
+      let texPath = p.name === 'Earth' ? TEX.earthMap : (TEX[p.type] || TEX.moon);
+      ktx2Loader.load(texPath, (texture) => {
+          pMat.map = texture;
+          pMat.needsUpdate = true;
+      });
   }
   
   const pMesh = new THREE.Mesh(new THREE.SphereGeometry(p.size, 64, 64), pMat);
@@ -224,8 +245,15 @@ planets.forEach(p => {
       p.moonObjs = [];
       p.moons.forEach(m => {
           const mPivot = new THREE.Group(); pMesh.add(mPivot);
-          const mMat = new THREE.MeshPhongMaterial({ map: textureLoader.load(TEX.moon), shininess: 5 });
+          const mMat = new THREE.MeshPhongMaterial({ shininess: 5 });
           if(m.color) mMat.color.setHex(m.color);
+          
+          // UPDATE MOON TEXTURE LOAD
+          ktx2Loader.load(TEX.moon, (texture) => {
+              mMat.map = texture;
+              mMat.needsUpdate = true;
+          });
+          
           const mMesh = new THREE.Mesh(new THREE.SphereGeometry(m.size, 32, 32), mMat);
           mMesh.position.x = m.r; mMesh.castShadow = true; mMesh.receiveShadow = true;
           mPivot.add(mMesh); mMesh.userData = { name: m.name, size: m.size }; interactables.push(mMesh);

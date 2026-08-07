@@ -84,7 +84,7 @@ const controls = new THREE.OrbitControls(camera, renderer.domElement); controls.
 let timeMultiplier = 1.0;
 
 const LOCATIONS = {
-  home: { pos: new THREE.Vector3(0, 0, 0), offset: new THREE.Vector3(0, 60, 150) },
+  home: { pos: new THREE.Vector3(0, 0, 0), offset: new THREE.Vector3(0, 120, 280) },
   proxima: { pos: new THREE.Vector3(15000, 500, -15000), offset: new THREE.Vector3(0, 20, 80) }, 
   orion: { pos: new THREE.Vector3(-25000, -2000, 30000), offset: new THREE.Vector3(0, 1000, 4000) }, 
   vela: { pos: new THREE.Vector3(40000, 2000, -25000), offset: new THREE.Vector3(0, 200, 800) }, 
@@ -309,8 +309,8 @@ function calculateDistanceTracker() {
 }
 
 // Initial Boot Target Camera (Sun)
-camera.position.set(0, 40, 150); 
-targetCamPos = LOCATIONS.home.pos.clone().add(new THREE.Vector3(0, 60, 150));
+camera.position.set(0, 120, 280); 
+targetCamPos = LOCATIONS.home.pos.clone().add(new THREE.Vector3(0, 120, 280));
 targetLookAt = LOCATIONS.home.pos.clone();
 controls.target.copy(targetLookAt);
 controls.update();

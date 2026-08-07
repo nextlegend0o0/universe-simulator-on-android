@@ -1,128 +1,114 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Vortex Engine - Pro Simulator</title>
-  
-  <!-- CACHE BUSTING v3: Forces mobile browsers to download the newest CSS -->
-  <link rel="stylesheet" href="style.css?v=3">
-  
-  <!-- Load Three.js Engine & Touch Controls -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sandbox in Space - Vortex Engine v16.1</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- =========================================
+         3D ENGINE CANVAS 
+         ========================================= -->
+    <canvas id="renderCanvas" style="width: 100vw; height: 100vh; display: block;"></canvas>
 
-  <!-- 3D Canvas Container -->
-  <div id="webgl-container"></div>
-
-  <!-- FIRST CONTACT TUTORIAL -->
-  <div id="tutorial-overlay">
-    <div class="tutorial-ring"></div>
-    <div class="tutorial-text">Select a Celestial Body</div>
-  </div>
-
-  <!-- LEFT VERTICAL TOOLBAR -->
-  <div id="left-toolbar">
-    <button class="tool-btn active" id="tool-select">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/></svg>
-      <span class="tooltip">Select Object</span>
-    </button>
-    <button class="tool-btn" id="tool-settings">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-      <span class="tooltip">Engine Settings</span>
-    </button>
-  </div>
-
-  <!-- SETTINGS PANEL (LEFT) -->
-  <div class="floating-window left-side" id="settings-window">
-    <div class="window-header">
-      <span>Settings</span>
-      <button class="close-btn" onclick="closeSettings()">✕</button>
+    <!-- =========================================
+         LOADING SCREEN 
+         ========================================= -->
+    <div id="loading-screen">
+        <h1 class="loading-title">LOADING..</h1>
+        <div class="loading-planet"></div>
+        <div id="loading-progress">0%</div>
     </div>
-    <div class="window-tabs">
-      <div class="tab active">Simulation</div>
-      <div class="tab">Display</div>
-      <div class="tab">Engine</div>
-    </div>
-    <div class="window-content">
-      <div class="section-title">Time Controls</div>
-      <div class="control-row">
-        <span class="control-label">Speed Multiplier</span>
-        <input type="range" id="time-slider" min="0" max="5" step="0.1" value="1">
-      </div>
-      <div class="section-title">Visuals</div>
-      <div class="control-row">
-        <span class="control-label">Orbit Tracers</span>
-        <span class="control-label" style="color:var(--accent-blue);">ON</span>
-      </div>
-    </div>
-  </div>
 
-  <!-- PROPERTIES PANEL (RIGHT) -->
-  <div class="floating-window right-side" id="properties-window">
-    <div class="window-header">
-      <span>Properties</span>
-      <button class="close-btn" onclick="closeProperties()">✕</button>
+    <!-- =========================================
+         MAIN MENU 
+         ========================================= -->
+    <div id="main-menu" class="hidden">
+        <h1 class="menu-title">SANDBOX IN <br><span>SPACE</span></h1>
+        <div class="menu-buttons">
+            <button id="btn-start-game" class="menu-btn">START NEW GAME</button>
+            <button class="menu-btn">RATING <span class="menu-icon">🔒</span></button>
+            <button class="menu-btn">SETTINGS</button>
+            <button class="menu-btn">SHOP <span class="menu-icon">🔒</span></button>
+            <button class="menu-btn">EXIT</button>
+        </div>
     </div>
-    <div class="window-tabs">
-      <div class="tab active">Basic</div>
-      <div class="tab">Advanced</div>
-      <div class="tab">Actions</div>
+
+    <!-- =========================================
+         GAME UI (VORTEX ENGINE)
+         ========================================= -->
+    <div id="game-ui" class="hidden">
+        
+        <!-- Top Right Controls (Fullscreen) -->
+        <div class="top-controls">
+            <button id="btn-fullscreen" class="icon-btn" title="Toggle Fullscreen">⛶</button>
+        </div>
+
+        <!-- Left Sidebar (Tools & Toggles) -->
+        <div class="sidebar" style="position: absolute; left: 0; top: 0; height: 100%; width: 60px; background: #1a1e24; display: flex; flex-direction: column; align-items: center; padding-top: 20px; gap: 20px;">
+            <button class="icon-btn active" title="Select Pointer">⮞</button>
+            <button id="btn-display-settings" class="icon-btn" title="Display Settings">⚙</button>
+            <button id="btn-photo-mode" class="icon-btn" title="Photo Mode">📷</button>
+        </div>
+
+        <!-- Properties Panel (Right side) -->
+        <div class="properties-panel" style="position: absolute; right: 20px; top: 80px; width: 300px; background: #1a1e24; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
+            <div style="padding: 15px; background: #232830; display: flex; justify-content: space-between; align-items: center;">
+                <h2 style="font-size: 1rem; letter-spacing: 1px;">PROPERTIES</h2>
+                <button style="background: none; border: none; color: #aaa; cursor: pointer;">✕</button>
+            </div>
+            
+            <div style="display: flex; background: #1a1e24; border-bottom: 2px solid #333;">
+                <button style="flex: 1; padding: 10px; background: none; border: none; color: #29b6f6; border-bottom: 2px solid #29b6f6;">Basic</button>
+                <button style="flex: 1; padding: 10px; background: none; border: none; color: #888;">Advanced</button>
+                <button style="flex: 1; padding: 10px; background: none; border: none; color: #888;">Actions</button>
+            </div>
+
+            <div style="padding: 15px;">
+                <h3 style="font-size: 0.8rem; color: #888; margin-bottom: 10px; background: #232830; padding: 5px;">GENERAL DATA</h3>
+                
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px; align-items: center;">
+                    <label style="font-size: 0.9rem; color: #ccc;">Name</label>
+                    <input type="text" id="prop-name" readonly style="background: #111; border: 1px solid #333; color: #fff; padding: 5px; width: 150px; text-align: right;">
+                </div>
+                
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px; align-items: center;">
+                    <label style="font-size: 0.9rem; color: #ccc;">Mass</label>
+                    <!-- This will now be injected by JS as standard scientific notation (kg) -->
+                    <input type="text" id="prop-mass" readonly style="background: #111; border: 1px solid #29b6f6; color: #fff; padding: 5px; width: 150px; text-align: right;">
+                </div>
+                
+                <div style="display: flex; justify-content: space-between; margin-bottom: 20px; align-items: center;">
+                    <label style="font-size: 0.9rem; color: #ccc;">Radius</label>
+                    <input type="text" id="prop-radius" readonly style="background: #111; border: 1px solid #333; color: #fff; padding: 5px; width: 150px; text-align: right;">
+                </div>
+
+                <h3 style="font-size: 0.8rem; color: #888; margin-bottom: 10px; background: #232830; padding: 5px;">TELEMETRY</h3>
+                
+                <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+                    <label style="font-size: 0.9rem; color: #ccc;">System Status</label>
+                    <span style="font-size: 0.9rem; font-weight: bold; color: #fff;">NOMINAL</span>
+                </div>
+
+                <!-- Camera Tracking Button -->
+                <button id="btn-track-body" style="width: 100%; padding: 10px; background: #29b6f6; color: #000; border: none; font-weight: bold; cursor: pointer; border-radius: 4px;">
+                    TRACK BODY
+                </button>
+            </div>
+        </div>
+
+        <!-- Bottom Status Bar -->
+        <div class="bottom-bar" style="position: absolute; bottom: 0; left: 60px; right: 0; height: 30px; background: #111; border-top: 1px solid #222; display: flex; align-items: center; padding: 0 20px; gap: 30px; font-size: 0.8rem; color: #aaa;">
+            <div>FPS: <span style="color: #fff;">60</span></div>
+            <div>Bodies: <span style="color: #fff;">9</span> (Rendered)</div>
+            <div>DAY: <span style="color: #fff;">42</span></div>
+            <div style="margin-left: auto; color: #666;">Vortex Engine v16.1 PRO</div>
+        </div>
     </div>
-    <div class="window-content">
-      <div class="section-title">General Data</div>
-      <div class="control-row">
-        <span class="control-label">Name</span>
-        <input type="text" id="prop-name" value="-" readonly>
-      </div>
-      <div class="control-row">
-        <span class="control-label">Mass</span>
-        <input type="text" id="prop-mass" value="-" readonly>
-      </div>
-      <div class="control-row">
-        <span class="control-label">Radius</span>
-        <input type="text" id="prop-radius" value="-" readonly>
-      </div>
-      <div class="section-title">Telemetry</div>
-      <div class="control-row">
-        <span class="control-label">System Status</span>
-        <span class="control-label" style="color:var(--success-green); font-weight:bold;">NOMINAL</span>
-      </div>
-    </div>
-  </div>
 
-  <!-- BOTTOM TELEMETRY BAR -->
-  <div id="bottom-bar">
-    <div class="telemetry-group">
-      <span><span id="fps-display" class="telemetry-value">FPS: 60</span></span>
-      <span>Bodies: <span class="telemetry-value">22 (Rendered)</span></span>
-    </div>
-    <div class="telemetry-group">
-      <span id="time-display" class="telemetry-value">DAY: 0</span>
-      <span>Vortex Engine v16.1 PRO</span>
-    </div>
-  </div>
-
-  <!-- UI INTERACTION LOGIC -->
-  <script>
-    // Open/Close Settings
-    document.getElementById('tool-settings').addEventListener('click', () => {
-      document.getElementById('settings-window').classList.add('open');
-    });
-    function closeSettings() {
-      document.getElementById('settings-window').classList.remove('open');
-    }
-
-    // Close Properties (Opening handled by Raycaster in main.js)
-    function closeProperties() {
-      document.getElementById('properties-window').classList.remove('open');
-    }
-  </script>
-
-  <!-- CACHE BUSTING v3: Forces mobile browsers to download the newest JS -->
-  <script src="main.js?v=3"></script>
-
+    <!-- Core Engine Scripts (Three.js/Babylon.js would go here) -->
+    <!-- UI Logic Script -->
+    <script src="script.js"></script>
 </body>
 </html>

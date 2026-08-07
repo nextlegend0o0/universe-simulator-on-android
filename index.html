@@ -1,114 +1,105 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sandbox in Space - Vortex Engine v16.1</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Vortex Engine - Pro Simulator</title>
+  
+  <!-- CACHE BUSTING v4: Forces mobile browsers to download the newest CSS -->
+  <link rel="stylesheet" href="style.css?v=4">
+  
+  <!-- Load Three.js Engine & Touch Controls -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 </head>
 <body>
-    <!-- =========================================
-         3D ENGINE CANVAS 
-         ========================================= -->
-    <canvas id="renderCanvas" style="width: 100vw; height: 100vh; display: block;"></canvas>
 
-    <!-- =========================================
-         LOADING SCREEN 
-         ========================================= -->
-    <div id="loading-screen">
-        <h1 class="loading-title">LOADING..</h1>
-        <div class="loading-planet"></div>
-        <div id="loading-progress">0%</div>
-    </div>
+  <!-- 1. 3D CANVAS -->
+  <div id="webgl-container"></div>
 
-    <!-- =========================================
-         MAIN MENU 
-         ========================================= -->
-    <div id="main-menu" class="hidden">
-        <h1 class="menu-title">SANDBOX IN <br><span>SPACE</span></h1>
-        <div class="menu-buttons">
-            <button id="btn-start-game" class="menu-btn">START NEW GAME</button>
-            <button class="menu-btn">RATING <span class="menu-icon">🔒</span></button>
-            <button class="menu-btn">SETTINGS</button>
-            <button class="menu-btn">SHOP <span class="menu-icon">🔒</span></button>
-            <button class="menu-btn">EXIT</button>
-        </div>
-    </div>
+  <!-- 2. BOOT/LOADING SCREEN -->
+  <div id="loading-screen">
+      <div class="loading-title">INITIALIZING</div>
+      <div class="loading-planet"></div>
+      <div id="loading-progress">0%</div>
+  </div>
 
-    <!-- =========================================
-         GAME UI (VORTEX ENGINE)
-         ========================================= -->
-    <div id="game-ui" class="hidden">
-        
-        <!-- Top Right Controls (Fullscreen) -->
-        <div class="top-controls">
-            <button id="btn-fullscreen" class="icon-btn" title="Toggle Fullscreen">⛶</button>
-        </div>
+  <!-- 3. MAIN MENU -->
+  <div id="main-menu" class="hidden">
+      <div class="menu-title">VORTEX<span>ENGINE</span></div>
+      <div class="menu-buttons">
+          <button id="btn-start-game" class="menu-btn">
+              <span class="menu-icon">▶</span> ENTER SIMULATION
+          </button>
+      </div>
+  </div>
 
-        <!-- Left Sidebar (Tools & Toggles) -->
-        <div class="sidebar" style="position: absolute; left: 0; top: 0; height: 100%; width: 60px; background: #1a1e24; display: flex; flex-direction: column; align-items: center; padding-top: 20px; gap: 20px;">
-            <button class="icon-btn active" title="Select Pointer">⮞</button>
-            <button id="btn-display-settings" class="icon-btn" title="Display Settings">⚙</button>
-            <button id="btn-photo-mode" class="icon-btn" title="Photo Mode">📷</button>
-        </div>
+  <!-- 4. GAME UI HUD -->
+  <div id="game-ui" class="hidden">
+      
+      <!-- Top Right Controls -->
+      <div class="top-controls interactive-layer">
+          <button id="btn-fullscreen" class="icon-btn" title="Toggle Fullscreen">⛶</button>
+      </div>
 
-        <!-- Properties Panel (Right side) -->
-        <div class="properties-panel" style="position: absolute; right: 20px; top: 80px; width: 300px; background: #1a1e24; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
-            <div style="padding: 15px; background: #232830; display: flex; justify-content: space-between; align-items: center;">
-                <h2 style="font-size: 1rem; letter-spacing: 1px;">PROPERTIES</h2>
-                <button style="background: none; border: none; color: #aaa; cursor: pointer;">✕</button>
-            </div>
-            
-            <div style="display: flex; background: #1a1e24; border-bottom: 2px solid #333;">
-                <button style="flex: 1; padding: 10px; background: none; border: none; color: #29b6f6; border-bottom: 2px solid #29b6f6;">Basic</button>
-                <button style="flex: 1; padding: 10px; background: none; border: none; color: #888;">Advanced</button>
-                <button style="flex: 1; padding: 10px; background: none; border: none; color: #888;">Actions</button>
-            </div>
+      <!-- Left Vertical Toolbar -->
+      <div id="left-toolbar" class="interactive-layer">
+          <button class="tool-btn active" title="Select Object">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/></svg>
+          </button>
+          <button class="tool-btn" title="Engine Settings">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+          </button>
+      </div>
 
-            <div style="padding: 15px;">
-                <h3 style="font-size: 0.8rem; color: #888; margin-bottom: 10px; background: #232830; padding: 5px;">GENERAL DATA</h3>
-                
-                <div style="display: flex; justify-content: space-between; margin-bottom: 10px; align-items: center;">
-                    <label style="font-size: 0.9rem; color: #ccc;">Name</label>
-                    <input type="text" id="prop-name" readonly style="background: #111; border: 1px solid #333; color: #fff; padding: 5px; width: 150px; text-align: right;">
-                </div>
-                
-                <div style="display: flex; justify-content: space-between; margin-bottom: 10px; align-items: center;">
-                    <label style="font-size: 0.9rem; color: #ccc;">Mass</label>
-                    <!-- This will now be injected by JS as standard scientific notation (kg) -->
-                    <input type="text" id="prop-mass" readonly style="background: #111; border: 1px solid #29b6f6; color: #fff; padding: 5px; width: 150px; text-align: right;">
-                </div>
-                
-                <div style="display: flex; justify-content: space-between; margin-bottom: 20px; align-items: center;">
-                    <label style="font-size: 0.9rem; color: #ccc;">Radius</label>
-                    <input type="text" id="prop-radius" readonly style="background: #111; border: 1px solid #333; color: #fff; padding: 5px; width: 150px; text-align: right;">
-                </div>
+      <!-- Properties Panel (Appears when planet is clicked) -->
+      <div id="properties-window" class="floating-window right-side interactive-layer">
+          <div class="window-header">
+              <span>PROPERTIES</span>
+              <button class="close-btn" onclick="document.getElementById('properties-window').classList.remove('open')">✕</button>
+          </div>
+          <div class="window-tabs">
+              <div class="tab active">Basic</div>
+              <div class="tab">Advanced</div>
+              <div class="tab">Actions</div>
+          </div>
+          <div class="window-content">
+              <div class="section-title">General Data</div>
+              <div class="control-row">
+                  <span class="control-label">Name</span>
+                  <input type="text" id="prop-name" value="-" readonly>
+              </div>
+              <div class="control-row">
+                  <span class="control-label">Mass</span>
+                  <input type="text" id="prop-mass" value="-" readonly>
+              </div>
+              <div class="control-row">
+                  <span class="control-label">Radius</span>
+                  <input type="text" id="prop-radius" value="-" readonly>
+              </div>
+              <div class="section-title">Telemetry</div>
+              <div class="control-row">
+                  <span class="control-label">System Status</span>
+                  <span class="control-label" style="color:#10b981; font-weight:bold;">NOMINAL</span>
+              </div>
+          </div>
+      </div>
 
-                <h3 style="font-size: 0.8rem; color: #888; margin-bottom: 10px; background: #232830; padding: 5px;">TELEMETRY</h3>
-                
-                <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
-                    <label style="font-size: 0.9rem; color: #ccc;">System Status</label>
-                    <span style="font-size: 0.9rem; font-weight: bold; color: #fff;">NOMINAL</span>
-                </div>
+      <!-- Bottom Telemetry Bar -->
+      <div id="bottom-bar" class="interactive-layer">
+          <div class="telemetry-group">
+              <span id="fps-display" class="telemetry-value">FPS: 0</span>
+              <span>Bodies: <span class="telemetry-value">9 (Rendered)</span></span>
+          </div>
+          <div class="telemetry-group">
+              <span class="telemetry-value">Vortex Engine v16.2 PRO</span>
+          </div>
+      </div>
 
-                <!-- Camera Tracking Button -->
-                <button id="btn-track-body" style="width: 100%; padding: 10px; background: #29b6f6; color: #000; border: none; font-weight: bold; cursor: pointer; border-radius: 4px;">
-                    TRACK BODY
-                </button>
-            </div>
-        </div>
+  </div>
 
-        <!-- Bottom Status Bar -->
-        <div class="bottom-bar" style="position: absolute; bottom: 0; left: 60px; right: 0; height: 30px; background: #111; border-top: 1px solid #222; display: flex; align-items: center; padding: 0 20px; gap: 30px; font-size: 0.8rem; color: #aaa;">
-            <div>FPS: <span style="color: #fff;">60</span></div>
-            <div>Bodies: <span style="color: #fff;">9</span> (Rendered)</div>
-            <div>DAY: <span style="color: #fff;">42</span></div>
-            <div style="margin-left: auto; color: #666;">Vortex Engine v16.1 PRO</div>
-        </div>
-    </div>
+  <!-- CACHE BUSTING v4: Forces mobile browsers to download the newest JS -->
+  <script src="main.js?v=4"></script>
 
-    <!-- Core Engine Scripts (Three.js/Babylon.js would go here) -->
-    <!-- UI Logic Script -->
-    <script src="script.js"></script>
 </body>
 </html>

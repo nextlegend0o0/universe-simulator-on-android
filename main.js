@@ -287,9 +287,9 @@ function calculateDistanceTracker() {
 }
 
 // FORCE INITIAL BOOT CAMERA TO SOLAR SYSTEM (HOME)
-camera.position.copy(LOCATIONS.home.pos).add(LOCATIONS.home.offset);
-controls.target.copy(LOCATIONS.home.pos);
-controls.update();
+targetCamPos = LOCATIONS.home.pos.clone().add(LOCATIONS.home.offset); 
+targetLookAt = LOCATIONS.home.pos.clone();
+controls.target.copy(targetLookAt);
 
 function animate() {
   requestAnimationFrame(animate);

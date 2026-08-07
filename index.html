@@ -2,110 +2,379 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>HD Colossal Universe Simulator - V15 Cinematic Audio</title>
-  
-  <!-- Modular Stylesheet -->
-  <link rel="stylesheet" href="style.css?v=17.0">
-  
-  <!-- Three.js Engine & Touch Controls -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+  <title>Universe Simulation - Android</title>
+  <style>
+    /* 
+      V16.1 AAA "VORTEX" THEME
+      Deep gunmetal glass, sharp borders, neon orange accents 
+    */
+    :root {
+      --glass-bg: rgba(12, 15, 20, 0.75);
+      --glass-border: rgba(255, 115, 0, 0.35);
+      --neon-orange: #ff7300;
+      --neon-orange-glow: rgba(255, 115, 0, 0.6);
+      --text-main: #e2e8f0;
+      --text-muted: #64748b;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    body { background-color: #000; color: var(--text-main); overflow: hidden; width: 100vw; height: 100vh; }
+    
+    .safe-area-wrapper { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); pointer-events: none; z-index: 1000; }
+    #webgl-container { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; }
+    
+    /* V16 Loading Screen */
+    #loading-screen { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background-color: #050608; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 1s ease-out; pointer-events: auto; }
+    .loader-ring { width: 60px; height: 60px; border: 2px solid rgba(255, 115, 0, 0.1); border-top: 2px solid var(--neon-orange); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; box-shadow: 0 0 15px var(--neon-orange-glow); }
+    #loading-text { color: var(--neon-orange); font-size: 0.75rem; font-weight: 800; letter-spacing: 3px; text-transform: uppercase; animation: pulse 1.5s infinite; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    .fade-out { opacity: 0; pointer-events: none; }
+    
+    /* Prompts (Initial Boot & Resume) */
+    .fullscreen-prompt { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(5, 6, 8, 0.95); backdrop-filter: blur(15px); z-index: 10000; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: #fff; cursor: pointer; pointer-events: auto; }
+    .fullscreen-prompt h2 { font-size: 1.2rem; letter-spacing: 4px; margin-bottom: 10px; color: var(--neon-orange); text-transform: uppercase; }
+    .fullscreen-prompt p { font-size: 0.8rem; color: var(--text-muted); }
+    #resume-prompt { display: none; } /* Hidden until minimized */
+    @media screen and (orientation: portrait) { #landscape-prompt { display: flex !important; } }
+
+    /* AAA Top HUD */
+    .hud-panel { position: absolute; background: var(--glass-bg); backdrop-filter: blur(16px); border: 1px solid var(--glass-border); border-radius: 4px; padding: 12px 20px; pointer-events: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
+    .ui-top { top: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 800px; display: flex; justify-content: space-between; align-items: center; transition: opacity 0.4s ease, transform 0.4s ease; }
+    
+    /* AUTO-HIDE CLASS */
+    .ui-hidden { opacity: 0 !important; transform: translate(-50%, -20px) !important; pointer-events: none !important; }
+    
+    .hud-title { font-size: 0.85rem; font-weight: 800; color: #fff; letter-spacing: 3px; display: flex; align-items: center; gap: 10px; }
+    .hud-badge { background: rgba(255, 115, 0, 0.15); border: 1px solid var(--neon-orange); color: var(--neon-orange); font-size: 0.55rem; padding: 3px 6px; border-radius: 2px; letter-spacing: 1px; }
+    
+    .hud-stats { display: flex; gap: 20px; }
+    .stat-block { display: flex; flex-direction: column; align-items: flex-start; }
+    .stat-label { font-size: 0.55rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+    .stat-value { font-size: 0.8rem; font-weight: 700; color: #fff; font-family: monospace; }
+    
+    .btn-action { background: rgba(255, 115, 0, 0.1); border: 1px solid var(--neon-orange); color: var(--neon-orange); font-size: 0.65rem; font-weight: 700; padding: 8px 16px; border-radius: 2px; cursor: pointer; transition: 0.2s; letter-spacing: 2px; text-transform: uppercase; }
+    .btn-action:hover { background: var(--neon-orange); color: #000; box-shadow: 0 0 10px var(--neon-orange-glow); }
+
+    /* Target Info Panel (V16 Layout, Vortex Style) */
+    #info-panel { position: absolute; top: 50%; right: 40px; transform: translateY(-50%); width: 340px; background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 4px; padding: 20px; opacity: 0; pointer-events: none; transition: opacity 0.4s ease, transform 0.4s ease; transform: translateY(-50%) translateX(20px); box-shadow: -10px 10px 40px rgba(0,0,0,0.9); }
+    #info-panel.visible { opacity: 1; pointer-events: auto; transform: translateY(-50%) translateX(0); }
+    
+    .info-header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px; margin-bottom: 15px; }
+    .info-title { font-size: 1.4rem; font-weight: 800; color: #fff; letter-spacing: 2px; text-transform: uppercase; }
+    .info-type { font-size: 0.65rem; color: var(--neon-orange); font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-top: 4px; display: block; }
+    .close-btn { color: var(--text-muted); cursor: pointer; font-size: 1.2rem; line-height: 1; transition: 0.2s; }
+    .close-btn:hover { color: #fff; }
+    
+    .facts-list { font-size: 0.75rem; color: var(--text-main); list-style: none; line-height: 1.6; }
+    .facts-list li { margin-bottom: 12px; position: relative; padding-left: 15px; }
+    .facts-list li::before { content: ""; position: absolute; left: 0; top: 6px; width: 4px; height: 4px; background: var(--neon-orange); border-radius: 50%; }
+
+    /* V16 Dummy Audio UI */
+    .audio-block { margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px; }
+    .audio-label { font-size: 0.55rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; display: block; }
+    .audio-player { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 8px 12px; border-radius: 2px; display: flex; align-items: center; gap: 10px; color: var(--text-muted); font-size: 0.7rem; }
+    .play-icon { width: 0; height: 0; border-top: 5px solid transparent; border-bottom: 5px solid transparent; border-left: 8px solid var(--neon-orange); }
+
+  </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 </head>
 <body>
 
-  <div id="warp-flash"></div>
-  
-  <!-- Initial Boot Prompt -->
-  <div id="landscape-prompt">
-    <div class="icon">🔄</div>
-    <h2>ROTATE DEVICE</h2>
-    <p>Tap anywhere to enter cinematic full screen.</p>
+  <!-- Initial Boot Screen -->
+  <div id="landscape-prompt" class="fullscreen-prompt">
+    <h2>INITIALIZE COMMAND HUB</h2>
+    <p>Rotate device to landscape and tap to enter cinematic view.</p>
   </div>
 
-  <!-- OS Minimization Rescue Prompt -->
-  <div id="resume-prompt">
-    <div class="icon">🔄</div>
+  <!-- OS Minimization Rescue Screen -->
+  <div id="resume-prompt" class="fullscreen-prompt">
     <h2>SIGNAL LOST</h2>
-    <p>Tap anywhere to resume cinematic view.</p>
+    <p>Tap anywhere to resume fullscreen connection.</p>
   </div>
-  
+
   <div id="loading-screen">
     <div class="loader-ring"></div>
-    <div id="loading-text">INITIALIZING V15 CINEMATIC ENGINE...</div>
+    <div id="loading-text">CALIBRATING SENSORS</div>
   </div>
-  
+
   <div id="webgl-container"></div>
-  <div id="ui-toggle" onclick="toggleMainUI()">☰ MENU</div>
 
-  <div id="info-panel">
-    <div class="info-header">
-      <span class="info-title" id="infoTitle">Planet Name</span>
-      <span class="info-close" onclick="closeInfoPanel()">✕</span>
-    </div>
-    <span class="info-type" id="infoType">Classification</span>
-    <div class="info-facts-container">
-      <ul class="info-facts-list" id="infoFactsList"></ul>
-    </div>
-    <!-- AUDIO COMPONENT -->
-    <div id="audio-container">
-      <span id="audio-label">Transmission Audio</span>
-      <audio id="planet-audio" controls></audio>
-    </div>
-  </div>
-
-  <div class="hud-panel ui-top ui-hidden">
-    <div class="title-bar">
-      <div class="title-left">
-        <span class="title">HD UNIVERSE</span>
-        <span class="badge">V15 AUDIO</span>
-      </div>
-      <div class="top-btns">
-        <button id="btnFreeCam" class="btn-free" onclick="freeCamera()">🔓 FREE CAM</button>
-        <button class="btn-fs" onclick="toggleFullScreen()">⛶ FULLSCREEN</button>
-      </div>
-    </div>
-    <div class="preset-btns">
-      <button class="btn-sci btn-warp" onclick="toggleWarpMenu()">🚀 FAST TRAVEL</button>
-      <div style="font-size: 0.55rem; color: #64748b; font-weight:bold; margin-top:6px;">TIP: TAP ANY ANOMALY OR PLANET FOR DATA</div>
-    </div>
-    <div class="distance-tracker">🛰️ Target Distance: <span id="distVal">0.00 AU</span></div>
-    <div class="stats-grid">
-      <div class="stat-card"><span class="stat-val" id="targetName" style="color:#93c5fd">Solar System</span><span class="stat-lbl">Tracking Target</span></div>
-      <div class="stat-card"><span class="stat-val" id="objType" style="color:#fcd34d">Star System</span><span class="stat-lbl">Classification</span></div>
-      <div class="stat-card"><span class="stat-val" id="speedVal">0.0 km/s</span><span class="stat-lbl">Orbital Velocity</span></div>
-      <div class="stat-card"><span class="stat-val" id="moonsVal">12 Bodies</span><span class="stat-lbl">System Bodies</span></div>
-    </div>
-  </div>
-
-  <div id="fastTravelDropdown" class="menu-dropdown">
-    <div class="menu-header">
-      <span>SELECT WARP DESTINATION</span>
-      <span class="close-btn" onclick="toggleWarpMenu()">✕</span>
-    </div>
-    <div class="menu-grid">
-      <button class="btn-sci" onclick="initiateWarp('home')">☀️ Solar System</button>
-      <button class="btn-sci" style="color: #fca5a5; border-color: rgba(252, 165, 165, 0.3);" onclick="initiateWarp('proxima')">☄️ Proxima Centauri</button>
-      <button class="btn-sci" style="color: #67e8f9; border-color: rgba(6, 182, 212, 0.3);" onclick="initiateWarp('orion')">🌌 Carina Nebula</button>
-      <button class="btn-sci" style="color: #a5b4fc; border-color: rgba(99, 102, 241, 0.3);" onclick="initiateWarp('vela')">⚡ Magnetic Pulsar</button>
-      <button class="btn-sci" style="color: #fcd34d; border-color: rgba(252, 211, 77, 0.3);" onclick="initiateWarp('sagA')">🕳️ Sagittarius A*</button>
-      <button class="btn-sci" style="color: #fb7185; border-color: rgba(251, 113, 133, 0.3);" onclick="initiateWarp('supernova')">💥 Binary Merger</button>
-    </div>
-  </div>
-
-  <div class="hud-panel ui-bottom ui-hidden">
-    <div class="controls-wrapper">
-      <div class="control-row">
-        <div class="control-hdr">
-          <span>Time Warp (Simulation Speed)</span>
-          <span id="speedUiVal" style="color:#facc15">1.0x</span>
+  <div class="safe-area-wrapper">
+      
+      <!-- MAIN HUD (Auto-Hides) -->
+      <div id="main-ui" class="hud-panel ui-top">
+        <div class="hud-title">VORTEX <span class="hud-badge">V16.1 STABLE</span></div>
+        <div class="hud-stats">
+          <div class="stat-block">
+            <span class="stat-label">System Status</span>
+            <span class="stat-value" style="color: #4ade80;">NOMINAL</span>
+          </div>
+          <div class="stat-block">
+            <span class="stat-label">Active Entities</span>
+            <span class="stat-value">6 BODIES</span>
+          </div>
         </div>
-        <input type="range" id="timeSpeed" min="0.0" max="10.0" step="0.1" value="1.0">
+        <button id="btnFreeCam" class="btn-action" style="display:none;" onclick="resetCamera()">DISENGAGE LOCK</button>
       </div>
-    </div>
+
+      <!-- TARGET INFO (AAA Style) -->
+      <div id="info-panel">
+        <div class="info-header">
+            <div>
+                <div class="info-title" id="infoTitle">Object Name</div>
+                <span class="info-type" id="infoType">Classification</span>
+            </div>
+            <span class="close-btn" onclick="closeInfo()">✕</span>
+        </div>
+        <ul class="facts-list" id="infoFactsList"></ul>
+        
+        <div class="audio-block">
+            <span class="audio-label">Transmission Audio</span>
+            <div class="audio-player">
+                <div class="play-icon"></div>
+                <span>0:00 / 0:00 (OFFLINE)</span>
+            </div>
+        </div>
+      </div>
+
   </div>
 
-  <!-- Modular Engine Logic -->
-  <script src="main.js?v=17.2"></script>
+  <script>
+    // CORE DATABASE (Including Neptune)
+    const DATABASE = {
+      "Sun": { type: "G-Type Star", facts: ["Perfect sphere of incredibly hot plasma.", "Accounts for 99.86% of total solar system mass.", "Core temperature hits 15 million °C."] },
+      "Earth": { type: "Terrestrial Planet", facts: ["Only planet confirmed to harbor life.", "71% surface covered in liquid water.", "Densest planet in the system."] },
+      "Jupiter": { type: "Gas Giant", facts: ["Largest planet; holds 1,300 Earths.", "Home to the Great Red Spot.", "Rotates fully in just 10 hours."] },
+      "Saturn": { type: "Gas Giant", facts: ["Famous for complex, beautiful ice rings.", "Least dense planet (would float in water).", "Has 146 confirmed moons."] },
+      "Neptune": { type: "Ice Giant", facts: ["The most distant major planet in our solar system.", "Discovered by mathematical prediction.", "Dark, cold, and incredibly windy."] },
+      "Magnetic Pulsar": { type: "Neutron Star", facts: ["Ultra-dense collapsed core of a dead star.", "Spins at terrifying rates.", "Emits lighthouse-like beams of radiation."] }
+    };
+
+    // UI & FULLSCREEN LOGIC
+    const mainUI = document.getElementById('main-ui');
+    const infoPanel = document.getElementById('info-panel');
+    const btnFreeCam = document.getElementById('btnFreeCam');
+    
+    function closeInfo() { 
+        infoPanel.classList.remove('visible'); 
+        mainUI.classList.remove('ui-hidden'); // The Auto-Show Fix
+    }
+    
+    function resetCamera() { 
+        targetCamPos = new THREE.Vector3(0, 40, 150); 
+        targetLookAt = new THREE.Vector3(0, 0, 0); 
+        closeInfo(); 
+        btnFreeCam.style.display = 'none'; 
+    }
+
+    // Fullscreen Management (The Android OS Fix)
+    function enterFullscreen() {
+        const d = document.documentElement; 
+        if (d.requestFullscreen) d.requestFullscreen().catch(()=>{}); 
+        if (screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(()=>{}); 
+    }
+
+    document.getElementById('landscape-prompt').addEventListener('click', function() {
+        this.style.display = 'none';
+        enterFullscreen();
+    });
+
+    document.getElementById('resume-prompt').addEventListener('click', function() {
+        this.style.display = 'none';
+        enterFullscreen();
+    });
+
+    document.addEventListener('fullscreenchange', () => {
+        const resumePrompt = document.getElementById('resume-prompt');
+        const initPrompt = document.getElementById('landscape-prompt');
+        // If we dropped out of fullscreen and the initial prompt is already gone
+        if (!document.fullscreenElement && initPrompt.style.display === 'none') {
+            resumePrompt.style.display = 'flex';
+        }
+    });
+
+    // THREE.JS SETUP
+    const container = document.getElementById('webgl-container'); 
+    const scene = new THREE.Scene(); 
+    scene.background = new THREE.Color(0x000000); 
+    
+    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 2000000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance" });
+    renderer.setSize(window.innerWidth, window.innerHeight); 
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); 
+    renderer.toneMapping = THREE.ACESFilmicToneMapping; 
+    container.appendChild(renderer.domElement);
+    
+    const controls = new THREE.OrbitControls(camera, renderer.domElement); 
+    controls.enableDamping = true; controls.dampingFactor = 0.05; controls.maxDistance = 100000; controls.minDistance = 5;
+
+    // TEXTURE LOADER
+    const manager = new THREE.LoadingManager();
+    manager.onLoad = function () { 
+        const ls = document.getElementById('loading-screen'); 
+        ls.classList.add('fade-out'); 
+        setTimeout(() => ls.remove(), 1000); 
+        animate(); 
+    };
+    
+    const textureLoader = new THREE.TextureLoader(manager); 
+    textureLoader.setCrossOrigin('anonymous'); 
+    const TEX = { 
+        stars: './2k_stars_milky_way.jpg', 
+        earthMap: './2k_earth_daymap.jpg', 
+        jupiter: './2k_jupiter.jpg', 
+        saturn: './2k_saturn.jpg', 
+        neptune: './2k_neptune.jpg', // Assuming you have this, otherwise falls back to moon
+        moon: './2k_moon.jpg' 
+    };
+
+    function createGlowTex() { 
+        const c = document.createElement('canvas'); c.width = 128; c.height = 128; const ctx = c.getContext('2d'); 
+        const g = ctx.createRadialGradient(64, 64, 0, 64, 64, 64); 
+        g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.2, 'rgba(255,255,255,0.8)'); g.addColorStop(1, 'rgba(0,0,0,0)'); 
+        ctx.fillStyle = g; ctx.fillRect(0,0,128,128); return new THREE.CanvasTexture(c); 
+    }
+    const softGlowTex = createGlowTex();
+
+    const interactables = []; 
+
+    // SKYBOX (Crisp 4K only, NO White Blobs)
+    const skyGeo = new THREE.SphereGeometry(800000, 64, 64);
+    const skyMat = new THREE.MeshBasicMaterial({ map: textureLoader.load(TEX.stars), side: THREE.BackSide, depthWrite: false });
+    scene.add(new THREE.Mesh(skyGeo, skyMat));
+
+    // SUN (V16 Procedural Volumetric Glow)
+    const solarSystem = new THREE.Group(); scene.add(solarSystem);
+    solarSystem.add(new THREE.AmbientLight(0x333344, 0.4)); 
+
+    let currentSun = new THREE.Group(); solarSystem.add(currentSun);
+    const sunCore = new THREE.Mesh(new THREE.SphereGeometry(8.0, 64, 64), new THREE.MeshBasicMaterial({ color: 0xffaa00 }));
+    sunCore.userData = { name: "Sun", size: 8.0 }; 
+    interactables.push(sunCore); currentSun.add(sunCore);
+    
+    const sunGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: softGlowTex, color: 0xff7700, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false }));
+    sunGlow.scale.set(35, 35, 1); currentSun.add(sunGlow);
+    
+    const sunOuter = new THREE.Sprite(new THREE.SpriteMaterial({ map: softGlowTex, color: 0xff4400, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending, depthWrite: false }));
+    sunOuter.scale.set(60, 60, 1); currentSun.add(sunOuter);
+    
+    currentSun.add(new THREE.PointLight(0xffffff, 2.5, 10000));
+
+    // PLANETS (Including Neptune)
+    let planetDataList = [];
+    const planets = [
+      { name: "Earth", radius: 40, speed: 0.005, size: 1.5, type: 'earthMap' }, 
+      { name: "Jupiter", radius: 75, speed: 0.002, size: 3.5, type: 'jupiter' }, 
+      { name: "Saturn", radius: 110, speed: 0.0014, size: 3.0, type: 'saturn', hasRings: true },
+      { name: "Neptune", radius: 150, speed: 0.0008, size: 2.8, type: 'neptune' }
+    ];
+    
+    planets.forEach(p => {
+      const ringGeo = new THREE.BufferGeometry(); const points = [];
+      for (let i = 0; i <= 100; i++) { const t = (i/100)*Math.PI*2; points.push(new THREE.Vector3(Math.cos(t)*p.radius, 0, Math.sin(t)*p.radius)); }
+      ringGeo.setFromPoints(points); 
+      const orbitLine = new THREE.Line(ringGeo, new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.1, blending: THREE.AdditiveBlending, depthWrite: false }));
+      solarSystem.add(orbitLine);
+      
+      const pivot = new THREE.Group(); solarSystem.add(pivot);
+      let pMat = new THREE.MeshPhongMaterial({ map: textureLoader.load(TEX[p.type] || TEX.moon), shininess: 5 });
+      const pMesh = new THREE.Mesh(new THREE.SphereGeometry(p.size, 64, 64), pMat);
+      pMesh.position.x = p.radius; 
+      pMesh.userData = { name: p.name, size: p.size }; 
+      pivot.add(pMesh); p.pivot = pivot; p.mesh = pMesh; 
+      interactables.push(pMesh); planetDataList.push(p);
+      
+      if (p.hasRings) {
+          const rMesh = new THREE.Mesh(new THREE.TorusGeometry(p.size * 2.2, 0.1, 16, 100), new THREE.MeshPhongMaterial({ color: 0xcd853f, transparent: true, opacity: 0.8 }));
+          rMesh.rotation.x = Math.PI / 2.1; 
+          pMesh.add(rMesh);
+      }
+    });
+
+    // PULSAR (V16 Original Geometry)
+    const pulsarGroup = new THREE.Group(); pulsarGroup.position.set(2000, 500, -2000); scene.add(pulsarGroup);
+    const nStar = new THREE.Mesh(new THREE.SphereGeometry(3, 32, 32), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+    nStar.userData = { name: "Magnetic Pulsar", size: 15 }; interactables.push(nStar); pulsarGroup.add(nStar);
+    
+    const pAura = new THREE.Sprite(new THREE.SpriteMaterial({ map: softGlowTex, color: 0x55aaff, transparent: true, blending: THREE.AdditiveBlending }));
+    pAura.scale.set(40, 40, 1); pulsarGroup.add(pAura);
+
+    const jetGeo = new THREE.CylinderGeometry(0.5, 15, 1500, 32, 1, true); 
+    const jetMat = new THREE.MeshBasicMaterial({ color: 0x4488ff, transparent: true, opacity: 0.3, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide });
+    const pJet1 = new THREE.Mesh(jetGeo, jetMat); pJet1.position.y = 750; pulsarGroup.add(pJet1); 
+    const pJet2 = new THREE.Mesh(jetGeo, jetMat); pJet2.position.y = -750; pJet2.rotation.x = Math.PI; pulsarGroup.add(pJet2);
+    for(let i=0; i<4; i++) { 
+        let torus = new THREE.Mesh(new THREE.TorusGeometry(15 + (i*6), 0.2, 16, 100), new THREE.MeshBasicMaterial({color: 0x00ffff, transparent: true, opacity: 0.4, blending: THREE.AdditiveBlending})); 
+        torus.rotation.y = (Math.PI / 4) * i; torus.rotation.x = Math.PI / 2.2; pulsarGroup.add(torus); 
+    }
+
+    // INTERACTION LOGIC
+    const raycaster = new THREE.Raycaster(); const mouse = new THREE.Vector2();
+    let targetCamPos = null; let targetLookAt = null;
+
+    window.addEventListener('pointerdown', (event) => {
+        if(event.target.tagName === 'BUTTON' || event.target.closest('.hud-panel') || event.target.closest('#info-panel')) return;
+        
+        mouse.x = (event.clientX / window.innerWidth) * 2 - 1; 
+        mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+        raycaster.setFromCamera(mouse, camera);
+        const intersects = raycaster.intersectObjects(interactables, false);
+        
+        if(intersects.length > 0) {
+            const mesh = intersects[0].object; 
+            const name = mesh.userData.name;
+            if(DATABASE[name]) {
+                document.getElementById('infoTitle').textContent = name; 
+                document.getElementById('infoType').textContent = DATABASE[name].type;
+                const list = document.getElementById('infoFactsList'); list.innerHTML = '';
+                DATABASE[name].facts.forEach(f => { let li = document.createElement('li'); li.textContent = f; list.appendChild(li); });
+                
+                // The Auto-Hide Implementation
+                infoPanel.classList.add('visible'); 
+                mainUI.classList.add('ui-hidden'); 
+                btnFreeCam.style.display = 'block';
+            }
+            
+            const wPos = new THREE.Vector3(); mesh.getWorldPosition(wPos); targetLookAt = wPos.clone();
+            const safeDist = Math.max(mesh.userData.size * 4, 20); 
+            targetCamPos = new THREE.Vector3(wPos.x + safeDist, wPos.y + (safeDist*0.5), wPos.z + safeDist);
+            controls.target.copy(targetLookAt);
+        }
+    });
+
+    // BOOT CAMERA
+    targetCamPos = new THREE.Vector3(0, 40, 150); 
+    targetLookAt = new THREE.Vector3(0, 0, 0);
+    controls.target.copy(targetLookAt);
+
+    function animate() {
+      requestAnimationFrame(animate);
+      
+      sunCore.rotation.y += 0.002; 
+      pulsarGroup.rotation.z += 0.08; pulsarGroup.rotation.y += 0.04;
+      
+      planetDataList.forEach(p => { 
+          p.mesh.rotation.y += 0.01;
+          p.pivot.rotation.y += p.speed;
+      });
+
+      if (targetCamPos && targetLookAt) {
+          camera.position.lerp(targetCamPos, 0.05); 
+          if (camera.position.distanceTo(targetCamPos) < 0.5) { targetCamPos = null; targetLookAt = null; }
+      }
+      
+      controls.update(); 
+      renderer.render(scene, camera);
+    }
+    
+    window.addEventListener('resize', () => { 
+        camera.aspect = window.innerWidth / window.innerHeight; 
+        camera.updateProjectionMatrix(); 
+        renderer.setSize(window.innerWidth, window.innerHeight); 
+    });
+  </script>
 </body>
 </html>

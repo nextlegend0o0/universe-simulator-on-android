@@ -98,6 +98,10 @@
   </div>
 
   <!-- Modular Engine Logic -->
-  <script src="main.js?v=15.3"></script>
+<script>
+  const script = document.createElement('script');
+  script.src = 'main.js?v=' + Date.now();
+  document.body.appendChild(script);
+</script>
 </body>
 </html>

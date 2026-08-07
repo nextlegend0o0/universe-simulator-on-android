@@ -258,11 +258,22 @@ const raycaster = new THREE.Raycaster(); const mouse = new THREE.Vector2(); let 
 
 window.addEventListener('pointerdown', (event) => {
     if (isWarping) return;
-    if(event.target.tagName === 'BUTTON' || event.target.tagName === 'INPUT' || event.target.closest('.hud-panel') || event.target.closest('#info-panel')) return;
-    mouse.x = (event.clientX / window.innerWidth) * 2 - 1; mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    
+    // BUGFIX: Prevent initial boot tap from piercing through the UI and hitting background anomalies
+    if(event.target.tagName === 'BUTTON' || 
+       event.target.tagName === 'INPUT' || 
+       event.target.closest('.hud-panel') || 
+       event.target.closest('#info-panel') ||
+       event.target.closest('.fullscreen-prompt')) return; 
+       
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1; 
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
     raycaster.setFromCamera(mouse, camera);
     const intersects = raycaster.intersectObjects(interactables, false);
-    if(intersects.length > 0) triggerLockOn(intersects[0].object, intersects[0].object.userData.name, intersects[0].object.userData.size);
+    
+    if(intersects.length > 0) {
+        triggerLockOn(intersects[0].object, intersects[0].object.userData.name, intersects[0].object.userData.size);
+    }
 });
 
 function triggerLockOn(mesh, name, size) {

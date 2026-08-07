@@ -1,8 +1,6 @@
-import { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js';
-
 /* =========================================
    V17 MASTER SIMULATION ENGINE (main.js)
-   KTX2 VRAM OPTIMIZATION INTEGRATED
+   KTX2 GLOBAL SCRIPT OPTIMIZATION FIXED
    ========================================= */
 
 const DATABASE = {
@@ -36,7 +34,6 @@ const TEX = { stars: 'stars.ktx2', sun: 'sun.ktx2', earthMap: 'earth.ktx2', eart
 let uiIsVisible = false; 
 window.toggleMainUI = function() { uiIsVisible = !uiIsVisible; document.querySelector('.ui-top').classList.toggle('ui-hidden'); document.querySelector('.ui-bottom').classList.toggle('ui-hidden'); document.getElementById('fastTravelDropdown').style.display = 'none'; };
 
-// === V16 FLAWLESS PROMPT & FULLSCREEN ARCHITECTURE ===
 function enterFullscreen() {
     const d = document.documentElement; 
     if (d.requestFullscreen) d.requestFullscreen().catch(()=>{}); 
@@ -85,9 +82,9 @@ renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure
 renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 container.appendChild(renderer.domElement);
 
-// INITIALIZE NEW KTX2 LOADER HERE
-const ktx2Loader = new KTX2Loader(manager)
-    .setTranscoderPath('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/libs/basis/')
+// GLOBAL KTX2 LOADER (ALIGNED WITH R128)
+const ktx2Loader = new THREE.KTX2Loader(manager)
+    .setTranscoderPath('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/libs/basis/')
     .detectSupport(renderer);
 
 const controls = new THREE.OrbitControls(camera, renderer.domElement); controls.enableDamping = true; controls.dampingFactor = 0.05; controls.enablePan = false; controls.zoomSpeed = 0.6; controls.maxDistance = 500000; controls.minDistance = 2;
@@ -389,7 +386,6 @@ function animate() {
         targetCamPos = null; 
         targetLookAt = null; 
         isFollowing = true; 
-        // BUGFIX APPLIED: Preserves the targeted object instead of forcibly resetting to the Sun!
         if (followTargetObj) {
             followTargetObj.getWorldPosition(lastTargetPos);
         } else {

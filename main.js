@@ -1,6 +1,6 @@
-
 /* =========================================
-   V15 MASTER SIMULATION ENGINE WITH V16 PROMPTS
+   V17 MASTER SIMULATION ENGINE (main.js)
+   SUN-LOCK BUG ELIMINATED & V16 PROMPTS
    ========================================= */
 
 const DATABASE = {
@@ -308,7 +308,7 @@ function calculateDistanceTracker() {
   document.getElementById('distVal').textContent = distRaw < 1000 ? (distRaw / 26).toFixed(4) + " AU" : (distRaw / 100).toFixed(2) + " Light Years";
 }
 
-// === BOOT CAMERA FIX: V16 Initial Solar System Target ===
+// Initial Boot Target Camera (Sun)
 camera.position.set(0, 40, 150); 
 targetCamPos = LOCATIONS.home.pos.clone().add(new THREE.Vector3(0, 60, 150));
 targetLookAt = LOCATIONS.home.pos.clone();
@@ -344,7 +344,20 @@ function animate() {
     }
   } else {
     if (targetCamPos && targetLookAt) {
-      camera.position.lerp(targetCamPos, 0.06); if (camera.position.distanceTo(targetCamPos) < 0.5) { targetCamPos = null; targetLookAt = null; isFollowing = true; followTargetObj = sunMesh; followTargetObj.getWorldPosition(lastTargetPos); }
+      camera.position.lerp(targetCamPos, 0.06); 
+      controls.target.lerp(targetLookAt, 0.06);
+      if (camera.position.distanceTo(targetCamPos) < 0.5) { 
+        targetCamPos = null; 
+        targetLookAt = null; 
+        isFollowing = true; 
+        // BUGFIX APPLIED: Preserves the targeted object instead of forcibly resetting to the Sun!
+        if (followTargetObj) {
+            followTargetObj.getWorldPosition(lastTargetPos);
+        } else {
+            followTargetObj = sunMesh;
+            followTargetObj.getWorldPosition(lastTargetPos);
+        }
+      }
     } else if (isFollowing && followTargetObj) {
       const currentWorldPos = new THREE.Vector3(); followTargetObj.getWorldPosition(currentWorldPos); controls.target.copy(currentWorldPos);
       const delta = currentWorldPos.clone().sub(lastTargetPos); camera.position.add(delta); lastTargetPos.copy(currentWorldPos);

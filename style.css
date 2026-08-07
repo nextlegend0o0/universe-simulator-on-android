@@ -1,360 +1,194 @@
-/*
-  VORTEX ENGINE - SIMULATION UI (style.css)
-  Professional Physics Sandbox Aesthetic
-*/
-
-:root {
-  --bg-dark: #0a0a0c;
-  --panel-bg: rgba(28, 30, 34, 0.92);
-  --panel-header: rgba(40, 44, 52, 0.98);
-  --border-color: #3a3f4b;
-  --text-main: #e0e6ed;
-  --text-muted: #8b949e;
-  --accent-blue: #4daafc;
-  --accent-orange: #ff7a00;
-  --danger: #ff5555;
-}
-
+/* =========================================
+   BASE & RESET
+   ========================================= */
 * {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  user-select: none;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    user-select: none; /* Prevent text selection on UI */
 }
 
 body, html {
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden;
-  background-color: var(--bg-dark);
-  color: var(--text-main);
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: #000;
+    color: #fff;
 }
 
-/* 3D ENGINE CANVAS & UX CURSORS */
-#webgl-container {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 1;
-  cursor: default;
-}
-.interactive-cursor {
-  cursor: crosshair !important;
-}
-
-/* BOTTOM TELEMETRY BAR */
-#bottom-bar {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 30px;
-  background: var(--panel-header);
-  border-top: 1px solid var(--border-color);
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 20px;
-  font-size: 0.75rem;
-  color: var(--text-muted);
+/* =========================================
+   LOADING SCREEN
+   ========================================= */
+#loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: radial-gradient(circle at center, #1a2a42 0%, #050914 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999; /* Highest priority */
+    transition: opacity 0.5s ease-out;
 }
 
-.telemetry-group {
-  display: flex;
-  gap: 25px;
+.loading-title {
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: 4px;
+    margin-bottom: 30px;
+    animation: pulse 1.5s infinite;
 }
 
-.telemetry-value {
-  color: var(--text-main);
-  font-weight: bold;
-  font-family: 'Courier New', Courier, monospace;
+.loading-planet {
+    width: 150px;
+    height: 150px;
+    background: radial-gradient(circle at 30% 30%, #4a75a3, #152b47);
+    border-radius: 50%;
+    box-shadow: 0 0 30px rgba(74, 117, 163, 0.5), inset -20px -20px 40px rgba(0,0,0,0.5);
+    margin-bottom: 30px;
+    position: relative;
 }
 
-/* LEFT VERTICAL TOOLBAR */
-#left-toolbar {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 50px;
-  height: calc(100% - 30px);
-  background: var(--panel-bg);
-  border-right: 1px solid var(--border-color);
-  z-index: 10;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding-top: 15px;
-  gap: 12px;
+/* Optional minimal orbital ring for the loading planet */
+.loading-planet::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 220px;
+    height: 60px;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    transform: translate(-50%, -50%) rotate(15deg);
 }
 
-.tool-btn {
-  width: 36px;
-  height: 36px;
-  background: transparent;
-  border: 1px solid transparent;
-  color: var(--text-muted);
-  border-radius: 4px;
-  cursor: pointer;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  transition: all 0.2s ease;
-  position: relative;
-  font-weight: bold;
+#loading-progress {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #8ab4f8;
 }
 
-.tool-btn:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--text-main);
-  border-color: var(--border-color);
+/* =========================================
+   MAIN MENU
+   ========================================= */
+#main-menu {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.7); /* Translucent to see the canvas slightly */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-left: 10%;
+    z-index: 9998; /* Right below loading screen */
 }
 
-.tool-btn.active {
-  background: rgba(77, 170, 252, 0.15);
-  border-color: var(--accent-blue);
-  color: var(--accent-blue);
+.menu-title {
+    font-size: 3.5rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    margin-bottom: 40px;
+    line-height: 1.1;
 }
 
-/* TOOLTIPS FOR UI ACCESSIBILITY */
-.tooltip {
-  position: absolute;
-  left: 50px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: var(--panel-header);
-  border: 1px solid var(--border-color);
-  padding: 6px 12px;
-  font-size: 0.7rem;
-  border-radius: 3px;
-  white-space: nowrap;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.2s ease, transform 0.2s ease;
-  color: #fff;
-  z-index: 100;
+.menu-title span {
+    color: #29b6f6; /* Blue accent from reference */
+    display: block;
 }
 
-.tool-btn:hover .tooltip {
-  opacity: 1;
-  transform: translateY(-50%) translateX(5px);
+.menu-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    align-items: flex-start;
 }
 
-/* FLOATING WINDOW PANELS (PROPERTIES & SETTINGS) */
-.floating-window {
-  position: absolute;
-  width: 320px;
-  background: var(--panel-bg);
-  border: 1px solid var(--border-color);
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
-  z-index: 20;
-  display: flex;
-  flex-direction: column;
-  border-radius: 4px;
-  overflow: hidden;
-  top: 20px;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.2s ease, transform 0.3s ease;
+.menu-btn {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 1.2rem;
+    font-weight: 500;
+    letter-spacing: 2px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: color 0.2s ease, transform 0.2s ease;
 }
 
-.floating-window.left-side {
-  left: 70px;
-  transform: translateX(-20px);
+.menu-btn:hover {
+    color: #29b6f6;
+    transform: translateX(10px);
 }
 
-.floating-window.right-side {
-  right: 20px;
-  transform: translateX(20px);
+.menu-icon {
+    font-size: 1rem;
+    color: #29b6f6;
 }
 
-.floating-window.open {
-  opacity: 1;
-  pointer-events: auto;
-  transform: translateX(0);
+/* =========================================
+   GAME HUD & OVERLAYS (Vortex Engine UI)
+   ========================================= */
+#game-ui {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none; /* Let clicks pass through to canvas */
+    z-index: 10;
 }
 
-.window-header {
-  background: var(--panel-header);
-  padding: 10px 15px;
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 1px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid var(--border-color);
-  text-transform: uppercase;
+/* Reactivate pointer events for interactive UI elements */
+.sidebar, .properties-panel, .bottom-bar, .top-controls {
+    pointer-events: auto; 
 }
 
-.close-btn {
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  font-size: 1.1rem;
-  line-height: 1;
-  transition: color 0.2s;
+/* TOP CONTROLS (Fullscreen & Extras) */
+.top-controls {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    gap: 15px;
 }
 
-.close-btn:hover {
-  color: var(--danger);
+.icon-btn {
+    background: rgba(30, 35, 45, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    backdrop-filter: blur(5px);
+    transition: background 0.2s;
 }
 
-/* TABBED NAVIGATION */
-.window-tabs {
-  display: flex;
-  background: rgba(0, 0, 0, 0.25);
-  border-bottom: 1px solid var(--border-color);
+.icon-btn:hover {
+    background: rgba(50, 60, 75, 0.9);
 }
 
-.tab {
-  flex: 1;
-  text-align: center;
-  padding: 8px 0;
-  font-size: 0.75rem;
-  cursor: pointer;
-  color: var(--text-muted);
-  border-bottom: 2px solid transparent;
-  transition: all 0.2s ease;
+/* =========================================
+   ANIMATIONS
+   ========================================= */
+@keyframes pulse {
+    0% { opacity: 0.6; }
+    50% { opacity: 1; }
+    100% { opacity: 0.6; }
 }
 
-.tab:hover {
-  color: var(--text-main);
-  background: rgba(255, 255, 255, 0.03);
-}
-
-.tab.active {
-  color: var(--text-main);
-  border-bottom-color: var(--accent-blue);
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.window-content {
-  padding: 15px;
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  max-height: 60vh;
-  overflow-y: auto;
-}
-
-.window-content::-webkit-scrollbar {
-  width: 6px;
-}
-
-.window-content::-webkit-scrollbar-thumb {
-  background: #444;
-  border-radius: 3px;
-}
-
-/* FORM CONTROLS (SLIDERS, INPUTS, LABELS) */
-.section-title {
-  font-size: 0.7rem;
-  color: var(--text-main);
-  background: rgba(255, 255, 255, 0.05);
-  padding: 4px 8px;
-  border-radius: 2px;
-  margin-bottom: -5px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.control-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 0.75rem;
-}
-
-.control-label {
-  color: var(--text-muted);
-}
-
-/* Custom Range Slider */
-input[type="range"] {
-  -webkit-appearance: none;
-  width: 120px;
-  height: 4px;
-  background: var(--border-color);
-  border-radius: 2px;
-  outline: none;
-}
-
-input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 14px;
-  height: 14px;
-  background: var(--text-main);
-  border-radius: 50%;
-  cursor: pointer;
-  transition: 0.1s;
-}
-
-input[type="range"]:active::-webkit-slider-thumb {
-  background: var(--accent-blue);
-  transform: scale(1.2);
-}
-
-/* Custom Text Inputs */
-input[type="text"], input[type="number"] {
-  background: rgba(0, 0, 0, 0.4);
-  border: 1px solid var(--border-color);
-  color: var(--text-main);
-  padding: 5px 8px;
-  font-size: 0.75rem;
-  border-radius: 2px;
-  outline: none;
-  width: 120px;
-  text-align: left;
-  font-family: 'Courier New', Courier, monospace;
-}
-
-input[type="text"]:focus, input[type="number"]:focus {
-  border-color: var(--accent-blue);
-}
-
-/* TUTORIAL & FIRST CONTACT UI */
-#tutorial-overlay {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
-  z-index: 5;
-  transition: opacity 0.5s ease;
-}
-
-.tutorial-ring {
-  width: 100px;
-  height: 100px;
-  border: 2px solid var(--accent-orange);
-  border-radius: 50%;
-  animation: ping 2.5s cubic-bezier(0, 0, 0.2, 1) infinite;
-}
-
-.tutorial-text {
-  margin-top: 20px;
-  color: var(--accent-orange);
-  font-size: 0.85rem;
-  font-weight: 700;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  text-shadow: 0 0 10px rgba(0, 0, 0, 0.9);
-}
-
-@keyframes ping {
-  0% { transform: scale(0.8); opacity: 1; }
-  75%, 100% { transform: scale(1.8); opacity: 0; }
-}
-
-.fade-out {
-  opacity: 0 !important;
+/* Utility Class to hide elements */
+.hidden {
+    display: none !important;
 }

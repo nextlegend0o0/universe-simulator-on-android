@@ -2,8 +2,8 @@
    1. CORE DATA: SOLAR SYSTEM ONLY
    ========================================= */
 // Exact masses in kilograms and radii in kilometers.
-// All nebulas, black holes, and pulsars have been removed.
-const celestialBodies = {
+// Object.freeze prevents accidental modification during runtime.
+const celestialBodies = Object.freeze({
     "Sun":     { mass: 1.989e30, radius: 696340, type: "Star" },
     "Mercury": { mass: 3.301e23, radius: 2439.7, type: "Planet" },
     "Venus":   { mass: 4.867e24, radius: 6051.8, type: "Planet" },
@@ -13,7 +13,7 @@ const celestialBodies = {
     "Saturn":  { mass: 5.683e26, radius: 58232,  type: "Planet" },
     "Uranus":  { mass: 8.681e25, radius: 25362,  type: "Planet" },
     "Neptune": { mass: 1.024e26, radius: 24622,  type: "Planet" }
-};
+});
 
 let currentTarget = null; // The currently selected planet/star
 let cameraLocked = false; // Tracks if the camera is locked to the target
@@ -21,20 +21,15 @@ let cameraLocked = false; // Tracks if the camera is locked to the target
 /* =========================================
    2. UTILITY FUNCTIONS
    ========================================= */
-// Formats mass into standard scientific notation (e.g., 1.989 × 10^30 kg)
-// This replaces the old "Earths" calculation.
-function formatMass(massInKg) {
-    const exponential = massInKg.toExponential(3); // "1.989e+30"
-    const parts = exponential.split('e+');
-    if (parts.length === 2) {
-        return `${parts[0]} × 10^${parts[1]} kg`;
-    }
-    return `${massInKg} kg`;
+// Safely formats mass into standard scientific notation handling positive/negative exponents
+function formatMass(mass) {
+    const [base, exponent] = mass.toExponential(3).split("e");
+    return `${base} × 10^${Number(exponent)} kg`;
 }
 
-// Formats numbers with commas (e.g., 696,340)
+// Formats numbers with localized commas (e.g., 696,340)
 function formatNumber(num) {
-    return num.toLocaleString('en-US');
+    return new Intl.NumberFormat().format(num);
 }
 
 /* =========================================
@@ -47,38 +42,53 @@ function initializeBootSequence() {
     const mainMenu = document.getElementById('main-menu');
     const gameUi = document.getElementById('game-ui');
 
-    // Hide Game UI and Menu initially
-    mainMenu.classList.add('hidden');
-    gameUi.classList.add('hidden');
+    if (mainMenu) mainMenu.classList.add('hidden');
+    if (gameUi) gameUi.classList.add('hidden');
 
-    // Simulate Asset Loading (Replace with actual engine asset loading events)
     const interval = setInterval(() => {
-        progress += Math.floor(Math.random() * 15) + 5;
+        // Smoother, predictable loading progress
+        progress = Math.min(progress + 2, 100);
+        
         if (progress >= 100) {
-            progress = 100;
             clearInterval(interval);
             
-            // Fade out loading screen, reveal Main Menu
-            loadingScreen.style.opacity = '0';
-            setTimeout(() => {
-                loadingScreen.classList.add('hidden');
-                mainMenu.classList.remove('hidden');
-            }, 500); // Matches CSS transition time
+            if (loadingScreen) {
+                loadingScreen.style.opacity = '0';
+                setTimeout(() => {
+                    loadingScreen.classList.add('hidden');
+                    if (mainMenu) mainMenu.classList.remove('hidden');
+                }, 500);
+            }
         }
-        progressText.innerText = `${progress}%`;
-    }, 200);
+        if (progressText) progressText.innerText = `${progress}%`;
+    }, 50); 
 }
 
 /* =========================================
    4. BUTTON BINDINGS & UI CONTROLS
    ========================================= */
+// Async fullscreen handling to prevent Promise errors
+async function toggleFullscreen() {
+    try {
+        if (!document.fullscreenElement) {
+            await document.documentElement.requestFullscreen();
+        } else {
+            await document.exitFullscreen();
+        }
+    } catch (err) {
+        console.error(`Error attempting to toggle fullscreen: ${err.message}`);
+    }
+}
+
 function bindUIControls() {
     // --- MAIN MENU BUTTONS ---
     const btnStartGame = document.getElementById('btn-start-game');
     if (btnStartGame) {
         btnStartGame.addEventListener('click', () => {
-            document.getElementById('main-menu').classList.add('hidden');
-            document.getElementById('game-ui').classList.remove('hidden');
+            const mainMenu = document.getElementById('main-menu');
+            const gameUi = document.getElementById('game-ui');
+            if (mainMenu) mainMenu.classList.add('hidden');
+            if (gameUi) gameUi.classList.remove('hidden');
             // Trigger engine start/resume here
         });
     }
@@ -86,36 +96,33 @@ function bindUIControls() {
     // --- FULLSCREEN TOGGLE ---
     const btnFullscreen = document.getElementById('btn-fullscreen');
     if (btnFullscreen) {
-        btnFullscreen.addEventListener('click', () => {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(err => {
-                    console.log(`Error attempting to enable fullscreen: ${err.message}`);
-                });
-            } else {
-                document.exitFullscreen();
-            }
-        });
+        btnFullscreen.addEventListener('click', toggleFullscreen);
     }
 
-    // --- SIDEBAR "DISPLAY" AND "PHOTO" BUTTONS ---
+    // --- SIDEBAR BUTTONS ---
     const btnDisplay = document.getElementById('btn-display-settings');
     if (btnDisplay) {
         btnDisplay.addEventListener('click', () => {
-            // Logic to open display settings modal/tab
             console.log("Display settings opened");
         });
     }
 
+    // --- PHOTO MODE ---
     const btnPhoto = document.getElementById('btn-photo-mode');
     if (btnPhoto) {
         btnPhoto.addEventListener('click', () => {
-            // Hide UI elements to take a clean screenshot
-            document.getElementById('game-ui').classList.add('hidden');
+            const gameUi = document.getElementById('game-ui');
+            if (gameUi) gameUi.classList.add('hidden');
+            
+            // Hide cursor for clean screenshots
+            document.body.style.cursor = "none";
             console.log("Photo mode activated. Press ESC to exit.");
-            // Listen for ESC to bring UI back
+            
             document.addEventListener('keydown', function escListener(e) {
                 if (e.key === 'Escape') {
-                    document.getElementById('game-ui').classList.remove('hidden');
+                    if (gameUi) gameUi.classList.remove('hidden');
+                    // Restore cursor
+                    document.body.style.cursor = "default";
                     document.removeEventListener('keydown', escListener);
                 }
             });
@@ -133,12 +140,10 @@ function bindUIControls() {
             if (cameraLocked) {
                 btnTrack.innerText = "UNLOCK VIEW";
                 btnTrack.classList.add('active');
-                // Insert Engine logic to parent camera to currentTarget
                 console.log(`Camera locked onto ${currentTarget}`);
             } else {
                 btnTrack.innerText = "TRACK BODY";
                 btnTrack.classList.remove('active');
-                // Insert Engine logic to free camera
                 console.log("Camera unlocked");
             }
         });
@@ -148,24 +153,24 @@ function bindUIControls() {
 /* =========================================
    5. PROPERTIES PANEL UPDATER
    ========================================= */
-// Call this function when the user clicks a planet in the engine
 function selectCelestialBody(bodyName) {
     const data = celestialBodies[bodyName];
     if (!data) return;
 
     currentTarget = bodyName;
     
-    // Update DOM elements in the Properties panel
-    document.getElementById('prop-name').value = bodyName;
-    
-    // FIX: Show exact mass instead of Earths
-    document.getElementById('prop-mass').value = formatMass(data.mass); 
-    
-    document.getElementById('prop-radius').value = `${formatNumber(data.radius)} km`;
+    // Safely update DOM elements to prevent runtime errors
+    const nameBox = document.getElementById('prop-name');
+    const massBox = document.getElementById('prop-mass');
+    const radiusBox = document.getElementById('prop-radius');
+    const btnTrack = document.getElementById('btn-track-body');
+
+    if (nameBox) nameBox.value = bodyName;
+    if (massBox) massBox.value = formatMass(data.mass); 
+    if (radiusBox) radiusBox.value = `${formatNumber(data.radius)} km`;
     
     // Reset tracking state visually when selecting a new body
     cameraLocked = false;
-    const btnTrack = document.getElementById('btn-track-body');
     if (btnTrack) {
         btnTrack.innerText = "TRACK BODY";
         btnTrack.classList.remove('active');
@@ -175,13 +180,41 @@ function selectCelestialBody(bodyName) {
 }
 
 /* =========================================
+   6. RENDER LOOP / ENGINE INTEGRATION
+   ========================================= */
+let fps = 0;
+let lastTime = performance.now();
+
+// Calculate and display accurate FPS
+function updateFPS(now) {
+    fps = Math.round(1000 / (now - lastTime));
+    lastTime = now;
+    
+    // Assuming the FPS text is the first span in the bottom bar
+    const fpsText = document.querySelector(".bottom-bar span");
+    if (fpsText) fpsText.textContent = fps;
+    
+    // --- CAMERA SMOOTHING LOGIC (Engine implementation) ---
+    if (cameraLocked && currentTarget) {
+        // engine logic goes here
+        // e.g., camera.position.lerp(target.position, 0.08);
+        // e.g., camera.lookAt(target.position);
+    }
+    
+    requestAnimationFrame(updateFPS);
+}
+
+/* =========================================
    INITIALIZATION
    ========================================= */
 document.addEventListener('DOMContentLoaded', () => {
     initializeBootSequence();
     bindUIControls();
     
-    // Example: Select Earth by default once loaded
+    // Start FPS counter
+    requestAnimationFrame(updateFPS);
+    
+    // Auto-select Earth by default for testing
     setTimeout(() => {
         selectCelestialBody("Earth");
     }, 1000);

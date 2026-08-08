@@ -3,6 +3,10 @@
    DIAGNOSTIC OVERRIDE & ON-SCREEN CONSOLE
    ========================================= */
 
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js';
+
 // --- DIAGNOSTIC HUD INJECTION ---
 const debugDiv = document.createElement('div');
 debugDiv.style.position = 'fixed';
@@ -159,11 +163,11 @@ renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure
 renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 container.appendChild(renderer.domElement);
 
-const ktx2Loader = new THREE.KTX2Loader(manager)
-    .setTranscoderPath('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/libs/basis/')
+const ktx2Loader = new KTX2Loader(manager)
+    .setTranscoderPath('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/libs/basis/')
     .detectSupport(renderer);
 
-const controls = new THREE.OrbitControls(camera, renderer.domElement); controls.enableDamping = true; controls.dampingFactor = 0.05; controls.enablePan = false; controls.zoomSpeed = 0.6; controls.maxDistance = 500000; controls.minDistance = 2;
+const controls = new OrbitControls(camera, renderer.domElement); controls.enableDamping = true; controls.dampingFactor = 0.05; controls.enablePan = false; controls.zoomSpeed = 0.6; controls.maxDistance = 500000; controls.minDistance = 2;
 let timeMultiplier = 1.0;
 
 const LOCATIONS = {

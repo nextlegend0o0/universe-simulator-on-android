@@ -1,6 +1,6 @@
 /* =========================================
    VA 17 MASTER SIMULATION ENGINE (main.js)
-   WEBP POLISH & DIAGNOSTIC CLEANUP
+   FINAL POLISH: GITHUB SUBPATH & TEXTURE FIX
    ========================================= */
 
 import * as THREE from 'three';
@@ -42,7 +42,6 @@ function forceStartEngine() {
     if(engineStarted) return; 
     engineStarted = true;
     
-    // FIX 4: Re-calculate aspect ratio dynamically on boot to prevent zoomed-out view on mobile
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -58,35 +57,35 @@ function forceStartEngine() {
 manager.onLoad = function () { 
     forceStartEngine();
 };
-manager.onProgress = function (u, i, t) { 
+manager.onProgress = function (url, itemsLoaded, itemsTotal) { 
     const loadingTextEl = document.getElementById('loading-text');
-    if (loadingTextEl) loadingTextEl.innerText = `LOADING HD TEXTURES...`; 
+    if (loadingTextEl) loadingTextEl.innerText = `LOADING TEXTURES (${itemsLoaded}/${itemsTotal})...`; 
 };
 manager.onError = function (url) { 
-    console.error('Failed to load texture: ' + url); 
+    console.error('Failed to load asset: ' + url); 
 };
 
-// FAILSAFE: Force start after 8 seconds if textures are blocked completely
+// FAILSAFE: Force start after 8 seconds max
 setTimeout(() => {
     if(!engineStarted) {
         forceStartEngine();
     }
 }, 8000);
 
-// FIX 3: Explicit relative paths to guarantee GitHub Pages finds them
+// FIX: Clean relative paths without './' to support GitHub Pages subpaths perfectly
 const TEX = { 
-    stars: './stars_milky_way.webp', 
-    sun: './sun.webp', 
-    earthMap: './earth.webp', 
-    moon: './moon.webp', 
-    mercury: './mercury.webp', 
-    venus: './venus.webp', 
-    mars: './mars.webp', 
-    jupiter: './jupiter.webp', 
-    saturn: './saturn.webp', 
-    uranus: './uranus.webp', 
-    neptune: './neptune.webp', 
-    pluto: './pluto.webp' 
+    stars: 'stars_milky_way.webp', 
+    sun: 'sun.webp', 
+    earthMap: 'earth.webp', 
+    moon: 'moon.webp', 
+    mercury: 'mercury.webp', 
+    venus: 'venus.webp', 
+    mars: 'mars.webp', 
+    jupiter: 'jupiter.webp', 
+    saturn: 'saturn.webp', 
+    uranus: 'uranus.webp', 
+    neptune: 'neptune.webp', 
+    pluto: 'pluto.webp' 
 };
 
 let uiIsVisible = false; 
@@ -130,11 +129,10 @@ window.freeCamera = function() { followTargetObj = null; isFollowing = false; ta
 
 const textureLoader = new THREE.TextureLoader(manager);
 
-// FIX 2: Advanced Texture Configuration function to eliminate pixelation
 function applyAdvancedFiltering(texture) {
-    texture.colorSpace = THREE.SRGBColorSpace; // Corrects washed-out color mapping
-    texture.anisotropy = renderer.capabilities.getMaxAnisotropy(); // Sharpens at angles
-    texture.minFilter = THREE.LinearMipmapLinearFilter; // Smooth scaling
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+    texture.minFilter = THREE.LinearMipmapLinearFilter;
     texture.magFilter = THREE.LinearFilter;
     texture.generateMipmaps = true;
     return texture;

@@ -1,32 +1,57 @@
 /* =========================================
-   PROJECT NEXT: COLOSSAL UNIVERSE (main.js)
-   VA 17 STABILITY PROTOCOL - MASTER SCRIPT
+   NEXT STUDIOS: COLOSSAL UNIVERSE (main.js)
+   NATIVE ANDROID BUILD - V18 MASTER SCRIPT
    ========================================= */
 
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
+// --- DATABASE (Optimized: Audio Removed) ---
 const DATABASE = {
-  "Sun":{type:"G-Type Star", audio: "./audio/sun.mp3", facts:["It is a nearly perfect sphere of incredibly hot plasma.","Accounts for 99.86% of the total mass in the entire solar system.","The core temperature reaches a staggering 15 million degrees Celsius.","Composed primarily of Hydrogen (73%) and Helium (25%).","Light from the Sun takes approximately 8 minutes and 20 seconds to reach Earth.","It generates powerful solar winds that create the beautiful Auroras on Earth.","Its magnetic field flips completely every 11 years, causing solar maximums.","Over 1.3 million Earths could fit inside the Sun's volume.","In about 5 billion years, it will expand into a Red Giant and consume the inner planets.","It rotates faster at its equator (25 days) than at its poles (35 days)."]},
-  "Earth":{type:"Terrestrial Planet", audio: "./audio/earth.mp3", facts:["The only planet in the known universe confirmed to harbor life.","Approximately 71% of Earth's surface is covered in liquid water.","It is the densest planet in the Solar System.","The atmosphere is 78% nitrogen, 21% oxygen, and 1% other ingredients.","Earth's strong magnetic field protects the planet from harmful solar radiation.","It is the only planet with active plate tectonics, driving earthquakes and mountain building.","It takes 23 hours, 56 minutes, and 4 seconds for Earth to rotate once on its axis.","Earth is not a perfect sphere; it bulges slightly at the equator due to its spin.","The 23.4-degree tilt of Earth's axis is what causes our yearly seasons.","It has exactly one natural satellite, the Moon, which stabilizes our axial wobble."]},
-  "Moon":{type:"Natural Satellite", audio: "", facts:["Earth's only natural satellite, stabilizing our planet's axial tilt.","It is tidally locked to Earth, meaning we only ever see one side of it.","The Moon's gravity pulls on Earth's oceans, creating the tides.","It was likely formed from debris after a Mars-sized body collided with early Earth.","The Moon has virtually no atmosphere, exposing it to extreme temperature swings.","Its surface is heavily scarred by impact craters from billions of years of asteroid strikes.","Gravity on the Moon is only 1/6th as strong as Earth's gravity.","It is the only celestial body beyond Earth that humans have visited.","The Moon is slowly moving away from Earth at a rate of 3.8 cm per year.","Temperatures range from 120°C in the sun to -130°C in the dark."]},
-  "Mercury":{type:"Terrestrial Planet", audio: "", facts:["The smallest planet in the solar system, only slightly larger than Earth's Moon.","It is the closest planet to the Sun, orbiting at a distance of 58 million km.","The fastest planet, zipping around the Sun in just 88 Earth days at 47 km/s.","Experiences extreme temperature swings from 430°C in the day to -180°C at night.","Instead of an atmosphere, it possesses a thin 'exosphere' of atoms blasted off its surface.","It has no moons and no planetary rings.","Its surface is heavily cratered, looking incredibly similar to Earth's moon.","Despite being closest to the Sun, radar shows deep craters holding frozen water ice.","It has a massive metallic core that takes up about 85% of the planet's radius.","Because its orbit is highly elliptical, the Sun would appear to move backwards in its sky at perihelion."]},
-  "Venus":{type:"Terrestrial Planet", audio: "", facts:["Often called Earth's 'sister planet' due to their similar size and rocky composition.","The hottest planet in our solar system, with surface temperatures reaching 475°C.","Its thick atmosphere is full of the greenhouse gas carbon dioxide, and it has clouds of sulfuric acid.","Atmospheric pressure at the surface is over 90 times that of Earth (like being 1 mile underwater).","It has a retrograde rotation, meaning it spins backward compared to most other planets.","A single day on Venus (243 Earth days) is actually longer than its year (225 Earth days).","The surface is covered in thousands of massive volcanoes, some of which may still be active.","It is the brightest natural object in Earth's night sky after the Moon.","It has no moons and generates a very weak induced magnetic field.","It was the first planet ever to be explored by a spacecraft (Mariner 2 in 1962)."]},
-  "Mars":{type:"Terrestrial Planet", audio: "", facts:["Known as the Red Planet because iron minerals in the soil oxidize, or rust, causing it to look red.","It hosts Olympus Mons, the largest volcano and highest mountain in the solar system.","Valles Marineris is a massive canyon system on Mars that is 10 times longer than the Grand Canyon.","The atmosphere is incredibly thin and composed almost entirely of carbon dioxide.","It has two small, irregularly shaped moons named Phobos and Deimos.","Temperatures can drop to -153°C at the poles, freezing carbon dioxide into dry ice.","Gravity on Mars is only 37% of Earth's gravity (you could jump nearly 3 times higher).","Evidence suggests that billions of years ago, Mars had oceans of liquid water.","It experiences massive dust storms that can cover the entire planet for months.","It is currently the primary target for humanity's future interplanetary colonization efforts."]},
-  "Jupiter":{type:"Gas Giant", audio: "", facts:["The largest planet in the solar system; over 1,300 Earths could fit inside it.","It is a gas giant composed primarily of hydrogen and helium, lacking a true solid surface.","Home to the Great Red Spot, a gigantic storm larger than Earth that has raged for over 300 years.","It has the shortest day in the solar system, spinning once completely in just about 10 hours.","It holds a staggering 95 officially recognized moons.","Its moon Ganymede is the largest moon in the solar system, even bigger than the planet Mercury.","Its moon Europa is covered in ice and has a vast liquid ocean underneath that might harbor life.","Jupiter actually has a faint ring system made mostly of dust particles blasted from its moons.","Its magnetic field is 16 to 54 times as powerful as Earth's, trapping intense belts of radiation.","It is so massive that its barycenter (center of mass) with the Sun actually lies just outside the Sun's surface."]},
-  "Europa":{type:"Jovian Moon", audio: "", facts:["One of Jupiter's four large Galilean moons.","It is encased in a thick shell of solid water ice.","Scientists strongly believe a massive, liquid saltwater ocean exists beneath the ice.","This subsurface ocean contains more than twice the amount of water found on Earth.","It is considered one of the most promising places to look for alien life in the solar system.","The surface is incredibly smooth, with very few craters, indicating it is geologically active and young.","The dark reddish streaks are fractures where tidal forces have cracked the ice shell.","Jupiter's immense gravity causes tidal heating, which keeps Europa's internal ocean from freezing.","It has a very thin, tenuous atmosphere composed primarily of oxygen.","NASA is launching the Europa Clipper mission specifically to study its habitability."]},
-  "Saturn":{type:"Gas Giant", audio: "", facts:["Famous for its spectacular, complex ring system made mostly of chunks of ice and rock.","It is the least dense planet; if you had a bathtub large enough, Saturn would float in water.","It currently holds the record for the most moons, with 146 confirmed in its orbit.","Its largest moon, Titan, is the only moon in the solar system with a thick, dense atmosphere.","Saturn is mostly made of hydrogen and helium, generating immense internal heat.","Winds in the upper atmosphere can reach speeds of 1,800 kilometers per hour.","It has a bizarre, perfectly hexagonal storm perpetually raging at its north pole.","It takes 29.4 Earth years for Saturn to complete a single orbit around the Sun.","Despite their massive width, Saturn's main rings are incredibly thin—only about 10 meters thick.","Its moon Enceladus shoots massive geysers of water ice out into space, which actually form one of Saturn's rings."]},
-  "Titan":{type:"Saturnian Moon", audio: "", facts:["Saturn's largest moon and the second-largest in the solar system.","It is actually larger than the planet Mercury.","It is the only moon in the solar system known to have a dense, substantial atmosphere.","Titan is the only place besides Earth known to have stable bodies of liquid on its surface.","Instead of water, its lakes and rivers are made of liquid methane and ethane.","It has a thick, opaque orange smog that hides its surface from visible light cameras.","Surface temperatures are a freezing -179 degrees Celsius.","The Cassini-Huygens mission successfully landed a probe on Titan's surface in 2005.","Scientists believe its environment is similar to early Earth before life developed.","Atmospheric pressure is about 50% greater than Earth's, so you could fly by flapping artificial wings."]},
-  "Uranus":{type:"Ice Giant", audio: "", facts:["Classified as an 'Ice Giant' because it has a mantle of icy water, ammonia, and methane.","It rolls around the Sun on its side; its axis is tilted by a staggering 97.7 degrees.","The methane gas in its atmosphere absorbs red light, giving the planet its signature pale blue color.","It has a retrograde rotation, meaning it spins east to west, exactly like Venus.","Uranus has 28 known moons, all named after characters from the works of William Herschel and Alexander Pope.","It is the coldest planetary atmosphere in the solar system, with temperatures dropping to -224°C.","It has 13 faint, dark rings composed of boulder-sized dark particles.","It was the very first planet discovered with the aid of a telescope (by William Herschel in 1781).","A single year on Uranus takes 84 Earth years to complete.","Because of its extreme tilt, the poles experience 42 years of continuous sunlight followed by 42 years of darkness."]},
-  "Neptune":{type:"Ice Giant", audio: "", facts:["The most distant major planet in our solar system, located 30 times further from the Sun than Earth.","It was the first planet discovered by mathematical prediction rather than direct observation.","It is a dark, cold, and incredibly windy world; wind speeds here can surpass 2,000 kilometers per hour.","Its vivid, deep blue color is also caused by atmospheric methane, similar to Uranus.","It has 16 known moons; the largest, Triton, is the only large moon in the solar system that orbits backward.","Neptune has a faint, clumpy ring system that includes five distinct rings.","It occasionally hosts massive, dark oval storms, the most famous being the 'Great Dark Spot' seen in 1989.","It takes a massive 165 Earth years to complete a single orbit around the Sun.","It actually radiates more than twice as much heat energy into space as it receives from the Sun.","Due to extreme pressures in its mantle, scientists theorize it literally rains diamonds deep inside the planet."]},
-  "Pluto":{type:"Dwarf Planet", audio: "", facts:["Once considered the 9th planet, it was reclassified as a Dwarf Planet by the IAU in 2006.","It resides in the Kuiper Belt, a donut-shaped region of icy bodies beyond Neptune.","It is incredibly small—only about half the width of the United States.","It has five known moons; its largest, Charon, is so big that Pluto and Charon actually orbit each other like a double-planet system.","Its surface features a massive, heart-shaped glacier of nitrogen ice named Tombaugh Regio.","Pluto's orbit is highly elliptical and tilted; sometimes it actually crosses closer to the Sun than Neptune.","When it gets closer to the Sun, its surface ices thaw and form a temporary, thin atmosphere.","The surface is a mix of mountains of water-ice and vast plains of frozen nitrogen and methane.","It was famously visited by the New Horizons spacecraft in 2015, which provided our first high-res photos.","A year on Pluto lasts for 248 Earth years."]},
-  "Proxima Centauri":{type:"Red Dwarf Star", audio: "", facts:["The absolute closest star to our Solar System.","Located exactly 4.246 light-years away.","It is a Red Dwarf, meaning it is much cooler and smaller than our Sun.","It only has 12.5% of our Sun's mass.","Despite being the closest star, it is completely invisible to the naked eye from Earth.","It is a 'flare star', meaning it occasionally shoots out massive, violent bursts of radiation.","It hosts a confirmed planet called Proxima b.","Proxima b orbits in the 'habitable zone' where liquid water could exist.","The star is estimated to be 4.85 billion years old.","Because it burns fuel so slowly, it will live for trillions of years."]},
-  "Carina Stellar Nursery":{type:"Emission Nebula", audio: "", facts:["A massive, volumetric cloud of interstellar gas and dust.","Inspired by the Pillars of Creation and Carina Nebula.","The deep orange colors are composed of dense, cold cosmic dust.","The glowing blue areas are ionized hydrogen gas heated by young stars.","Spans hundreds of light-years across the galaxy.","Gravity slowly forces the dust to collapse, forming protostars.","Intense ultraviolet radiation from newborns carves out the pillar shapes.","Temperatures inside the gas can reach 10,000 Kelvin.","It is the birthplace of thousands of new solar systems.","In a few million years, the gas will blow away, leaving an open star cluster."]},
-  "Magnetic Pulsar":{type:"Neutron Star", audio: "./audio/pulsar.mp3", facts:["The ultra-dense, collapsed core of a dead star that went supernova.","It spins at a terrifying rate of dozens of revolutions per second.","Neutron stars are so dense that a single teaspoon weighs a billion tons.","It emits twin, lighthouse-like beams of blinding electromagnetic radiation.","The physical, glowing rings around it are immensely powerful magnetic field lines.","Its magnetic field is trillions of times stronger than Earth's.","It frequently experiences 'glitches', sudden spikes in its rotational speed.","It is one of the brightest sources of extreme gamma-ray radiation.","The core is theorized to be a frictionless superfluid.","If you got too close, the gravity would rip you apart at the atomic level."]},
-  "Sagittarius A*":{type:"Supermassive Black Hole", audio: "", facts:["The monster supermassive black hole at the absolute center of our Milky Way.","It contains the mass of 4.3 million of our Suns crushed into a singularity.","Located approximately 26,670 light-years away from Earth.","The intense glowing ring is a superheated accretion disk of shredded stars and gas.","It emits a massive galactic glow that illuminates the core of the Milky Way.","Its event horizon is about 24 million kilometers across.","Stars orbit it at blistering speeds up to 30 million km/h.","It emits intense bursts of X-ray radiation when it 'eats'.","Its immense gravity literally warps space and time, bending light like a lens.","Imaged directly for the first time by humanity in 2022."]},
-  "Binary Black Hole Merger":{type:"Gravitational Anomaly", audio: "", facts:["Two massive black holes locked in a fatal, inescapable orbital dance.","Their immense gravity forces their accretion disks to warp and bend together.","As they orbit, they radiate massive amounts of energy as Gravitational Waves.","These waves literally ripple the fabric of spacetime across the universe.","Their orbits are constantly decaying, bringing them closer every second.","When they finally collide, they will merge into a single, massive black hole.","The collision will release more energy than all the stars in the universe combined for a fraction of a second.","This specific model features intertwined, additive-blending photon rings.","The first ever gravitational waves detected by LIGO in 2015 came from a merger exactly like this.","Time slows down incredibly the closer you get to their event horizons."]}
+  "Sun":{type:"G-Type Star", facts:["It is a nearly perfect sphere of incredibly hot plasma.","Accounts for 99.86% of the total mass in the entire solar system.","The core temperature reaches a staggering 15 million degrees Celsius.","Composed primarily of Hydrogen (73%) and Helium (25%).","Light from the Sun takes approximately 8 minutes and 20 seconds to reach Earth.","It generates powerful solar winds that create the beautiful Auroras on Earth.","Its magnetic field flips completely every 11 years, causing solar maximums.","Over 1.3 million Earths could fit inside the Sun's volume.","In about 5 billion years, it will expand into a Red Giant and consume the inner planets.","It rotates faster at its equator (25 days) than at its poles (35 days)."]},
+  "Earth":{type:"Terrestrial Planet", facts:["The only planet in the known universe confirmed to harbor life.","Approximately 71% of Earth's surface is covered in liquid water.","It is the densest planet in the Solar System.","The atmosphere is 78% nitrogen, 21% oxygen, and 1% other ingredients.","Earth's strong magnetic field protects the planet from harmful solar radiation.","It is the only planet with active plate tectonics, driving earthquakes and mountain building.","It takes 23 hours, 56 minutes, and 4 seconds for Earth to rotate once on its axis.","Earth is not a perfect sphere; it bulges slightly at the equator due to its spin.","The 23.4-degree tilt of Earth's axis is what causes our yearly seasons.","It has exactly one natural satellite, the Moon, which stabilizes our axial wobble."]},
+  "Moon":{type:"Natural Satellite", facts:["Earth's only natural satellite, stabilizing our planet's axial tilt.","It is tidally locked to Earth, meaning we only ever see one side of it.","The Moon's gravity pulls on Earth's oceans, creating the tides.","It was likely formed from debris after a Mars-sized body collided with early Earth.","The Moon has virtually no atmosphere, exposing it to extreme temperature swings.","Its surface is heavily scarred by impact craters from billions of years of asteroid strikes.","Gravity on the Moon is only 1/6th as strong as Earth's gravity.","It is the only celestial body beyond Earth that humans have visited.","The Moon is slowly moving away from Earth at a rate of 3.8 cm per year.","Temperatures range from 120°C in the sun to -130°C in the dark."]},
+  "Mercury":{type:"Terrestrial Planet", facts:["The smallest planet in the solar system, only slightly larger than Earth's Moon.","It is the closest planet to the Sun, orbiting at a distance of 58 million km.","The fastest planet, zipping around the Sun in just 88 Earth days at 47 km/s.","Experiences extreme temperature swings from 430°C in the day to -180°C at night.","Instead of an atmosphere, it possesses a thin 'exosphere' of atoms blasted off its surface.","It has no moons and no planetary rings.","Its surface is heavily cratered, looking incredibly similar to Earth's moon.","Despite being closest to the Sun, radar shows deep craters holding frozen water ice.","It has a massive metallic core that takes up about 85% of the planet's radius.","Because its orbit is highly elliptical, the Sun would appear to move backwards in its sky at perihelion."]},
+  "Venus":{type:"Terrestrial Planet", facts:["Often called Earth's 'sister planet' due to their similar size and rocky composition.","The hottest planet in our solar system, with surface temperatures reaching 475°C.","Its thick atmosphere is full of the greenhouse gas carbon dioxide, and it has clouds of sulfuric acid.","Atmospheric pressure at the surface is over 90 times that of Earth (like being 1 mile underwater).","It has a retrograde rotation, meaning it spins backward compared to most other planets.","A single day on Venus (243 Earth days) is actually longer than its year (225 Earth days).","The surface is covered in thousands of massive volcanoes, some of which may still be active.","It is the brightest natural object in Earth's night sky after the Moon.","It has no moons and generates a very weak induced magnetic field.","It was the first planet ever to be explored by a spacecraft (Mariner 2 in 1962)."]},
+  "Mars":{type:"Terrestrial Planet", facts:["Known as the Red Planet because iron minerals in the soil oxidize, or rust, causing it to look red.","It hosts Olympus Mons, the largest volcano and highest mountain in the solar system.","Valles Marineris is a massive canyon system on Mars that is 10 times longer than the Grand Canyon.","The atmosphere is incredibly thin and composed almost entirely of carbon dioxide.","It has two small, irregularly shaped moons named Phobos and Deimos.","Temperatures can drop to -153°C at the poles, freezing carbon dioxide into dry ice.","Gravity on Mars is only 37% of Earth's gravity (you could jump nearly 3 times higher).","Evidence suggests that billions of years ago, Mars had oceans of liquid water.","It experiences massive dust storms that can cover the entire planet for months.","It is currently the primary target for humanity's future interplanetary colonization efforts."]},
+  "Jupiter":{type:"Gas Giant", facts:["The largest planet in the solar system; over 1,300 Earths could fit inside it.","It is a gas giant composed primarily of hydrogen and helium, lacking a true solid surface.","Home to the Great Red Spot, a gigantic storm larger than Earth that has raged for over 300 years.","It has the shortest day in the solar system, spinning once completely in just about 10 hours.","It holds a staggering 95 officially recognized moons.","Its moon Ganymede is the largest moon in the solar system, even bigger than the planet Mercury.","Its moon Europa is covered in ice and has a vast liquid ocean underneath that might harbor life.","Jupiter actually has a faint ring system made mostly of dust particles blasted from its moons.","Its magnetic field is 16 to 54 times as powerful as Earth's, trapping intense belts of radiation.","It is so massive that its barycenter (center of mass) with the Sun actually lies just outside the Sun's surface."]},
+  "Europa":{type:"Jovian Moon", facts:["One of Jupiter's four large Galilean moons.","It is encased in a thick shell of solid water ice.","Scientists strongly believe a massive, liquid saltwater ocean exists beneath the ice.","This subsurface ocean contains more than twice the amount of water found on Earth.","It is considered one of the most promising places to look for alien life in the solar system.","The surface is incredibly smooth, with very few craters, indicating it is geologically active and young.","The dark reddish streaks are fractures where tidal forces have cracked the ice shell.","Jupiter's immense gravity causes tidal heating, which keeps Europa's internal ocean from freezing.","It has a very thin, tenuous atmosphere composed primarily of oxygen.","NASA is launching the Europa Clipper mission specifically to study its habitability."]},
+  "Saturn":{type:"Gas Giant", facts:["Famous for its spectacular, complex ring system made mostly of chunks of ice and rock.","It is the least dense planet; if you had a bathtub large enough, Saturn would float in water.","It currently holds the record for the most moons, with 146 confirmed in its orbit.","Its largest moon, Titan, is the only moon in the solar system with a thick, dense atmosphere.","Saturn is mostly made of hydrogen and helium, generating immense internal heat.","Winds in the upper atmosphere can reach speeds of 1,800 kilometers per hour.","It has a bizarre, perfectly hexagonal storm perpetually raging at its north pole.","It takes 29.4 Earth years for Saturn to complete a single orbit around the Sun.","Despite their massive width, Saturn's main rings are incredibly thin—only about 10 meters thick.","Its moon Enceladus shoots massive geysers of water ice out into space, which actually form one of Saturn's rings."]},
+  "Titan":{type:"Saturnian Moon", facts:["Saturn's largest moon and the second-largest in the solar system.","It is actually larger than the planet Mercury.","It is the only moon in the solar system known to have a dense, substantial atmosphere.","Titan is the only place besides Earth known to have stable bodies of liquid on its surface.","Instead of water, its lakes and rivers are made of liquid methane and ethane.","It has a thick, opaque orange smog that hides its surface from visible light cameras.","Surface temperatures are a freezing -179 degrees Celsius.","The Cassini-Huygens mission successfully landed a probe on Titan's surface in 2005.","Scientists believe its environment is similar to early Earth before life developed.","Atmospheric pressure is about 50% greater than Earth's, so you could fly by flapping artificial wings."]},
+  "Uranus":{type:"Ice Giant", facts:["Classified as an 'Ice Giant' because it has a mantle of icy water, ammonia, and methane.","It rolls around the Sun on its side; its axis is tilted by a staggering 97.7 degrees.","The methane gas in its atmosphere absorbs red light, giving the planet its signature pale blue color.","It has a retrograde rotation, meaning it spins east to west, exactly like Venus.","Uranus has 28 known moons, all named after characters from the works of William Herschel and Alexander Pope.","It is the coldest planetary atmosphere in the solar system, with temperatures dropping to -224°C.","It has 13 faint, dark rings composed of boulder-sized dark particles.","It was the very first planet discovered with the aid of a telescope (by William Herschel in 1781).","A single year on Uranus takes 84 Earth years to complete.","Because of its extreme tilt, the poles experience 42 years of continuous sunlight followed by 42 years of darkness."]},
+  "Neptune":{type:"Ice Giant", facts:["The most distant major planet in our solar system, located 30 times further from the Sun than Earth.","It was the first planet discovered by mathematical prediction rather than direct observation.","It is a dark, cold, and incredibly windy world; wind speeds here can surpass 2,000 kilometers per hour.","Its vivid, deep blue color is also caused by atmospheric methane, similar to Uranus.","It has 16 known moons; the largest, Triton, is the only large moon in the solar system that orbits backward.","Neptune has a faint, clumpy ring system that includes five distinct rings.","It occasionally hosts massive, dark oval storms, the most famous being the 'Great Dark Spot' seen in 1989.","It takes a massive 165 Earth years to complete a single orbit around the Sun.","It actually radiates more than twice as much heat energy into space as it receives from the Sun.","Due to extreme pressures in its mantle, scientists theorize it literally rains diamonds deep inside the planet."]},
+  "Pluto":{type:"Dwarf Planet", facts:["Once considered the 9th planet, it was reclassified as a Dwarf Planet by the IAU in 2006.","It resides in the Kuiper Belt, a donut-shaped region of icy bodies beyond Neptune.","It is incredibly small—only about half the width of the United States.","It has five known moons; its largest, Charon, is so big that Pluto and Charon actually orbit each other like a double-planet system.","Its surface features a massive, heart-shaped glacier of nitrogen ice named Tombaugh Regio.","Pluto's orbit is highly elliptical and tilted; sometimes it actually crosses closer to the Sun than Neptune.","When it gets closer to the Sun, its surface ices thaw and form a temporary, thin atmosphere.","The surface is a mix of mountains of water-ice and vast plains of frozen nitrogen and methane.","It was famously visited by the New Horizons spacecraft in 2015, which provided our first high-res photos.","A year on Pluto lasts for 248 Earth years."]},
+  "Proxima Centauri":{type:"Red Dwarf Star", facts:["The absolute closest star to our Solar System.","Located exactly 4.246 light-years away.","It is a Red Dwarf, meaning it is much cooler and smaller than our Sun.","It only has 12.5% of our Sun's mass.","Despite being the closest star, it is completely invisible to the naked eye from Earth.","It is a 'flare star', meaning it occasionally shoots out massive, violent bursts of radiation.","It hosts a confirmed planet called Proxima b.","Proxima b orbits in the 'habitable zone' where liquid water could exist.","The star is estimated to be 4.85 billion years old.","Because it burns fuel so slowly, it will live for trillions of years."]},
+  "Carina Stellar Nursery":{type:"Emission Nebula", facts:["A massive, volumetric cloud of interstellar gas and dust.","Inspired by the Pillars of Creation and Carina Nebula.","The deep orange colors are composed of dense, cold cosmic dust.","The glowing blue areas are ionized hydrogen gas heated by young stars.","Spans hundreds of light-years across the galaxy.","Gravity slowly forces the dust to collapse, forming protostars.","Intense ultraviolet radiation from newborns carves out the pillar shapes.","Temperatures inside the gas can reach 10,000 Kelvin.","It is the birthplace of thousands of new solar systems.","In a few million years, the gas will blow away, leaving an open star cluster."]},
+  "Magnetic Pulsar":{type:"Neutron Star", facts:["The ultra-dense, collapsed core of a dead star that went supernova.","It spins at a terrifying rate of dozens of revolutions per second.","Neutron stars are so dense that a single teaspoon weighs a billion tons.","It emits twin, lighthouse-like beams of blinding electromagnetic radiation.","The physical, glowing rings around it are immensely powerful magnetic field lines.","Its magnetic field is trillions of times stronger than Earth's.","It frequently experiences 'glitches', sudden spikes in its rotational speed.","It is one of the brightest sources of extreme gamma-ray radiation.","The core is theorized to be a frictionless superfluid.","If you got too close, the gravity would rip you apart at the atomic level."]},
+  "Sagittarius A*":{type:"Supermassive Black Hole", facts:["The monster supermassive black hole at the absolute center of our Milky Way.","It contains the mass of 4.3 million of our Suns crushed into a singularity.","Located approximately 26,670 light-years away from Earth.","The intense glowing ring is a superheated accretion disk of shredded stars and gas.","It emits a massive galactic glow that illuminates the core of the Milky Way.","Its event horizon is about 24 million kilometers across.","Stars orbit it at blistering speeds up to 30 million km/h.","It emits intense bursts of X-ray radiation when it 'eats'.","Its immense gravity literally warps space and time, bending light like a lens.","Imaged directly for the first time by humanity in 2022."]},
+  "Binary Black Hole Merger":{type:"Gravitational Anomaly", facts:["Two massive black holes locked in a fatal, inescapable orbital dance.","Their immense gravity forces their accretion disks to warp and bend together.","As they orbit, they radiate massive amounts of energy as Gravitational Waves.","These waves literally ripple the fabric of spacetime across the universe.","Their orbits are constantly decaying, bringing them closer every second.","When they finally collide, they will merge into a single, massive black hole.","The collision will release more energy than all the stars in the universe combined for a fraction of a second.","This specific model features intertwined, additive-blending photon rings.","The first ever gravitational waves detected by LIGO in 2015 came from a merger exactly like this.","Time slows down incredibly the closer you get to their event horizons."]}
 };
 
+// --- APP LIFECYCLE & STATE MANAGER ---
+const STATE = {
+    appPaused: false,
+    quality: 'high',
+    activeMenu: null, 
+    uiVisible: false,
+    engineStarted: false
+};
+
+// --- FPS TELEMETRY ---
+let lastTime = performance.now();
+let frames = 0;
+function updateFPS() {
+    frames++;
+    const now = performance.now();
+    if (now >= lastTime + 1000) {
+        const fpsEl = document.getElementById('fps-val');
+        if (fpsEl) fpsEl.textContent = `${frames} FPS`;
+        frames = 0;
+        lastTime = now;
+    }
+}
+
+// --- SETUP CORE ENGINE ---
 const container = document.getElementById('webgl-container'); 
 const scene = new THREE.Scene(); 
 scene.background = new THREE.Color(0x000000); 
@@ -34,7 +59,7 @@ scene.background = new THREE.Color(0x000000);
 const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 2000000);
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, logarithmicDepthBuffer: true, powerPreference: "high-performance" });
 renderer.setSize(window.innerWidth, window.innerHeight); 
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); 
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Default High
 renderer.toneMapping = THREE.ACESFilmicToneMapping; 
 renderer.toneMappingExposure = 1.2; 
 renderer.shadowMap.enabled = true; 
@@ -42,94 +67,109 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 container.appendChild(renderer.domElement);
 
 const manager = new THREE.LoadingManager();
-let engineStarted = false; 
 
-function forceStartEngine() {
-    if(engineStarted) return; 
-    engineStarted = true;
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
+// --- MAIN MENU LOGIC & AUDIO ---
+// *Note: Add a 'bgm.mp3' in your audio folder if you want music!
+const menuBGM = new Audio('./audio/bgm.mp3');
+menuBGM.loop = true; menuBGM.volume = 0.4;
 
+window.launchGame = function() {
+    document.getElementById('next-main-menu').classList.add('hidden');
+    STATE.engineStarted = true;
+    STATE.uiVisible = true;
+    document.getElementById('hud-top').classList.add('visible');
+    menuBGM.play().catch(e => console.log("BGM blocked until touch"));
+    animate();
+};
+
+window.toggleQuality = function() {
+    const qBtn = document.getElementById('btn-quality');
+    if (STATE.quality === 'high') {
+        STATE.quality = 'low';
+        renderer.setPixelRatio(1);
+        renderer.shadowMap.enabled = false;
+        qBtn.textContent = 'GRAPHICS: LOW';
+    } else {
+        STATE.quality = 'high';
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.shadowMap.enabled = true;
+        qBtn.textContent = 'GRAPHICS: HIGH';
+    }
+    scene.traverse((child) => { if (child.material) child.material.needsUpdate = true; });
+};
+
+manager.onProgress = function (url, itemsLoaded, itemsTotal) { 
+    const loadingTextEl = document.getElementById('loading-text');
+    const loadingBar = document.getElementById('loading-progress-bar');
+    if (loadingTextEl) loadingTextEl.innerText = `INITIALIZING ASSETS... ${Math.round((itemsLoaded/itemsTotal)*100)}%`; 
+    if (loadingBar) loadingBar.style.width = `${(itemsLoaded/itemsTotal)*100}%`;
+};
+
+manager.onLoad = function () { 
     const ls = document.getElementById('loading-screen'); 
     if(ls) {
         ls.classList.add('fade-out'); 
-        setTimeout(() => ls.remove(), 1000); 
+        setTimeout(() => { ls.remove(); document.getElementById('next-main-menu').classList.add('visible'); }, 800); 
     }
-    animate(); 
-}
-
-manager.onLoad = function () { forceStartEngine(); };
-manager.onProgress = function (url, itemsLoaded, itemsTotal) { 
-    const loadingTextEl = document.getElementById('loading-text');
-    if (loadingTextEl) loadingTextEl.innerText = `LOADING TEXTURES (${itemsLoaded}/${itemsTotal})...`; 
 };
-manager.onError = function (url) { console.error('Failed to load asset: ' + url); };
-
-setTimeout(() => { if(!engineStarted) { forceStartEngine(); } }, 8000);
 
 const TEX = { 
-    stars: 'stars_milky_way.webp', 
-    sun: 'sun.webp', 
-    earthMap: 'earth.webp', 
-    moon: 'moon.webp', 
-    mercury: 'mercury.webp', 
-    venus: 'venus.webp', 
-    mars: 'mars.webp', 
-    jupiter: 'jupiter.webp', 
-    saturn: 'saturn.webp', 
-    uranus: 'uranus.webp', 
-    neptune: 'neptune.webp', 
-    pluto: 'pluto.webp' 
+    stars: 'stars_milky_way.webp', sun: 'sun.webp', earthMap: 'earth.webp', moon: 'moon.webp', 
+    mercury: 'mercury.webp', venus: 'venus.webp', mars: 'mars.webp', jupiter: 'jupiter.webp', 
+    saturn: 'saturn.webp', uranus: 'uranus.webp', neptune: 'neptune.webp', pluto: 'pluto.webp' 
 };
 
-let uiIsVisible = false; 
+// --- UI STATE MANAGER (Prevents Collisions) ---
 window.toggleMainUI = function() { 
-    uiIsVisible = !uiIsVisible; 
-    document.querySelector('.ui-top').classList.toggle('ui-hidden'); 
-    document.querySelector('.ui-bottom').classList.toggle('ui-hidden'); 
-    document.getElementById('fastTravelDropdown').style.display = 'none'; 
+    STATE.uiVisible = !STATE.uiVisible; 
+    const topHud = document.getElementById('hud-top');
+    if(STATE.uiVisible) { topHud.classList.add('visible'); } 
+    else { topHud.classList.remove('visible'); window.closeInfoPanel(); window.closeWarpMenu(); }
 };
 
-function enterFullscreen() {
-    const d = document.documentElement; 
-    if (d.requestFullscreen) d.requestFullscreen().catch(()=>{}); 
-    if (screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(()=>{}); 
-}
+window.toggleWarpMenu = function() { 
+    const m = document.getElementById('fastTravelDropdown'); 
+    if (STATE.activeMenu === 'warp') {
+        window.closeWarpMenu();
+    } else {
+        window.closeInfoPanel(); // Block overlap
+        m.style.display = 'block';
+        STATE.activeMenu = 'warp';
+    }
+}; 
 
-document.getElementById('landscape-prompt').addEventListener('click', function() { this.style.display = 'none'; enterFullscreen(); });
-document.getElementById('resume-prompt').addEventListener('click', function() { this.style.display = 'none'; enterFullscreen(); });
-document.addEventListener('fullscreenchange', () => {
-    const resumePrompt = document.getElementById('resume-prompt');
-    const initPrompt = document.getElementById('landscape-prompt');
-    if (!document.fullscreenElement && initPrompt.style.display === 'none') { resumePrompt.style.display = 'flex'; }
-});
-
-window.toggleFullScreen = function() { enterFullscreen(); }; 
-window.toggleWarpMenu = function() { const m = document.getElementById('fastTravelDropdown'); m.style.display = m.style.display === 'block' ? 'none' : 'block'; }; 
+window.closeWarpMenu = function() {
+    document.getElementById('fastTravelDropdown').style.display = 'none'; 
+    if(STATE.activeMenu === 'warp') STATE.activeMenu = null;
+};
 
 window.closeInfoPanel = function() { 
     document.getElementById('info-panel').classList.remove('visible'); 
-    const audioEl = document.getElementById('planet-audio');
-    if (audioEl) { audioEl.pause(); audioEl.currentTime = 0; }
+    if(STATE.activeMenu === 'info') STATE.activeMenu = null;
 };
 
-window.freeCamera = function() { followTargetObj = null; isFollowing = false; targetCamPos = null; targetLookAt = null; isWarping = false; controls.enablePan = true; document.getElementById('btnFreeCam').style.display = 'none'; document.getElementById('targetName').textContent = "Free Camera"; document.getElementById('objType').textContent = "Unlocked"; document.getElementById('speedVal').textContent = "---"; };
+window.freeCamera = function() { 
+    followTargetObj = null; isFollowing = false; targetCamPos = null; targetLookAt = null; isWarping = false; 
+    controls.enablePan = true; 
+    document.getElementById('btnFreeCam').style.display = 'none'; 
+    document.getElementById('targetName').textContent = "Free Camera"; 
+};
 
 const textureLoader = new THREE.TextureLoader(manager);
-
 function applyAdvancedFiltering(texture) {
-    texture.colorSpace = THREE.SRGBColorSpace;
-    texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
-    texture.minFilter = THREE.LinearMipmapLinearFilter;
-    texture.magFilter = THREE.LinearFilter;
-    texture.generateMipmaps = true;
+    texture.colorSpace = THREE.SRGBColorSpace; texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+    texture.minFilter = THREE.LinearMipmapLinearFilter; texture.magFilter = THREE.LinearFilter; texture.generateMipmaps = true;
     return texture;
 }
 
+// --- TOUCH OPTIMIZED CONTROLS ---
 const controls = new OrbitControls(camera, renderer.domElement); 
-controls.enableDamping = true; controls.dampingFactor = 0.05; controls.enablePan = false; controls.zoomSpeed = 0.6; controls.maxDistance = 500000; controls.minDistance = 2;
-let timeMultiplier = 1.0;
+controls.enableDamping = true; 
+controls.dampingFactor = 0.05; // Smooth touch damping
+controls.enablePan = false; 
+controls.zoomSpeed = 0.8; // Tuned for pinch-to-zoom
+controls.maxDistance = 500000; 
+controls.minDistance = 2;
 
 const LOCATIONS = {
   home: { pos: new THREE.Vector3(0, 0, 0), offset: new THREE.Vector3(0, 40, 100) },
@@ -140,36 +180,33 @@ const LOCATIONS = {
   supernova: { pos: new THREE.Vector3(50000, 5000, 40000), offset: new THREE.Vector3(0, 400, 1500) } 
 };
 
+// --- TEXTURE GENERATION ---
 function generateTexture(stops) { const c = document.createElement('canvas'); c.width = 512; c.height = 512; const ctx = c.getContext('2d'); const g = ctx.createRadialGradient(256, 256, 0, 256, 256, 256); stops.forEach(s => g.addColorStop(s[0], s[1])); ctx.fillStyle = g; ctx.fillRect(0,0,512,512); return new THREE.CanvasTexture(c); }
 const starTex = generateTexture([[0,'rgba(255,255,255,1)'], [0.1,'rgba(255,255,255,0.8)'], [0.3,'rgba(255,255,255,0.2)'], [1,'rgba(0,0,0,0)']]);
 
 function createBalancedSmokyTex(r, g, b) { 
     const c = document.createElement('canvas'); c.width = 128; c.height = 128; const ctx = c.getContext('2d'); 
     const grad = ctx.createRadialGradient(64, 64, 10, 64, 64, 64); 
-    grad.addColorStop(0, `rgba(${r},${g},${b},0.3)`); 
-    grad.addColorStop(0.5, `rgba(${r},${g},${b},0.1)`); 
-    grad.addColorStop(1, 'rgba(0,0,0,0)'); 
-    ctx.fillStyle = grad; ctx.fillRect(0,0,128,128); 
-    return new THREE.CanvasTexture(c); 
+    grad.addColorStop(0, `rgba(${r},${g},${b},0.3)`); grad.addColorStop(0.5, `rgba(${r},${g},${b},0.1)`); grad.addColorStop(1, 'rgba(0,0,0,0)'); 
+    ctx.fillStyle = grad; ctx.fillRect(0,0,128,128); return new THREE.CanvasTexture(c); 
 }
-const dustTex = createBalancedSmokyTex(255, 110, 30); 
-const gasTex = createBalancedSmokyTex(40, 130, 255);
+const dustTex = createBalancedSmokyTex(255, 110, 30); const gasTex = createBalancedSmokyTex(40, 130, 255);
 
 const universeGroup = new THREE.Group(); scene.add(universeGroup); const interactables = [];
 
+// Skybox
 const skyGeo = new THREE.SphereGeometry(800000, 64, 64);
 const skyMat = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.BackSide, depthWrite: false });
 textureLoader.load(TEX.stars, (texture) => { skyMat.map = applyAdvancedFiltering(texture); skyMat.needsUpdate = true; });
 scene.add(new THREE.Mesh(skyGeo, skyMat));
 
-// --- PROXIMA CENTAURI ---
+// --- ASSET SPAWNING ---
 const proxGroup = new THREE.Group(); proxGroup.position.copy(LOCATIONS.proxima.pos); universeGroup.add(proxGroup);
 const proxStar = new THREE.Mesh(new THREE.SphereGeometry(2.5, 32, 32), new THREE.MeshBasicMaterial({ color: 0xff3300 }));
 const proxGlow1 = new THREE.Sprite(new THREE.SpriteMaterial({ map: starTex, color: 0xff3300, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false })); proxGlow1.scale.set(40, 40, 1); proxStar.add(proxGlow1);
 const proxGlow2 = new THREE.Sprite(new THREE.SpriteMaterial({ map: starTex, color: 0xff6600, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending, depthWrite: false })); proxGlow2.scale.set(80, 80, 1); proxStar.add(proxGlow2);
 proxStar.userData = { name: "Proxima Centauri", size: 2.5 }; interactables.push(proxStar); proxGroup.add(proxStar);
 
-// --- CARINA NEBULA (Optimized) ---
 const orionGroup = new THREE.Group(); orionGroup.position.copy(LOCATIONS.orion.pos); universeGroup.add(orionGroup);
 for(let i=0; i<18; i++) {
     let isDust = Math.random() > 0.4; 
@@ -190,24 +227,20 @@ function createDiskTex() {
 }
 const diskTexCache = createDiskTex();
 
-// --- BINARY BLACK HOLE MERGER ---
 const mergerGroup = new THREE.Group(); mergerGroup.position.copy(LOCATIONS.supernova.pos); universeGroup.add(mergerGroup);
 const bh1Pivot = new THREE.Group(); mergerGroup.add(bh1Pivot);
 const bh1 = new THREE.Mesh(new THREE.SphereGeometry(30, 32, 32), new THREE.MeshBasicMaterial({ color: 0x000000 })); bh1.position.x = -80;
 const disk1 = new THREE.Mesh(new THREE.TorusGeometry(80, 25, 32, 100), new THREE.MeshBasicMaterial({ color: 0xff4411, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false }));
 disk1.rotation.x = Math.PI / 1.5; disk1.rotation.y = 0.2; bh1.add(disk1); bh1Pivot.add(bh1);
-
 const bh2Pivot = new THREE.Group(); mergerGroup.add(bh2Pivot);
 const bh2 = new THREE.Mesh(new THREE.SphereGeometry(25, 32, 32), new THREE.MeshBasicMaterial({ color: 0x000000 })); bh2.position.x = 80;
 const disk2 = new THREE.Mesh(new THREE.TorusGeometry(70, 20, 32, 100), new THREE.MeshBasicMaterial({ color: 0x2288ff, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false }));
 disk2.rotation.x = Math.PI / 2.5; disk2.rotation.y = -0.2; bh2.add(disk2); bh2Pivot.add(bh2);
-
 const clashGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: starTex, color: 0xffffff, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending, depthWrite: false }));
 clashGlow.scale.set(400, 400, 1); mergerGroup.add(clashGlow);
 const mergerHit = new THREE.Mesh(new THREE.SphereGeometry(200, 16, 16), new THREE.MeshBasicMaterial({ visible: false }));
 mergerHit.userData = { name: "Binary Black Hole Merger", size: 200 }; interactables.push(mergerHit); mergerGroup.add(mergerHit);
 
-// --- SAGITTARIUS A* ---
 const sagGroup = new THREE.Group(); sagGroup.position.copy(LOCATIONS.sagA.pos); universeGroup.add(sagGroup);
 const eventHorizon = new THREE.Mesh(new THREE.SphereGeometry(150, 64, 64), new THREE.MeshBasicMaterial({ color: 0x000000 })); 
 eventHorizon.userData = { name: "Sagittarius A*", size: 150 }; interactables.push(eventHorizon); sagGroup.add(eventHorizon);
@@ -216,7 +249,6 @@ accretionSag.rotation.x = Math.PI / 1.7; sagGroup.add(accretionSag);
 const bhGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: starTex, color: 0xffcc88, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending, depthWrite: false }));
 bhGlow.scale.set(3000, 3000, 1); sagGroup.add(bhGlow);
 
-// --- MAGNETIC PULSAR ---
 const pulsarGroup = new THREE.Group(); pulsarGroup.position.copy(LOCATIONS.vela.pos); universeGroup.add(pulsarGroup);
 const neutronStar = new THREE.Mesh(new THREE.SphereGeometry(8, 32, 32), new THREE.MeshBasicMaterial({ color: 0xffffff })); 
 neutronStar.userData = { name: "Magnetic Pulsar", size: 8 }; interactables.push(neutronStar); pulsarGroup.add(neutronStar);
@@ -226,9 +258,9 @@ const jetGeo = new THREE.CylinderGeometry(0, 10, 2000, 32, 1, true); const jetMa
 const pJet1 = new THREE.Mesh(jetGeo, jetMat); pJet1.position.y = 1000; pulsarGroup.add(pJet1); const pJet2 = new THREE.Mesh(jetGeo, jetMat); pJet2.position.y = -1000; pJet2.rotation.x = Math.PI; pulsarGroup.add(pJet2);
 for(let i=0; i<3; i++) { let torus = new THREE.Mesh(new THREE.TorusGeometry(60, 0.5, 16, 64), new THREE.MeshBasicMaterial({color: 0x00ffff, transparent: true, opacity: 0.4, blending: THREE.AdditiveBlending, depthWrite: false})); torus.rotation.y = (Math.PI / 3) * i; torus.rotation.x = Math.PI / 2; pulsarGroup.add(torus); }
 
-// --- SOLAR SYSTEM & MASTER LIGHTING ---
+// --- SOLAR SYSTEM ---
 const solarSystem = new THREE.Group(); solarSystem.position.copy(LOCATIONS.home.pos); universeGroup.add(solarSystem);
-solarSystem.add(new THREE.AmbientLight(0x555577, 0.7)); // Essential ambient base light
+solarSystem.add(new THREE.AmbientLight(0x555577, 0.7)); 
 
 const sunMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
 textureLoader.load(TEX.sun, (texture) => { sunMat.map = applyAdvancedFiltering(texture); sunMat.needsUpdate = true; });
@@ -237,15 +269,12 @@ sunMesh.userData = { name: "Sun", size: 6.0 }; interactables.push(sunMesh); sola
 const sunGlowEffect = new THREE.Sprite(new THREE.SpriteMaterial({ map: starTex, color: 0xfff0e0, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending, depthWrite: false })); 
 sunGlowEffect.scale.set(30, 30, 1); sunMesh.add(sunGlowEffect);
 
-// V17 STABILITY FIX: Perfect Ray-Traced Shadows
-// By setting shadow.camera.near to 10.0, the shadow engine completely ignores the Sun's 6.0 radius mesh!
-// This means the light escapes perfectly, BUT the planets still cast gorgeous shadows!
 const sunLight = new THREE.PointLight(0xffffee, 3.5, 0, 0); 
 sunLight.castShadow = true; 
-sunLight.shadow.mapSize.width = 2048; // High-res AAA shadow map
+sunLight.shadow.mapSize.width = 2048; 
 sunLight.shadow.mapSize.height = 2048; 
 sunLight.shadow.bias = -0.002;
-sunLight.shadow.camera.near = 10.0; // The magic fix to bypass self-shadowing
+sunLight.shadow.camera.near = 10.0; // Prevent self-shadowing lag
 solarSystem.add(sunLight); 
 
 const planets = [
@@ -267,19 +296,14 @@ planets.forEach(p => {
   ringGeo.setFromPoints(points); solarSystem.add(new THREE.Line(ringGeo, new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.08 })));
   
   const pivot = new THREE.Group(); solarSystem.add(pivot);
-  
   let pMat = new THREE.MeshStandardMaterial({ roughness: 0.7, metalness: 0.1 });
   let texPath = p.name === 'Earth' ? TEX.earthMap : (TEX[p.type] || TEX.moon);
   if (p.name === 'Pluto') texPath = TEX.pluto;
   
-  textureLoader.load(texPath, (texture) => {
-      pMat.map = applyAdvancedFiltering(texture);
-      pMat.needsUpdate = true;
-  });
+  textureLoader.load(texPath, (texture) => { pMat.map = applyAdvancedFiltering(texture); pMat.needsUpdate = true; });
   
   const pMesh = new THREE.Mesh(new THREE.SphereGeometry(p.size, 64, 64), pMat);
-  pMesh.position.x = p.radius; pMesh.rotation.z = p.tilt; 
-  pMesh.castShadow = true; pMesh.receiveShadow = true; // Shadows are perfectly restored
+  pMesh.position.x = p.radius; pMesh.rotation.z = p.tilt; pMesh.castShadow = true; pMesh.receiveShadow = true; 
   pivot.add(pMesh); p.pivot = pivot; p.mesh = pMesh; planetObjects[p.name] = p;
   pMesh.userData = { name: p.name, size: p.size }; interactables.push(pMesh);
   
@@ -303,23 +327,16 @@ planets.forEach(p => {
           const mPivot = new THREE.Group(); pMesh.add(mPivot);
           let mMat = new THREE.MeshStandardMaterial({ roughness: 0.8 });
           if(m.color) mMat.color.setHex(m.color);
-          
-          textureLoader.load(TEX.moon, (texture) => {
-              mMat.map = applyAdvancedFiltering(texture);
-              mMat.needsUpdate = true;
-          });
-          
+          textureLoader.load(TEX.moon, (texture) => { mMat.map = applyAdvancedFiltering(texture); mMat.needsUpdate = true; });
           const mMesh = new THREE.Mesh(new THREE.SphereGeometry(m.size, 32, 32), mMat);
           mMesh.position.x = m.r; mMesh.castShadow = true; mMesh.receiveShadow = true;
           mPivot.add(mMesh); mMesh.userData = { name: m.name, size: m.size }; interactables.push(mMesh);
           p.moonObjs.push({ pivot: mPivot, speed: m.speed });
-          const mGeo = new THREE.BufferGeometry(); const mPts = [];
-          for(let i=0; i<=60; i++) { let t = (i/60)*Math.PI*2; mPts.push(new THREE.Vector3(Math.cos(t)*m.r, 0, Math.sin(t)*m.r)); }
-          mGeo.setFromPoints(mPts); pMesh.add(new THREE.Line(mGeo, new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.15 })));
       });
   }
 });
 
+// --- WARP DRIVE LOGIC ---
 const warpLinesGeo = new THREE.BufferGeometry(); const warpLinePos = [];
 for(let i=0; i<4000; i++) { const r = 30 + Math.random() * 800; const theta = Math.random() * Math.PI * 2; const z = -Math.random() * 10000; warpLinePos.push(r * Math.cos(theta), r * Math.sin(theta), z); warpLinePos.push(r * Math.cos(theta), r * Math.sin(theta), z - (200 + Math.random() * 600)); }
 warpLinesGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(warpLinePos), 3));
@@ -329,19 +346,19 @@ camera.add(warpLines3D); scene.add(camera);
 let isWarping = false; let warpStartPos = new THREE.Vector3(); let warpEndPos = new THREE.Vector3(); let warpLookAt = new THREE.Vector3(); let warpProgress = 0;
 
 window.initiateWarp = function(destCode) {
-  window.toggleWarpMenu(); window.freeCamera(); window.closeInfoPanel();
+  window.closeWarpMenu(); window.freeCamera();
   const dest = LOCATIONS[destCode]; warpStartPos.copy(camera.position); warpEndPos.copy(dest.pos).add(dest.offset); warpLookAt.copy(dest.pos);
   const flash = document.getElementById('warp-flash'); flash.style.opacity = '1'; 
   setTimeout(() => { isWarping = true; warpProgress = 0; controls.enablePan = false; warpLines3D.position.z = 0; flash.style.opacity = '0'; }, 300);
 };
 
-document.getElementById('timeSpeed').addEventListener('input', (e) => { timeMultiplier = parseFloat(e.target.value); document.getElementById('speedUiVal').textContent = timeMultiplier.toFixed(1) + "x"; });
-
+// --- RAYCASTER & LOCK-ON ---
 const raycaster = new THREE.Raycaster(); const mouse = new THREE.Vector2(); let followTargetObj = null; let targetCamPos = null; let targetLookAt = null; let isFollowing = false; let lastTargetPos = new THREE.Vector3();
 
 window.addEventListener('pointerdown', (event) => {
-    if (isWarping) return;
-    if(event.target.tagName === 'BUTTON' || event.target.tagName === 'INPUT' || event.target.closest('.hud-panel') || event.target.closest('#info-panel') || event.target.closest('.fullscreen-prompt')) return; 
+    if (isWarping || !STATE.engineStarted) return;
+    if(event.target.tagName === 'BUTTON' || event.target.tagName === 'INPUT' || event.target.closest('.hud-panel') || event.target.closest('#info-panel')) return; 
+    
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1; 
     mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
     raycaster.setFromCamera(mouse, camera);
@@ -353,32 +370,19 @@ window.addEventListener('pointerdown', (event) => {
 
 function triggerLockOn(mesh, name, size) {
     followTargetObj = mesh; isFollowing = false; 
+    
+    // UI State Manager: Close Warp menu if open
+    window.closeWarpMenu();
+
     if(DATABASE[name]) {
         document.getElementById('infoTitle').textContent = name; document.getElementById('infoType').textContent = DATABASE[name].type;
         const factsList = document.getElementById('infoFactsList'); factsList.innerHTML = ''; 
         DATABASE[name].facts.forEach(fact => { let li = document.createElement('li'); li.textContent = fact; factsList.appendChild(li); });
         
-        // V17 STABILITY FIX: Audio logic safely restored to prevent layout jumping
-        const audioData = DATABASE[name].audio;
-        const audioCont = document.getElementById('audio-container');
-        const audioEl = document.getElementById('planet-audio');
-        if (audioCont && audioEl) {
-            if(audioData && audioData !== "") {
-                audioEl.src = audioData;
-                audioCont.style.opacity = '1';
-                audioCont.style.pointerEvents = 'auto';
-                audioCont.style.display = 'block';
-            } else {
-                audioEl.src = "";
-                audioCont.style.opacity = '0.3';
-                audioCont.style.pointerEvents = 'none';
-                audioCont.style.display = 'block';
-            }
-        }
-
         document.getElementById('info-panel').classList.add('visible');
+        STATE.activeMenu = 'info';
     }
-    document.getElementById('btnFreeCam').style.display = 'block'; document.getElementById('targetName').textContent = name; document.getElementById('objType').textContent = DATABASE[name] ? DATABASE[name].type : "Stellar Body";
+    document.getElementById('btnFreeCam').style.display = 'block'; document.getElementById('targetName').textContent = name;
     
     const wPos = new THREE.Vector3(); mesh.getWorldPosition(wPos); targetLookAt = wPos.clone();
     let safeDistance = Math.max(size * 4, 15);
@@ -389,59 +393,70 @@ function triggerLockOn(mesh, name, size) {
     controls.target.copy(targetLookAt); controls.enablePan = false; 
 }
 
-function calculateDistanceTracker() {
-  const earthWorldPos = new THREE.Vector3(); planetObjects['Earth'].mesh.getWorldPosition(earthWorldPos); const distRaw = camera.position.distanceTo(earthWorldPos);
-  document.getElementById('distVal').textContent = distRaw < 1000 ? (distRaw / 26).toFixed(4) + " AU" : (distRaw / 100).toFixed(2) + " Light Years";
-}
+// --- APP LIFECYCLE (Battery Saver) ---
+document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+        STATE.appPaused = true;
+        menuBGM.pause();
+    } else {
+        STATE.appPaused = false;
+        if(STATE.engineStarted) menuBGM.play().catch(()=>{});
+    }
+});
 
 camera.position.set(0, 40, 100); 
 targetCamPos = LOCATIONS.home.pos.clone().add(new THREE.Vector3(0, 80, 200));
 targetLookAt = LOCATIONS.home.pos.clone();
 controls.target.copy(targetLookAt); controls.update();
 
+// --- ANIMATION LOOP ---
 function animate() {
-  requestAnimationFrame(animate);
-  sunMesh.rotation.y += 0.002 * timeMultiplier; 
-  pulsarGroup.rotation.z += 0.08 * timeMultiplier; pulsarGroup.rotation.y += 0.04 * timeMultiplier;
-  sagGroup.rotation.y -= 0.005 * timeMultiplier; 
-  bh1Pivot.rotation.y += 0.04 * timeMultiplier; bh2Pivot.rotation.y += 0.04 * timeMultiplier;
+  if(!STATE.appPaused) { // Halt rendering if app is backgrounded
+      updateFPS();
+      
+      sunMesh.rotation.y += 0.002; 
+      pulsarGroup.rotation.z += 0.08; pulsarGroup.rotation.y += 0.04;
+      sagGroup.rotation.y -= 0.005; 
+      bh1Pivot.rotation.y += 0.04; bh2Pivot.rotation.y += 0.04;
 
-  planets.forEach(p => { 
-      p.pivot.rotation.y += p.speed * timeMultiplier; p.mesh.rotation.y += 0.01 * timeMultiplier; 
-      if (p.cloudMesh) p.cloudMesh.rotation.y += 0.002 * timeMultiplier; 
-      if (p.moonObjs) p.moonObjs.forEach(mo => { mo.pivot.rotation.y += mo.speed * timeMultiplier; });
-  });
+      planets.forEach(p => { 
+          p.pivot.rotation.y += p.speed; p.mesh.rotation.y += 0.01; 
+          if (p.cloudMesh) p.cloudMesh.rotation.y += 0.002; 
+          if (p.moonObjs) p.moonObjs.forEach(mo => { mo.pivot.rotation.y += mo.speed; });
+      });
 
-  if (isWarping) {
-    warpProgress += 0.015; 
-    let ease = warpProgress < 0.5 ? 4 * Math.pow(warpProgress, 3) : 1 - Math.pow(-2 * warpProgress + 2, 3) / 2;
-    camera.position.lerpVectors(warpStartPos, warpEndPos, ease); controls.target.lerpVectors(controls.target, warpLookAt, ease);
-    let intensity = Math.sin(warpProgress * Math.PI);
-    warpLines3D.material.opacity = intensity * 1.0; warpLines3D.scale.z = 1 + (intensity * 30); 
-    warpLines3D.position.z += 800 * timeMultiplier; if (warpLines3D.position.z > 10000) warpLines3D.position.z = 0; 
-    warpLines3D.rotation.z += 0.02; 
-    camera.fov = 45 + (intensity * 75); camera.updateProjectionMatrix();
-    if (warpProgress >= 1) { 
-        isWarping = false; warpLines3D.material.opacity = 0; warpLines3D.scale.z = 1; warpLines3D.position.z = 0; camera.fov = 45; camera.updateProjectionMatrix(); 
-        camera.position.copy(warpEndPos); controls.target.copy(warpLookAt);
-        const flash = document.getElementById('warp-flash'); flash.style.transition = 'none'; flash.style.opacity = '1'; setTimeout(() => { flash.style.transition = 'opacity 0.6s'; flash.style.opacity = '0'; }, 50);
-    }
-  } else {
-    if (targetCamPos && targetLookAt) {
-      camera.position.lerp(targetCamPos, 0.06); 
-      controls.target.lerp(targetLookAt, 0.06);
-      if (camera.position.distanceTo(targetCamPos) < 0.5) { 
-        targetCamPos = null; targetLookAt = null; isFollowing = true; 
-        if (followTargetObj) { followTargetObj.getWorldPosition(lastTargetPos); } 
-        else { followTargetObj = sunMesh; followTargetObj.getWorldPosition(lastTargetPos); }
+      if (isWarping) {
+        warpProgress += 0.015; 
+        let ease = warpProgress < 0.5 ? 4 * Math.pow(warpProgress, 3) : 1 - Math.pow(-2 * warpProgress + 2, 3) / 2;
+        camera.position.lerpVectors(warpStartPos, warpEndPos, ease); controls.target.lerpVectors(controls.target, warpLookAt, ease);
+        let intensity = Math.sin(warpProgress * Math.PI);
+        warpLines3D.material.opacity = intensity * 1.0; warpLines3D.scale.z = 1 + (intensity * 30); 
+        warpLines3D.position.z += 800; if (warpLines3D.position.z > 10000) warpLines3D.position.z = 0; 
+        warpLines3D.rotation.z += 0.02; 
+        camera.fov = 45 + (intensity * 75); camera.updateProjectionMatrix();
+        if (warpProgress >= 1) { 
+            isWarping = false; warpLines3D.material.opacity = 0; warpLines3D.scale.z = 1; warpLines3D.position.z = 0; camera.fov = 45; camera.updateProjectionMatrix(); 
+            camera.position.copy(warpEndPos); controls.target.copy(warpLookAt);
+            const flash = document.getElementById('warp-flash'); flash.style.transition = 'none'; flash.style.opacity = '1'; setTimeout(() => { flash.style.transition = 'opacity 0.6s'; flash.style.opacity = '0'; }, 50);
+        }
+      } else {
+        if (targetCamPos && targetLookAt) {
+          camera.position.lerp(targetCamPos, 0.06); controls.target.lerp(targetLookAt, 0.06);
+          if (camera.position.distanceTo(targetCamPos) < 0.5) { 
+            targetCamPos = null; targetLookAt = null; isFollowing = true; 
+            if (followTargetObj) { followTargetObj.getWorldPosition(lastTargetPos); } 
+            else { followTargetObj = sunMesh; followTargetObj.getWorldPosition(lastTargetPos); }
+          }
+        } else if (isFollowing && followTargetObj) {
+          const currentWorldPos = new THREE.Vector3(); followTargetObj.getWorldPosition(currentWorldPos); controls.target.copy(currentWorldPos);
+          const delta = currentWorldPos.clone().sub(lastTargetPos); camera.position.add(delta); lastTargetPos.copy(currentWorldPos);
+        }
       }
-    } else if (isFollowing && followTargetObj) {
-      const currentWorldPos = new THREE.Vector3(); followTargetObj.getWorldPosition(currentWorldPos); controls.target.copy(currentWorldPos);
-      const delta = currentWorldPos.clone().sub(lastTargetPos); camera.position.add(delta); lastTargetPos.copy(currentWorldPos);
-    }
+      controls.update(); renderer.render(scene, camera);
   }
-  calculateDistanceTracker(); controls.update(); renderer.render(scene, camera);
+  requestAnimationFrame(animate);
 }
+
 window.addEventListener('resize', () => { 
     camera.aspect = window.innerWidth / window.innerHeight; 
     camera.updateProjectionMatrix(); 

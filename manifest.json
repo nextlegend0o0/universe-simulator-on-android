@@ -1,9 +1,17 @@
 {
   "name": "Project NEXT: Colossal Universe",
   "short_name": "Project NEXT",
+  "description": "An immersive, hardware-accelerated 3D cosmic simulator featuring celestial mechanics and cinematic space exploration.",
   "start_url": "./index.html",
   "display": "fullscreen",
   "background_color": "#000000",
   "theme_color": "#000000",
-  "orientation": "landscape"
+  "orientation": "landscape",
+  "icons": [
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
 }

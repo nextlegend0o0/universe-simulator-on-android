@@ -1,6 +1,6 @@
 /* =========================================
-   VA 17 MASTER SIMULATION ENGINE (main.js)
-   FINAL POLISH: GITHUB SUBPATH & TEXTURE FIX
+   PROJECT NEXT: COLOSSAL UNIVERSE (main.js)
+   FINAL PRE-APK POLISH & OPTIMIZATION
    ========================================= */
 
 import * as THREE from 'three';
@@ -41,7 +41,6 @@ let engineStarted = false;
 function forceStartEngine() {
     if(engineStarted) return; 
     engineStarted = true;
-    
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -54,25 +53,15 @@ function forceStartEngine() {
     animate(); 
 }
 
-manager.onLoad = function () { 
-    forceStartEngine();
-};
+manager.onLoad = function () { forceStartEngine(); };
 manager.onProgress = function (url, itemsLoaded, itemsTotal) { 
     const loadingTextEl = document.getElementById('loading-text');
     if (loadingTextEl) loadingTextEl.innerText = `LOADING TEXTURES (${itemsLoaded}/${itemsTotal})...`; 
 };
-manager.onError = function (url) { 
-    console.error('Failed to load asset: ' + url); 
-};
+manager.onError = function (url) { console.error('Failed to load asset: ' + url); };
 
-// FAILSAFE: Force start after 8 seconds max
-setTimeout(() => {
-    if(!engineStarted) {
-        forceStartEngine();
-    }
-}, 8000);
+setTimeout(() => { if(!engineStarted) { forceStartEngine(); } }, 8000);
 
-// FIX: Clean relative paths without './' to support GitHub Pages subpaths perfectly
 const TEX = { 
     stars: 'stars_milky_way.webp', 
     sun: 'sun.webp', 
@@ -97,22 +86,12 @@ function enterFullscreen() {
     if (screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(()=>{}); 
 }
 
-document.getElementById('landscape-prompt').addEventListener('click', function() {
-    this.style.display = 'none';
-    enterFullscreen();
-});
-
-document.getElementById('resume-prompt').addEventListener('click', function() {
-    this.style.display = 'none';
-    enterFullscreen();
-});
-
+document.getElementById('landscape-prompt').addEventListener('click', function() { this.style.display = 'none'; enterFullscreen(); });
+document.getElementById('resume-prompt').addEventListener('click', function() { this.style.display = 'none'; enterFullscreen(); });
 document.addEventListener('fullscreenchange', () => {
     const resumePrompt = document.getElementById('resume-prompt');
     const initPrompt = document.getElementById('landscape-prompt');
-    if (!document.fullscreenElement && initPrompt.style.display === 'none') {
-        resumePrompt.style.display = 'flex';
-    }
+    if (!document.fullscreenElement && initPrompt.style.display === 'none') { resumePrompt.style.display = 'flex'; }
 });
 
 window.toggleFullScreen = function() { enterFullscreen(); }; 
@@ -121,8 +100,7 @@ window.toggleWarpMenu = function() { const m = document.getElementById('fastTrav
 window.closeInfoPanel = function() { 
     document.getElementById('info-panel').classList.remove('visible'); 
     const audioEl = document.getElementById('planet-audio');
-    audioEl.pause();
-    audioEl.currentTime = 0;
+    audioEl.pause(); audioEl.currentTime = 0;
 };
 
 window.freeCamera = function() { followTargetObj = null; isFollowing = false; targetCamPos = null; targetLookAt = null; isWarping = false; controls.enablePan = true; document.getElementById('btnFreeCam').style.display = 'none'; document.getElementById('targetName').textContent = "Free Camera"; document.getElementById('objType').textContent = "Unlocked"; document.getElementById('speedVal').textContent = "---"; };
@@ -152,8 +130,19 @@ const LOCATIONS = {
 
 function generateTexture(stops) { const c = document.createElement('canvas'); c.width = 512; c.height = 512; const ctx = c.getContext('2d'); const g = ctx.createRadialGradient(256, 256, 0, 256, 256, 256); stops.forEach(s => g.addColorStop(s[0], s[1])); ctx.fillStyle = g; ctx.fillRect(0,0,512,512); return new THREE.CanvasTexture(c); }
 const starTex = generateTexture([[0,'rgba(255,255,255,1)'], [0.1,'rgba(255,255,255,0.8)'], [0.3,'rgba(255,255,255,0.2)'], [1,'rgba(0,0,0,0)']]);
-function createSmokyTex(r, g, b) { const c = document.createElement('canvas'); c.width = 128; c.height = 128; const ctx = c.getContext('2d'); const grad = ctx.createRadialGradient(64, 64, 10, 64, 64, 64); grad.addColorStop(0, `rgba(${r},${g},${b},0.6)`); grad.addColorStop(0.5, `rgba(${r},${g},${b},0.2)`); grad.addColorStop(1, 'rgba(0,0,0,0)'); ctx.fillStyle = grad; ctx.fillRect(0,0,128,128); return new THREE.CanvasTexture(c); }
-const dustTex = createSmokyTex(255, 120, 40); const gasTex = createSmokyTex(50, 150, 255);
+
+// OPTIMIZED NEBULA: Lowered count and opacity to eliminate lag and blinding blowout
+function createBalancedSmokyTex(r, g, b) { 
+    const c = document.createElement('canvas'); c.width = 128; c.height = 128; const ctx = c.getContext('2d'); 
+    const grad = ctx.createRadialGradient(64, 64, 10, 64, 64, 64); 
+    grad.addColorStop(0, `rgba(${r},${g},${b},0.3)`); 
+    grad.addColorStop(0.5, `rgba(${r},${g},${b},0.1)`); 
+    grad.addColorStop(1, 'rgba(0,0,0,0)'); 
+    ctx.fillStyle = grad; ctx.fillRect(0,0,128,128); 
+    return new THREE.CanvasTexture(c); 
+}
+const dustTex = createBalancedSmokyTex(255, 110, 30); 
+const gasTex = createBalancedSmokyTex(40, 130, 255);
 
 const universeGroup = new THREE.Group(); scene.add(universeGroup); const interactables = [];
 
@@ -169,11 +158,12 @@ const proxGlow2 = new THREE.Sprite(new THREE.SpriteMaterial({ map: starTex, colo
 proxStar.userData = { name: "Proxima Centauri", size: 2.5 }; interactables.push(proxStar); proxGroup.add(proxStar);
 
 const orionGroup = new THREE.Group(); orionGroup.position.copy(LOCATIONS.orion.pos); universeGroup.add(orionGroup);
-for(let i=0; i<40; i++) {
+// OPTIMIZED COUNT: Reduced from 40 to 18 to fix mobile GPU lag and overdraw
+for(let i=0; i<18; i++) {
     let isDust = Math.random() > 0.4; 
-    let sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: isDust ? dustTex : gasTex, transparent: true, opacity: isDust ? 0.3 : 0.4, blending: THREE.AdditiveBlending, depthWrite: false }));
+    let sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: isDust ? dustTex : gasTex, transparent: true, opacity: isDust ? 0.2 : 0.25, blending: THREE.AdditiveBlending, depthWrite: false }));
     sprite.position.set((Math.random()-0.5)*4000, (Math.random()-0.5)*2000, (Math.random()-0.5)*4000);
-    let scale = 1500 + Math.random()*2000; sprite.scale.set(scale, scale, 1); orionGroup.add(sprite);
+    let scale = 1200 + Math.random()*1500; sprite.scale.set(scale, scale, 1); orionGroup.add(sprite);
 }
 const orionCore = new THREE.Mesh(new THREE.SphereGeometry(800, 16, 16), new THREE.MeshBasicMaterial({ visible: false }));
 orionGroup.add(orionCore); orionCore.userData = { name: "Carina Stellar Nursery", size: 800 }; interactables.push(orionCore);
@@ -222,7 +212,7 @@ const pJet1 = new THREE.Mesh(jetGeo, jetMat); pJet1.position.y = 1000; pulsarGro
 for(let i=0; i<3; i++) { let torus = new THREE.Mesh(new THREE.TorusGeometry(60, 0.5, 16, 64), new THREE.MeshBasicMaterial({color: 0x00ffff, transparent: true, opacity: 0.4, blending: THREE.AdditiveBlending, depthWrite: false})); torus.rotation.y = (Math.PI / 3) * i; torus.rotation.x = Math.PI / 2; pulsarGroup.add(torus); }
 
 const solarSystem = new THREE.Group(); solarSystem.position.copy(LOCATIONS.home.pos); universeGroup.add(solarSystem);
-solarSystem.add(new THREE.AmbientLight(0x222233, 0.4)); 
+solarSystem.add(new THREE.AmbientLight(0x444466, 0.6)); // Balanced ambient light so unlit sides never render pitch-black
 
 const sunMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
 textureLoader.load(TEX.sun, (texture) => { sunMat.map = applyAdvancedFiltering(texture); sunMat.needsUpdate = true; });
@@ -231,7 +221,7 @@ sunMesh.userData = { name: "Sun", size: 6.0 }; interactables.push(sunMesh); sola
 const sunGlowEffect = new THREE.Sprite(new THREE.SpriteMaterial({ map: starTex, color: 0xfff0e0, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending, depthWrite: false })); 
 sunGlowEffect.scale.set(30, 30, 1); sunMesh.add(sunGlowEffect);
 
-const sunLight = new THREE.PointLight(0xffffee, 2.0, 6000); 
+const sunLight = new THREE.PointLight(0xffffee, 2.5, 6000); 
 sunLight.castShadow = true; sunLight.shadow.mapSize.width = 1024; sunLight.shadow.mapSize.height = 1024; sunLight.shadow.bias = -0.005;
 solarSystem.add(sunLight); 
 
@@ -255,7 +245,8 @@ planets.forEach(p => {
   
   const pivot = new THREE.Group(); solarSystem.add(pivot);
   
-  let pMat = new THREE.MeshPhongMaterial({ shininess: 10 });
+  // UPGRADED MATERIAL: MeshStandardMaterial ensures textures always render correctly with lighting
+  let pMat = new THREE.MeshStandardMaterial({ roughness: 0.7, metalness: 0.1 });
   let texPath = p.name === 'Earth' ? TEX.earthMap : (TEX[p.type] || TEX.moon);
   if (p.name === 'Pluto') texPath = TEX.pluto;
   
@@ -270,14 +261,14 @@ planets.forEach(p => {
   pMesh.userData = { name: p.name, size: p.size }; interactables.push(pMesh);
   
   if (p.name === 'Earth') {
-      const cloudMesh = new THREE.Mesh(new THREE.SphereGeometry(p.size * 1.015, 64, 64), new THREE.MeshPhongMaterial({ color: 0xffffff, transparent: true, opacity: 0.15, depthWrite: false }));
+      const cloudMesh = new THREE.Mesh(new THREE.SphereGeometry(p.size * 1.015, 64, 64), new THREE.MeshStandardMaterial({ color: 0xffffff, transparent: true, opacity: 0.2, depthWrite: false }));
       cloudMesh.receiveShadow = true; pMesh.add(cloudMesh); p.cloudMesh = cloudMesh;
   }
   if (p.hasRings) {
       const sRings = new THREE.Group();
       [1.5, 1.8, 2.2, 2.5].forEach((r, idx) => {
           let op = [0.8, 0.6, 0.9, 0.8][idx]; let col = [0xd2b48c, 0xcd853f, 0xf5deb3, 0xd2b48c][idx];
-          let rm = new THREE.MeshPhongMaterial({ color: col, transparent: true, opacity: op, side: THREE.DoubleSide });
+          let rm = new THREE.MeshStandardMaterial({ color: col, transparent: true, opacity: op, side: THREE.DoubleSide });
           let rMesh = new THREE.Mesh(new THREE.TorusGeometry(p.size * r, 0.05, 16, 100), rm);
           rMesh.receiveShadow = true; rMesh.castShadow = true; sRings.add(rMesh);
       });
@@ -287,7 +278,7 @@ planets.forEach(p => {
       p.moonObjs = [];
       p.moons.forEach(m => {
           const mPivot = new THREE.Group(); pMesh.add(mPivot);
-          const mMat = new THREE.MeshPhongMaterial({ shininess: 5 });
+          let mMat = new THREE.MeshStandardMaterial({ roughness: 0.8 });
           if(m.color) mMat.color.setHex(m.color);
           
           textureLoader.load(TEX.moon, (texture) => {
@@ -327,18 +318,11 @@ const raycaster = new THREE.Raycaster(); const mouse = new THREE.Vector2(); let 
 
 window.addEventListener('pointerdown', (event) => {
     if (isWarping) return;
-    
-    if(event.target.tagName === 'BUTTON' || 
-       event.target.tagName === 'INPUT' || 
-       event.target.closest('.hud-panel') || 
-       event.target.closest('#info-panel') ||
-       event.target.closest('.fullscreen-prompt')) return; 
-       
+    if(event.target.tagName === 'BUTTON' || event.target.tagName === 'INPUT' || event.target.closest('.hud-panel') || event.target.closest('#info-panel') || event.target.closest('.fullscreen-prompt')) return; 
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1; 
     mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
     raycaster.setFromCamera(mouse, camera);
     const intersects = raycaster.intersectObjects(interactables, false);
-    
     if(intersects.length > 0) {
         triggerLockOn(intersects[0].object, intersects[0].object.userData.name, intersects[0].object.userData.size);
     }
@@ -354,32 +338,29 @@ function triggerLockOn(mesh, name, size) {
         const audioData = DATABASE[name].audio;
         const audioCont = document.getElementById('audio-container');
         const audioEl = document.getElementById('planet-audio');
+        
+        // STABLE AUDIO CONTAINER: Always visible slot with disabled state if no audio exists
         if(audioData && audioData !== "") {
             audioEl.src = audioData;
-            audioCont.style.display = 'block';
+            audioCont.style.opacity = '1';
+            audioCont.style.pointerEvents = 'auto';
         } else {
             audioEl.src = "";
-            audioCont.style.display = 'none';
+            audioCont.style.opacity = '0.3';
+            audioCont.style.pointerEvents = 'none';
         }
 
         document.getElementById('info-panel').classList.add('visible');
     }
     document.getElementById('btnFreeCam').style.display = 'block'; document.getElementById('targetName').textContent = name; document.getElementById('objType').textContent = DATABASE[name] ? DATABASE[name].type : "Stellar Body";
     
-    const wPos = new THREE.Vector3(); 
-    mesh.getWorldPosition(wPos); 
-    targetLookAt = wPos.clone();
-
+    const wPos = new THREE.Vector3(); mesh.getWorldPosition(wPos); targetLookAt = wPos.clone();
     let safeDistance = Math.max(size * 4, 15);
-    if (name === "Magnetic Pulsar") {
-        safeDistance = 300; 
-    } else if (name === "Sagittarius A*" || name === "Binary Black Hole Merger") {
-        safeDistance = 500; 
-    }
+    if (name === "Magnetic Pulsar") safeDistance = 300; 
+    else if (name === "Sagittarius A*" || name === "Binary Black Hole Merger") safeDistance = 500; 
 
     targetCamPos = new THREE.Vector3(wPos.x + safeDistance, wPos.y + (safeDistance / 2), wPos.z + safeDistance);
-    controls.target.copy(targetLookAt); 
-    controls.enablePan = false; 
+    controls.target.copy(targetLookAt); controls.enablePan = false; 
 }
 
 function calculateDistanceTracker() {
@@ -390,8 +371,7 @@ function calculateDistanceTracker() {
 camera.position.set(0, 40, 100); 
 targetCamPos = LOCATIONS.home.pos.clone().add(new THREE.Vector3(0, 80, 200));
 targetLookAt = LOCATIONS.home.pos.clone();
-controls.target.copy(targetLookAt);
-controls.update();
+controls.target.copy(targetLookAt); controls.update();
 
 function animate() {
   requestAnimationFrame(animate);
@@ -425,15 +405,9 @@ function animate() {
       camera.position.lerp(targetCamPos, 0.06); 
       controls.target.lerp(targetLookAt, 0.06);
       if (camera.position.distanceTo(targetCamPos) < 0.5) { 
-        targetCamPos = null; 
-        targetLookAt = null; 
-        isFollowing = true; 
-        if (followTargetObj) {
-            followTargetObj.getWorldPosition(lastTargetPos);
-        } else {
-            followTargetObj = sunMesh;
-            followTargetObj.getWorldPosition(lastTargetPos);
-        }
+        targetCamPos = null; targetLookAt = null; isFollowing = true; 
+        if (followTargetObj) { followTargetObj.getWorldPosition(lastTargetPos); } 
+        else { followTargetObj = sunMesh; followTargetObj.getWorldPosition(lastTargetPos); }
       }
     } else if (isFollowing && followTargetObj) {
       const currentWorldPos = new THREE.Vector3(); followTargetObj.getWorldPosition(currentWorldPos); controls.target.copy(currentWorldPos);

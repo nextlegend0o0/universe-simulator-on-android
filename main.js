@@ -1,11 +1,60 @@
-import * as THREE from 'three';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js';
-
 /* =========================================
    V17 MASTER SIMULATION ENGINE (main.js)
-   ES MODULE & KTX2 FATAL BUGFIX
+   NATIVE WEBP UPGRADE & DIAGNOSTIC CONSOLE
    ========================================= */
+
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+// --- DIAGNOSTIC HUD INJECTION ---
+const debugDiv = document.createElement('div');
+debugDiv.style.position = 'fixed';
+debugDiv.style.top = '10px';
+debugDiv.style.left = '10px';
+debugDiv.style.width = '90%';
+debugDiv.style.maxHeight = '40vh';
+debugDiv.style.overflowY = 'auto';
+debugDiv.style.backgroundColor = 'rgba(0, 0, 0, 0.9)';
+debugDiv.style.border = '1px solid red';
+debugDiv.style.color = 'lime';
+debugDiv.style.fontFamily = 'monospace';
+debugDiv.style.fontSize = '10px';
+debugDiv.style.zIndex = '9999999';
+debugDiv.style.padding = '10px';
+debugDiv.style.pointerEvents = 'none';
+document.body.appendChild(debugDiv);
+
+function logToScreen(msg, color='lime') {
+    const p = document.createElement('p');
+    p.style.color = color;
+    p.style.margin = '2px 0';
+    p.innerText = msg;
+    debugDiv.appendChild(p);
+    debugDiv.scrollTop = debugDiv.scrollHeight;
+}
+
+const origError = console.error;
+console.error = function(...args) {
+    logToScreen('[ERR] ' + args.join(' '), 'red');
+    origError.apply(console, args);
+};
+
+const origWarn = console.warn;
+console.warn = function(...args) {
+    logToScreen('[WARN] ' + args.join(' '), 'yellow');
+    origWarn.apply(console, args);
+};
+
+window.addEventListener('error', function(e) {
+    logToScreen('[SYS ERR] ' + e.message, 'red');
+});
+
+window.addEventListener('unhandledrejection', function(e) {
+    logToScreen('[WORKER/PROMISE ERR] ' + e.reason, 'orange');
+});
+
+logToScreen('V17 DIAGNOSTIC KERNEL ONLINE. WAITING FOR ERRORS...', 'cyan');
+// --------------------------------
 
 const DATABASE = {
   "Sun":{type:"G-Type Star", audio: "./audio/sun.mp3", facts:["It is a nearly perfect sphere of incredibly hot plasma.","Accounts for 99.86% of the total mass in the entire solar system.","The core temperature reaches a staggering 15 million degrees Celsius.","Composed primarily of Hydrogen (73%) and Helium (25%).","Light from the Sun takes approximately 8 minutes and 20 seconds to reach Earth.","It generates powerful solar winds that create the beautiful Auroras on Earth.","Its magnetic field flips completely every 11 years, causing solar maximums.","Over 1.3 million Earths could fit inside the Sun's volume.","In about 5 billion years, it will expand into a Red Giant and consume the inner planets.","It rotates faster at its equator (25 days) than at its poles (35 days)."]},
@@ -31,46 +80,54 @@ const DATABASE = {
 const manager = new THREE.LoadingManager();
 let engineStarted = false; 
 
-manager.onLoad = function () { 
+function forceStartEngine() {
     if(engineStarted) return; 
     engineStarted = true;
+    logToScreen('[SYS] ENGINE FORCE STARTED.', 'lime');
     const ls = document.getElementById('loading-screen'); 
     if(ls) {
         ls.classList.add('fade-out'); 
         setTimeout(() => ls.remove(), 1000); 
     }
     animate(); 
+}
+
+manager.onLoad = function () { 
+    logToScreen('[MANAGER] ALL ASSETS LOADED SUCCESSFULLY.', 'lime');
+    forceStartEngine();
 };
 manager.onProgress = function (u, i, t) { 
-    document.getElementById('loading-text').innerText = `LOADING HD TEXTURES...`; 
+    logToScreen(`[LOADER] Loaded: ${u} (${i}/${t})`, 'cyan');
+    const loadingTextEl = document.getElementById('loading-text');
+    if (loadingTextEl) loadingTextEl.innerText = `LOADING HD TEXTURES...`; 
 };
 manager.onError = function (url) { 
-    console.warn('Error loading missing file bypassed:', url); 
-    if(engineStarted) return; 
-    engineStarted = true;
-    const ls = document.getElementById('loading-screen'); 
-    if(ls) {
-        ls.classList.add('fade-out'); 
-        setTimeout(() => ls.remove(), 1000); 
-    }
-    animate(); 
+    console.error('[MANAGER ERR] FAILED TO LOAD: ' + url); 
 };
 
-// FAILSAFE: Force start after 8 seconds if KTX2 is blocked completely
+// FAILSAFE: Force start after 8 seconds if textures are blocked completely
 setTimeout(() => {
     if(!engineStarted) {
-        engineStarted = true;
-        const ls = document.getElementById('loading-screen'); 
-        if(ls) {
-            ls.classList.add('fade-out'); 
-            setTimeout(() => ls.remove(), 1000); 
-        }
-        animate();
+        logToScreen('[FAILSAFE] TEXTURE TIMEOUT. FORCING START...', 'yellow');
+        forceStartEngine();
     }
 }, 8000);
 
-// TEXTURES RE-MAPPED TO COMPRESSED KTX2 FILES - JPGs REMOVED
-const TEX = { stars: 'stars.ktx2', sun: 'sun.ktx2', earthMap: 'earth.ktx2', moon: 'moon.ktx2', mercury: 'mercury.ktx2', venus: 'venus.ktx2', mars: 'mars.ktx2', jupiter: 'jupiter.ktx2', saturn: 'saturn.ktx2', uranus: 'uranus.ktx2', neptune: 'neptune.ktx2', pluto: 'moon.ktx2' };
+// TEXTURES RE-MAPPED TO NEW NATIVE WEBP FILES
+const TEX = { 
+    stars: 'stars_milky_way.webp', 
+    sun: 'sun.webp', 
+    earthMap: 'earth.webp', 
+    moon: 'moon.webp', 
+    mercury: 'mercury.webp', 
+    venus: 'venus.webp', 
+    mars: 'mars.webp', 
+    jupiter: 'jupiter.webp', 
+    saturn: 'saturn.webp', 
+    uranus: 'uranus.webp', 
+    neptune: 'neptune.webp', 
+    pluto: 'pluto.webp' 
+};
 
 let uiIsVisible = false; 
 window.toggleMainUI = function() { uiIsVisible = !uiIsVisible; document.querySelector('.ui-top').classList.toggle('ui-hidden'); document.querySelector('.ui-bottom').classList.toggle('ui-hidden'); document.getElementById('fastTravelDropdown').style.display = 'none'; };
@@ -120,15 +177,14 @@ renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure
 renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 container.appendChild(renderer.domElement);
 
-const ktx2Loader = new KTX2Loader(manager)
-    .setTranscoderPath('https://unpkg.com/three@0.160.0/examples/jsm/libs/basis/')
-    .detectSupport(renderer);
+// NATIVE TEXTURE LOADER (REPLACES KTX2)
+const textureLoader = new THREE.TextureLoader(manager);
 
 const controls = new OrbitControls(camera, renderer.domElement); controls.enableDamping = true; controls.dampingFactor = 0.05; controls.enablePan = false; controls.zoomSpeed = 0.6; controls.maxDistance = 500000; controls.minDistance = 2;
 let timeMultiplier = 1.0;
 
 const LOCATIONS = {
-  home: { pos: new THREE.Vector3(0, 0, 0), offset: new THREE.Vector3(0, 80, 200) },
+  home: { pos: new THREE.Vector3(0, 0, 0), offset: new THREE.Vector3(0, 40, 100) },
   proxima: { pos: new THREE.Vector3(15000, 500, -15000), offset: new THREE.Vector3(0, 20, 80) }, 
   orion: { pos: new THREE.Vector3(-25000, -2000, 30000), offset: new THREE.Vector3(0, 1000, 4000) }, 
   vela: { pos: new THREE.Vector3(40000, 2000, -25000), offset: new THREE.Vector3(0, 200, 800) }, 
@@ -145,7 +201,7 @@ const universeGroup = new THREE.Group(); scene.add(universeGroup); const interac
 
 const skyGeo = new THREE.SphereGeometry(800000, 64, 64);
 const skyMat = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.BackSide, depthWrite: false });
-ktx2Loader.load(TEX.stars, (texture) => { skyMat.map = texture; skyMat.needsUpdate = true; });
+textureLoader.load(TEX.stars, (texture) => { skyMat.map = texture; skyMat.needsUpdate = true; }, undefined, (err) => console.error('[TEX FAIL] ' + TEX.stars + ': ' + err.message));
 scene.add(new THREE.Mesh(skyGeo, skyMat));
 
 const proxGroup = new THREE.Group(); proxGroup.position.copy(LOCATIONS.proxima.pos); universeGroup.add(proxGroup);
@@ -211,7 +267,7 @@ const solarSystem = new THREE.Group(); solarSystem.position.copy(LOCATIONS.home.
 solarSystem.add(new THREE.AmbientLight(0x222233, 0.4)); 
 
 const sunMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-ktx2Loader.load(TEX.sun, (texture) => { sunMat.map = texture; sunMat.needsUpdate = true; });
+textureLoader.load(TEX.sun, (texture) => { sunMat.map = texture; sunMat.needsUpdate = true; }, undefined, (err) => console.error('[TEX FAIL] ' + TEX.sun + ': ' + err.message));
 const sunMesh = new THREE.Mesh(new THREE.SphereGeometry(6.0, 64, 64), sunMat);
 sunMesh.userData = { name: "Sun", size: 6.0 }; interactables.push(sunMesh); solarSystem.add(sunMesh);
 const sunGlowEffect = new THREE.Sprite(new THREE.SpriteMaterial({ map: starTex, color: 0xfff0e0, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending, depthWrite: false })); 
@@ -246,10 +302,10 @@ planets.forEach(p => {
   
   if (p.name === 'Pluto') texPath = TEX.pluto;
   
-  ktx2Loader.load(texPath, (texture) => {
+  textureLoader.load(texPath, (texture) => {
       pMat.map = texture;
       pMat.needsUpdate = true;
-  });
+  }, undefined, (err) => console.error('[TEX FAIL] ' + texPath + ' (' + p.name + '): ' + err.message));
   
   const pMesh = new THREE.Mesh(new THREE.SphereGeometry(p.size, 64, 64), pMat);
   pMesh.position.x = p.radius; pMesh.rotation.z = p.tilt; pMesh.castShadow = true; pMesh.receiveShadow = true; 
@@ -277,10 +333,10 @@ planets.forEach(p => {
           const mMat = new THREE.MeshPhongMaterial({ shininess: 5 });
           if(m.color) mMat.color.setHex(m.color);
           
-          ktx2Loader.load(TEX.moon, (texture) => {
+          textureLoader.load(TEX.moon, (texture) => {
               mMat.map = texture;
               mMat.needsUpdate = true;
-          });
+          }, undefined, (err) => console.error('[TEX FAIL] ' + TEX.moon + ' (' + m.name + '): ' + err.message));
           
           const mMesh = new THREE.Mesh(new THREE.SphereGeometry(m.size, 32, 32), mMat);
           mMesh.position.x = m.r; mMesh.castShadow = true; mMesh.receiveShadow = true;
@@ -374,7 +430,7 @@ function calculateDistanceTracker() {
   document.getElementById('distVal').textContent = distRaw < 1000 ? (distRaw / 26).toFixed(4) + " AU" : (distRaw / 100).toFixed(2) + " Light Years";
 }
 
-camera.position.set(0, 80, 200); 
+camera.position.set(0, 40, 100); 
 targetCamPos = LOCATIONS.home.pos.clone().add(new THREE.Vector3(0, 80, 200));
 targetLookAt = LOCATIONS.home.pos.clone();
 controls.target.copy(targetLookAt);
@@ -430,4 +486,3 @@ function animate() {
   calculateDistanceTracker(); controls.update(); renderer.render(scene, camera);
 }
 window.addEventListener('resize', () => { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
-

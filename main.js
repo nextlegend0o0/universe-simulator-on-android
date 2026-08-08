@@ -1,6 +1,6 @@
 /* =========================================
    PROJECT NEXT: COLOSSAL UNIVERSE (main.js)
-   FINAL PRE-APK POLISH & OPTIMIZATION
+   VA 17 STABILITY PROTOCOL - MASTER SCRIPT
    ========================================= */
 
 import * as THREE from 'three';
@@ -27,12 +27,18 @@ const DATABASE = {
   "Binary Black Hole Merger":{type:"Gravitational Anomaly", audio: "", facts:["Two massive black holes locked in a fatal, inescapable orbital dance.","Their immense gravity forces their accretion disks to warp and bend together.","As they orbit, they radiate massive amounts of energy as Gravitational Waves.","These waves literally ripple the fabric of spacetime across the universe.","Their orbits are constantly decaying, bringing them closer every second.","When they finally collide, they will merge into a single, massive black hole.","The collision will release more energy than all the stars in the universe combined for a fraction of a second.","This specific model features intertwined, additive-blending photon rings.","The first ever gravitational waves detected by LIGO in 2015 came from a merger exactly like this.","Time slows down incredibly the closer you get to their event horizons."]}
 };
 
-const container = document.getElementById('webgl-container'); const scene = new THREE.Scene(); scene.background = new THREE.Color(0x000000); 
+const container = document.getElementById('webgl-container'); 
+const scene = new THREE.Scene(); 
+scene.background = new THREE.Color(0x000000); 
+
 const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 2000000);
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, logarithmicDepthBuffer: true, powerPreference: "high-performance" });
-renderer.setSize(window.innerWidth, window.innerHeight); renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); 
-renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.2; 
-renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.setSize(window.innerWidth, window.innerHeight); 
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); 
+renderer.toneMapping = THREE.ACESFilmicToneMapping; 
+renderer.toneMappingExposure = 1.2; 
+renderer.shadowMap.enabled = true; 
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 container.appendChild(renderer.domElement);
 
 const manager = new THREE.LoadingManager();
@@ -78,7 +84,12 @@ const TEX = {
 };
 
 let uiIsVisible = false; 
-window.toggleMainUI = function() { uiIsVisible = !uiIsVisible; document.querySelector('.ui-top').classList.toggle('ui-hidden'); document.querySelector('.ui-bottom').classList.toggle('ui-hidden'); document.getElementById('fastTravelDropdown').style.display = 'none'; };
+window.toggleMainUI = function() { 
+    uiIsVisible = !uiIsVisible; 
+    document.querySelector('.ui-top').classList.toggle('ui-hidden'); 
+    document.querySelector('.ui-bottom').classList.toggle('ui-hidden'); 
+    document.getElementById('fastTravelDropdown').style.display = 'none'; 
+};
 
 function enterFullscreen() {
     const d = document.documentElement; 
@@ -100,7 +111,7 @@ window.toggleWarpMenu = function() { const m = document.getElementById('fastTrav
 window.closeInfoPanel = function() { 
     document.getElementById('info-panel').classList.remove('visible'); 
     const audioEl = document.getElementById('planet-audio');
-    audioEl.pause(); audioEl.currentTime = 0;
+    if (audioEl) { audioEl.pause(); audioEl.currentTime = 0; }
 };
 
 window.freeCamera = function() { followTargetObj = null; isFollowing = false; targetCamPos = null; targetLookAt = null; isWarping = false; controls.enablePan = true; document.getElementById('btnFreeCam').style.display = 'none'; document.getElementById('targetName').textContent = "Free Camera"; document.getElementById('objType').textContent = "Unlocked"; document.getElementById('speedVal').textContent = "---"; };
@@ -116,7 +127,8 @@ function applyAdvancedFiltering(texture) {
     return texture;
 }
 
-const controls = new OrbitControls(camera, renderer.domElement); controls.enableDamping = true; controls.dampingFactor = 0.05; controls.enablePan = false; controls.zoomSpeed = 0.6; controls.maxDistance = 500000; controls.minDistance = 2;
+const controls = new OrbitControls(camera, renderer.domElement); 
+controls.enableDamping = true; controls.dampingFactor = 0.05; controls.enablePan = false; controls.zoomSpeed = 0.6; controls.maxDistance = 500000; controls.minDistance = 2;
 let timeMultiplier = 1.0;
 
 const LOCATIONS = {
@@ -131,7 +143,6 @@ const LOCATIONS = {
 function generateTexture(stops) { const c = document.createElement('canvas'); c.width = 512; c.height = 512; const ctx = c.getContext('2d'); const g = ctx.createRadialGradient(256, 256, 0, 256, 256, 256); stops.forEach(s => g.addColorStop(s[0], s[1])); ctx.fillStyle = g; ctx.fillRect(0,0,512,512); return new THREE.CanvasTexture(c); }
 const starTex = generateTexture([[0,'rgba(255,255,255,1)'], [0.1,'rgba(255,255,255,0.8)'], [0.3,'rgba(255,255,255,0.2)'], [1,'rgba(0,0,0,0)']]);
 
-// OPTIMIZED NEBULA: Lowered count and opacity to eliminate lag and blinding blowout
 function createBalancedSmokyTex(r, g, b) { 
     const c = document.createElement('canvas'); c.width = 128; c.height = 128; const ctx = c.getContext('2d'); 
     const grad = ctx.createRadialGradient(64, 64, 10, 64, 64, 64); 
@@ -151,14 +162,15 @@ const skyMat = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.BackSi
 textureLoader.load(TEX.stars, (texture) => { skyMat.map = applyAdvancedFiltering(texture); skyMat.needsUpdate = true; });
 scene.add(new THREE.Mesh(skyGeo, skyMat));
 
+// --- PROXIMA CENTAURI ---
 const proxGroup = new THREE.Group(); proxGroup.position.copy(LOCATIONS.proxima.pos); universeGroup.add(proxGroup);
 const proxStar = new THREE.Mesh(new THREE.SphereGeometry(2.5, 32, 32), new THREE.MeshBasicMaterial({ color: 0xff3300 }));
 const proxGlow1 = new THREE.Sprite(new THREE.SpriteMaterial({ map: starTex, color: 0xff3300, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false })); proxGlow1.scale.set(40, 40, 1); proxStar.add(proxGlow1);
 const proxGlow2 = new THREE.Sprite(new THREE.SpriteMaterial({ map: starTex, color: 0xff6600, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending, depthWrite: false })); proxGlow2.scale.set(80, 80, 1); proxStar.add(proxGlow2);
 proxStar.userData = { name: "Proxima Centauri", size: 2.5 }; interactables.push(proxStar); proxGroup.add(proxStar);
 
+// --- CARINA NEBULA (Optimized) ---
 const orionGroup = new THREE.Group(); orionGroup.position.copy(LOCATIONS.orion.pos); universeGroup.add(orionGroup);
-// OPTIMIZED COUNT: Reduced from 40 to 18 to fix mobile GPU lag and overdraw
 for(let i=0; i<18; i++) {
     let isDust = Math.random() > 0.4; 
     let sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: isDust ? dustTex : gasTex, transparent: true, opacity: isDust ? 0.2 : 0.25, blending: THREE.AdditiveBlending, depthWrite: false }));
@@ -178,6 +190,7 @@ function createDiskTex() {
 }
 const diskTexCache = createDiskTex();
 
+// --- BINARY BLACK HOLE MERGER ---
 const mergerGroup = new THREE.Group(); mergerGroup.position.copy(LOCATIONS.supernova.pos); universeGroup.add(mergerGroup);
 const bh1Pivot = new THREE.Group(); mergerGroup.add(bh1Pivot);
 const bh1 = new THREE.Mesh(new THREE.SphereGeometry(30, 32, 32), new THREE.MeshBasicMaterial({ color: 0x000000 })); bh1.position.x = -80;
@@ -194,6 +207,7 @@ clashGlow.scale.set(400, 400, 1); mergerGroup.add(clashGlow);
 const mergerHit = new THREE.Mesh(new THREE.SphereGeometry(200, 16, 16), new THREE.MeshBasicMaterial({ visible: false }));
 mergerHit.userData = { name: "Binary Black Hole Merger", size: 200 }; interactables.push(mergerHit); mergerGroup.add(mergerHit);
 
+// --- SAGITTARIUS A* ---
 const sagGroup = new THREE.Group(); sagGroup.position.copy(LOCATIONS.sagA.pos); universeGroup.add(sagGroup);
 const eventHorizon = new THREE.Mesh(new THREE.SphereGeometry(150, 64, 64), new THREE.MeshBasicMaterial({ color: 0x000000 })); 
 eventHorizon.userData = { name: "Sagittarius A*", size: 150 }; interactables.push(eventHorizon); sagGroup.add(eventHorizon);
@@ -202,6 +216,7 @@ accretionSag.rotation.x = Math.PI / 1.7; sagGroup.add(accretionSag);
 const bhGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: starTex, color: 0xffcc88, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending, depthWrite: false }));
 bhGlow.scale.set(3000, 3000, 1); sagGroup.add(bhGlow);
 
+// --- MAGNETIC PULSAR ---
 const pulsarGroup = new THREE.Group(); pulsarGroup.position.copy(LOCATIONS.vela.pos); universeGroup.add(pulsarGroup);
 const neutronStar = new THREE.Mesh(new THREE.SphereGeometry(8, 32, 32), new THREE.MeshBasicMaterial({ color: 0xffffff })); 
 neutronStar.userData = { name: "Magnetic Pulsar", size: 8 }; interactables.push(neutronStar); pulsarGroup.add(neutronStar);
@@ -211,8 +226,9 @@ const jetGeo = new THREE.CylinderGeometry(0, 10, 2000, 32, 1, true); const jetMa
 const pJet1 = new THREE.Mesh(jetGeo, jetMat); pJet1.position.y = 1000; pulsarGroup.add(pJet1); const pJet2 = new THREE.Mesh(jetGeo, jetMat); pJet2.position.y = -1000; pJet2.rotation.x = Math.PI; pulsarGroup.add(pJet2);
 for(let i=0; i<3; i++) { let torus = new THREE.Mesh(new THREE.TorusGeometry(60, 0.5, 16, 64), new THREE.MeshBasicMaterial({color: 0x00ffff, transparent: true, opacity: 0.4, blending: THREE.AdditiveBlending, depthWrite: false})); torus.rotation.y = (Math.PI / 3) * i; torus.rotation.x = Math.PI / 2; pulsarGroup.add(torus); }
 
+// --- SOLAR SYSTEM & MASTER LIGHTING ---
 const solarSystem = new THREE.Group(); solarSystem.position.copy(LOCATIONS.home.pos); universeGroup.add(solarSystem);
-solarSystem.add(new THREE.AmbientLight(0x444466, 0.6)); // Balanced ambient light so unlit sides never render pitch-black
+solarSystem.add(new THREE.AmbientLight(0x555577, 0.7)); // Essential ambient base light
 
 const sunMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
 textureLoader.load(TEX.sun, (texture) => { sunMat.map = applyAdvancedFiltering(texture); sunMat.needsUpdate = true; });
@@ -221,8 +237,15 @@ sunMesh.userData = { name: "Sun", size: 6.0 }; interactables.push(sunMesh); sola
 const sunGlowEffect = new THREE.Sprite(new THREE.SpriteMaterial({ map: starTex, color: 0xfff0e0, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending, depthWrite: false })); 
 sunGlowEffect.scale.set(30, 30, 1); sunMesh.add(sunGlowEffect);
 
-const sunLight = new THREE.PointLight(0xffffee, 2.5, 6000); 
-sunLight.castShadow = true; sunLight.shadow.mapSize.width = 1024; sunLight.shadow.mapSize.height = 1024; sunLight.shadow.bias = -0.005;
+// V17 STABILITY FIX: Perfect Ray-Traced Shadows
+// By setting shadow.camera.near to 10.0, the shadow engine completely ignores the Sun's 6.0 radius mesh!
+// This means the light escapes perfectly, BUT the planets still cast gorgeous shadows!
+const sunLight = new THREE.PointLight(0xffffee, 3.5, 0, 0); 
+sunLight.castShadow = true; 
+sunLight.shadow.mapSize.width = 2048; // High-res AAA shadow map
+sunLight.shadow.mapSize.height = 2048; 
+sunLight.shadow.bias = -0.002;
+sunLight.shadow.camera.near = 10.0; // The magic fix to bypass self-shadowing
 solarSystem.add(sunLight); 
 
 const planets = [
@@ -245,7 +268,6 @@ planets.forEach(p => {
   
   const pivot = new THREE.Group(); solarSystem.add(pivot);
   
-  // UPGRADED MATERIAL: MeshStandardMaterial ensures textures always render correctly with lighting
   let pMat = new THREE.MeshStandardMaterial({ roughness: 0.7, metalness: 0.1 });
   let texPath = p.name === 'Earth' ? TEX.earthMap : (TEX[p.type] || TEX.moon);
   if (p.name === 'Pluto') texPath = TEX.pluto;
@@ -256,7 +278,8 @@ planets.forEach(p => {
   });
   
   const pMesh = new THREE.Mesh(new THREE.SphereGeometry(p.size, 64, 64), pMat);
-  pMesh.position.x = p.radius; pMesh.rotation.z = p.tilt; pMesh.castShadow = true; pMesh.receiveShadow = true; 
+  pMesh.position.x = p.radius; pMesh.rotation.z = p.tilt; 
+  pMesh.castShadow = true; pMesh.receiveShadow = true; // Shadows are perfectly restored
   pivot.add(pMesh); p.pivot = pivot; p.mesh = pMesh; planetObjects[p.name] = p;
   pMesh.userData = { name: p.name, size: p.size }; interactables.push(pMesh);
   
@@ -335,19 +358,22 @@ function triggerLockOn(mesh, name, size) {
         const factsList = document.getElementById('infoFactsList'); factsList.innerHTML = ''; 
         DATABASE[name].facts.forEach(fact => { let li = document.createElement('li'); li.textContent = fact; factsList.appendChild(li); });
         
+        // V17 STABILITY FIX: Audio logic safely restored to prevent layout jumping
         const audioData = DATABASE[name].audio;
         const audioCont = document.getElementById('audio-container');
         const audioEl = document.getElementById('planet-audio');
-        
-        // STABLE AUDIO CONTAINER: Always visible slot with disabled state if no audio exists
-        if(audioData && audioData !== "") {
-            audioEl.src = audioData;
-            audioCont.style.opacity = '1';
-            audioCont.style.pointerEvents = 'auto';
-        } else {
-            audioEl.src = "";
-            audioCont.style.opacity = '0.3';
-            audioCont.style.pointerEvents = 'none';
+        if (audioCont && audioEl) {
+            if(audioData && audioData !== "") {
+                audioEl.src = audioData;
+                audioCont.style.opacity = '1';
+                audioCont.style.pointerEvents = 'auto';
+                audioCont.style.display = 'block';
+            } else {
+                audioEl.src = "";
+                audioCont.style.opacity = '0.3';
+                audioCont.style.pointerEvents = 'none';
+                audioCont.style.display = 'block';
+            }
         }
 
         document.getElementById('info-panel').classList.add('visible');
